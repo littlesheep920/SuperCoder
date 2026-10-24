@@ -1,0 +1,95 @@
+#!/bin/sh
+#
+# SuperCoder pre-commit hook.
+#
+# Enforces the checklist in docs/GIT_WORKFLOW.md section 3 so a commit cannot be
+# created from a red state.  Install once per clone:
+#
+#     git config core.hooksPath .githooks
+#
+# Bypass only for a commit that genuinely cannot run Python (e.g. an emergency
+# docs-only fix on a machine without a toolchain), and say so in the message:
+#
+#     SKIP_VALIDATION=1 git commit ...
+#
+# Everything this hook checks is also run by CI, so a bypass is caught there.
+
+set -e
+
+if [ "${SKIP_VALIDATION:-0}" = "1" ]; then
+    echo "[pre-commit] SKIP_VALIDATION=1 - skipping validators"
+    exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# Pick a Python interpreter. Prefer an explicit override, then the venv, then PATH.
+PYTHON="${SUPERCODER_PYTHON:-}"
+if [ -z "$PYTHON" ]; then
+    if [ -x ".venv/Scripts/python.exe" ]; then
+        PYTHON=".venv/Scripts/python.exe"
+    elif [ -x ".venv/bin/python" ]; then
+        PYTHON=".venv/bin/python"
+    else
+        PYTHON="python"
+    fi
+fi
+
+if ! command -v "$PYTHON" >/dev/null 2>&1; then
+    echo "[pre-commit] FAIL: python interpreter '$PYTHON' not found." >&2
+    echo "[pre-commit] Set SUPERCODER_PYTHON, or SKIP_VALIDATION=1 for docs-only commits." >&2
+    exit 1
+fi
+
+staged=$(git diff --cached --name-only)
+
+# 1. Refuse debug artefacts and secrets outright.
+blocked=$(printf '%s\n' "$staged" | grep -E '(^|/)__pycache__/|\.pyc$|(^|/)node_modules/|(^|/)dist/|(^|/)\.env$|(^|/)dev_tokens\.json$' || true)
+if [ -n "$blocked" ]; then
+    echo "[pre-commit] FAIL: these generated/sensitive paths must not be committed:" >&2
+    printf '  %s\n' "$blocked" >&2
+    exit 1
+fi
+
+# 2. Stage 0 static contracts.
+if printf '%s\n' "$staged" | grep -qE '^(schemas/|infra/|resources/|evals/|docs/|scripts/validate_stage0|apps/api/openapi)'; then
+    echo "[pre-commit] running Stage 0 validator..."
+    if ! "$PYTHON" scripts/validate_stage0.py --root . >/tmp/supercoder-stage0.log 2>&1; then
+        echo "[pre-commit] FAIL: Stage 0 validator did not pass. See below:" >&2
+        tail -n 40 /tmp/supercoder-stage0.log >&2
+        exit 1
+    fi
+fi
+
+# 3. Stage 1 validator (imports, full test suite, manifest).
+if printf '%s\n' "$staged" | grep -qE '^(apps/|tests/|scripts/)'; then
+    echo "[pre-commit] running Stage 1 validator..."
+    if ! "$PYTHON" scripts/validate_stage1.py >/tmp/supercoder-stage1.log 2>&1; then
+        echo "[pre-commit] FAIL: Stage 1 validator did not pass. See below:" >&2
+        tail -n 40 /tmp/supercoder-stage1.log >&2
+        exit 1
+    fi
+    grep -E 'tests: [0-9]+ run' /tmp/supercoder-stage1.log || true
+fi
+
+# 4. Compose syntax when the stack definition changed.
+if printf '%s\n' "$staged" | grep -qE '(^|/)docker-compose\.yml$|Dockerfile$|nginx\.conf$'; then
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+        echo "[pre-commit] validating docker compose file..."
+        if ! docker compose config --quiet; then
+            echo "[pre-commit] FAIL: docker-compose.yml is invalid." >&2
+            exit 1
+        fi
+    else
+        echo "[pre-commit] NOTE: docker compose unavailable; skipped compose syntax check."
+    fi
+fi
+
+# 5. Warn (do not block) when a frozen contract changes without the right type.
+if printf '%s\n' "$staged" | grep -qE '^(schemas/|infra/migrations/|apps/api/openapi\.stage0\.yaml|docs/API_CONTRACT\.md)'; then
+    echo "[pre-commit] NOTE: frozen contract files staged."
+    echo "[pre-commit]       Use a 'contract(...)' commit subject and record the impact."
+fi
+
+echo "[pre-commit] OK"
