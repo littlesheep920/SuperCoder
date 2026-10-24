@@ -352,6 +352,11 @@
       "path": "docs/GIT_WORKFLOW.md",
       "role": "Branch model, commit conventions, and pre-commit verification checklist.",
       "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/test_stage1_prd_guard.py",
+      "role": "Regression tests guarding PRD V2.0 architectural defaults (infrastructure opt-in, /v1 prefix).",
+      "authorship": "hand-authored"
     }
   ]
 }
