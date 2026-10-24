@@ -1,0 +1,104 @@
+# SuperCoder local development stack.
+#
+# Startup contract: `docker compose up --build` must produce a working stack
+# from a machine with no prior state. MySQL applies BOTH formal migrations in
+# filename order (0001 contract + 0002 Stage 1 identity/permission projections)
+# before any service that depends on them starts.
+
+services:
+  mysql:
+    # Pinned minor: the acceptance evidence was produced on MySQL 8.x and the
+    # `mysql_native_password` flag below exists only in the 8.0 series. MySQL
+    # 8.4 removed that plugin, so an unpinned `mysql:8` tag would silently move
+    # to a version where this command fails. Pin deliberately; revisit together
+    # with the auth-plugin flag, not before.
+    image: mysql:8.0.40
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SUPERCODER_MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: supercoder
+      MYSQL_USER: supercoder_local
+      MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      # docker-entrypoint-initdb.d executes every *.sql file exactly once, in
+      # lexicographic order, on a fresh data directory. Both migrations are
+      # required: the API maps six tables that only 0002 creates.
+      - ./infra/migrations/0001_stage0_contract.sql:/docker-entrypoint-initdb.d/0001_stage0_contract.sql:ro
+      - ./infra/migrations/0002_stage1_extensions.sql:/docker-entrypoint-initdb.d/0002_stage1_extensions.sql:ro
+    ports:
+      # Local inspection only; never expose this in a shared environment.
+      - "3306:3306"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      SUPERCODER_MYSQL_ENABLED: "true"
+      SUPERCODER_MYSQL_HOST: mysql
+      SUPERCODER_MYSQL_DATABASE: supercoder
+      SUPERCODER_MYSQL_USER: supercoder_local
+      SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
+      SUPERCODER_GIT_REPOSITORY_ROOT: /app
+      SUPERCODER_GIT_READ_ONLY: "true"
+      SUPERCODER_DEV_AUTH_TOKENS_FILE: /app/scripts/dev_tokens.json
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # One-shot migration/seed gate. It exits 0 only after every demo resource is
+  # registered, so `worker` cannot start against an empty governance database.
+  seed:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    # scripts/ is not an importable package, so invoke the file directly with
+    # the repository root on sys.path (set via WORKDIR in the image).
+    command: ["python", "scripts/seed_demo_resources.py"]
+    environment:
+      SUPERCODER_MYSQL_ENABLED: "true"
+      SUPERCODER_MYSQL_HOST: mysql
+      SUPERCODER_MYSQL_DATABASE: supercoder
+      SUPERCODER_MYSQL_USER: supercoder_local
+      SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
+      SUPERCODER_GIT_REPOSITORY_ROOT: /app
+      SUPERCODER_GIT_READ_ONLY: "true"
+      SUPERCODER_DEV_AUTH_TOKENS_FILE: /app/scripts/dev_tokens.json
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      SUPERCODER_MYSQL_ENABLED: "true"
+      SUPERCODER_MYSQL_HOST: mysql
+      SUPERCODER_MYSQL_DATABASE: supercoder
+      SUPERCODER_MYSQL_USER: supercoder_local
+      SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
+      SUPERCODER_GIT_REPOSITORY_ROOT: /app
+      SUPERCODER_GIT_READ_ONLY: "true"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api

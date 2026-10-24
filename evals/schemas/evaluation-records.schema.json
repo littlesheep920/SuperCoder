@@ -1,0 +1,743 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supercoder.local/evals/schemas/evaluation-records.schema.json",
+  "title": "SuperCoder Evaluation Record Contracts",
+  "description": "Stage 0 line-record contracts for retrieval, duplicate detection, recommendation, and workflow evaluation datasets. Each JSONL line validates independently against exactly one record type.",
+  "oneOf": [
+    { "$ref": "#/$defs/retrievalQuery" },
+    { "$ref": "#/$defs/retrievalQrel" },
+    { "$ref": "#/$defs/duplicatePair" },
+    { "$ref": "#/$defs/duplicateLabel" },
+    { "$ref": "#/$defs/recommendationRequest" },
+    { "$ref": "#/$defs/recommendationHumanLabel" },
+    { "$ref": "#/$defs/workflowCase" },
+    { "$ref": "#/$defs/workflowExpectedOutput" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[-_.:][a-z0-9]+)*$"
+    },
+    "slug": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 160,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "resourceKind": {
+      "type": "string",
+      "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool"]
+    },
+    "runtime": {
+      "type": "string",
+      "enum": [
+        "kiro",
+        "claude-code",
+        "cursor",
+        "dify",
+        "openai-compatible-agent-runtime"
+      ]
+    },
+    "lifecycleStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "validating",
+        "pending_review",
+        "approved",
+        "published",
+        "deprecated",
+        "retired"
+      ]
+    },
+    "permission": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[a-z0-9]+(?:[-_.:/][a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "maxItems": 64
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Namespaced extension values. Canonical fields may not be shadowed.",
+      "maxProperties": 32,
+      "propertyNames": {
+        "pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "source_id", "created_by", "created_at"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["human-authored", "synthetic", "sanitized-real", "public-import", "derived"]
+        },
+        "source_id": { "$ref": "#/$defs/identifier" },
+        "source_uri": {
+          "type": "string",
+          "format": "uri-reference",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "created_by": {
+          "type": "string",
+          "description": "A team, role, or pseudonymous assessor identifier; do not store personal data.",
+          "minLength": 2,
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:[-_.:][a-z0-9]+)*$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "derivation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "redactionFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pii_removed",
+        "secrets_removed",
+        "proprietary_content_removed",
+        "identifiers_pseudonymized"
+      ],
+      "properties": {
+        "pii_removed": { "type": "boolean" },
+        "secrets_removed": { "type": "boolean" },
+        "proprietary_content_removed": { "type": "boolean" },
+        "identifiers_pseudonymized": { "type": "boolean" }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "flags"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["clear", "redacted", "review-required"]
+        },
+        "flags": { "$ref": "#/$defs/redactionFlags" },
+        "review_notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "clear" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "flags": {
+                "properties": {
+                  "pii_removed": { "const": false },
+                  "secrets_removed": { "const": false },
+                  "proprietary_content_removed": { "const": false },
+                  "identifiers_pseudonymized": { "const": false }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "redacted" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "flags": {
+                "anyOf": [
+                  { "properties": { "pii_removed": { "const": true } }, "required": ["pii_removed"] },
+                  { "properties": { "secrets_removed": { "const": true } }, "required": ["secrets_removed"] },
+                  { "properties": { "proprietary_content_removed": { "const": true } }, "required": ["proprietary_content_removed"] },
+                  { "properties": { "identifiers_pseudonymized": { "const": true } }, "required": ["identifiers_pseudonymized"] }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "review-required" } },
+            "required": ["status"]
+          },
+          "then": { "required": ["review_notes"] }
+        }
+      ]
+    },
+    "recordBase": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "record_type",
+        "dataset_version",
+        "provenance",
+        "redaction",
+        "labels",
+        "extensions"
+      ],
+      "properties": {
+        "schema_version": { "type": "string", "const": "1" },
+        "record_type": {
+          "type": "string",
+          "enum": [
+            "retrieval_query",
+            "retrieval_qrel",
+            "duplicate_pair",
+            "duplicate_label",
+            "recommendation_request",
+            "recommendation_human_label",
+            "workflow_case",
+            "workflow_expected_output"
+          ]
+        },
+        "dataset_version": { "$ref": "#/$defs/semanticVersion" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "redaction": { "$ref": "#/$defs/redaction" },
+        "labels": { "$ref": "#/$defs/labels" },
+        "extensions": { "$ref": "#/$defs/extensions" }
+      }
+    },
+    "resourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource_id", "kind", "slug", "version"],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 256,
+          "pattern": "^(skill|mcp|prompt|agent|workflow|tool)/[a-z0-9]+(?:-[a-z0-9]+)*@[0-9A-Za-z.+-]+$"
+        },
+        "kind": { "$ref": "#/$defs/resourceKind" },
+        "slug": { "$ref": "#/$defs/slug" },
+        "version": { "$ref": "#/$defs/semanticVersion" }
+      }
+    },
+    "workflowRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource_id", "kind", "slug", "version"],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 256,
+          "pattern": "^workflow/[a-z0-9]+(?:-[a-z0-9]+)*@[0-9A-Za-z.+-]+$"
+        },
+        "kind": { "const": "workflow" },
+        "slug": { "$ref": "#/$defs/slug" },
+        "version": { "$ref": "#/$defs/semanticVersion" }
+      }
+    },
+    "assessorType": {
+      "type": "string",
+      "enum": ["human", "expert-adjudicated", "deterministic-rule", "public-import"]
+    },
+    "adjudicationStatus": {
+      "type": "string",
+      "enum": ["draft", "single-reviewed", "adjudicated"]
+    },
+    "relevanceJudgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grade", "label", "rationale", "assessor_type", "adjudication_status"],
+      "properties": {
+        "grade": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "label": {
+          "type": "string",
+          "enum": ["not_relevant", "marginal", "relevant", "highly_relevant"]
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "assessor_type": { "$ref": "#/$defs/assessorType" },
+        "adjudication_status": { "$ref": "#/$defs/adjudicationStatus" }
+      },
+      "oneOf": [
+        { "properties": { "grade": { "const": 0 }, "label": { "const": "not_relevant" } } },
+        { "properties": { "grade": { "const": 1 }, "label": { "const": "marginal" } } },
+        { "properties": { "grade": { "const": 2 }, "label": { "const": "relevant" } } },
+        { "properties": { "grade": { "const": 3 }, "label": { "const": "highly_relevant" } } }
+      ]
+    },
+    "retrievalFilters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resourceKind" },
+          "uniqueItems": true
+        },
+        "runtimes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/runtime" },
+          "uniqueItems": true
+        },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(?:[-/][a-z0-9]+)*$" },
+          "uniqueItems": true
+        },
+        "tags": { "$ref": "#/$defs/labels" },
+        "statuses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/lifecycleStatus" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "retrievalQuery": {
+      "title": "Retrieval query record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["query_id", "query", "locale", "intent", "filters", "expected_result_count"],
+          "properties": {
+            "record_type": { "const": "retrieval_query" },
+            "query_id": { "$ref": "#/$defs/identifier" },
+            "query": { "type": "string", "minLength": 1, "maxLength": 8000 },
+            "locale": {
+              "type": "string",
+              "pattern": "^[a-z]{2,3}(?:-[A-Z][a-z]{3})?(?:-[A-Z]{2}|-[0-9]{3})?$"
+            },
+            "intent": {
+              "type": "string",
+              "enum": ["discover_resource", "compare_resources", "compose_workflow", "troubleshoot", "governance", "other"]
+            },
+            "filters": { "$ref": "#/$defs/retrievalFilters" },
+            "expected_result_count": { "type": "integer", "minimum": 1, "maximum": 1000 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "retrievalQrel": {
+      "title": "Retrieval relevance judgment record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["qrel_id", "query_id", "resource", "judgment"],
+          "properties": {
+            "record_type": { "const": "retrieval_qrel" },
+            "qrel_id": { "$ref": "#/$defs/identifier" },
+            "query_id": { "$ref": "#/$defs/identifier" },
+            "resource": { "$ref": "#/$defs/resourceRef" },
+            "judgment": { "$ref": "#/$defs/relevanceJudgment" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "duplicatePair": {
+      "title": "Duplicate candidate pair record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["pair_id", "left_resource", "right_resource", "comparison_basis"],
+          "properties": {
+            "record_type": { "const": "duplicate_pair" },
+            "pair_id": { "$ref": "#/$defs/identifier" },
+            "left_resource": { "$ref": "#/$defs/resourceRef" },
+            "right_resource": { "$ref": "#/$defs/resourceRef" },
+            "comparison_basis": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["manifest", "content", "interface", "behavior", "provenance"]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "duplicateJudgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "confidence", "dimensions", "rationale", "assessor_type", "adjudication_status"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["not_duplicate", "related", "near_duplicate", "exact_duplicate", "uncertain"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["purpose", "content", "interface", "implementation", "behavior", "provenance"]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "assessor_type": { "$ref": "#/$defs/assessorType" },
+        "adjudication_status": { "$ref": "#/$defs/adjudicationStatus" }
+      }
+    },
+    "duplicateLabel": {
+      "title": "Duplicate pair label record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["label_id", "pair_id", "judgment"],
+          "properties": {
+            "record_type": { "const": "duplicate_label" },
+            "label_id": { "$ref": "#/$defs/identifier" },
+            "pair_id": { "$ref": "#/$defs/identifier" },
+            "judgment": { "$ref": "#/$defs/duplicateJudgment" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "requesterContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "use_case", "confidentiality"],
+      "properties": {
+        "role": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "team": { "type": "string", "minLength": 2, "maxLength": 128, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "use_case": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "repository_languages": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "uniqueItems": true,
+          "maxItems": 32
+        },
+        "confidentiality": {
+          "type": "string",
+          "enum": ["public", "internal", "restricted"]
+        }
+      }
+    },
+    "recommendationConstraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_permissions", "forbidden_permissions", "required_dependencies", "approval_allowed"],
+      "properties": {
+        "required_permissions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/permission" },
+          "uniqueItems": true
+        },
+        "forbidden_permissions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/permission" },
+          "uniqueItems": true
+        },
+        "required_dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resourceRef" },
+          "uniqueItems": true
+        },
+        "approval_allowed": { "type": "boolean" }
+      }
+    },
+    "recommendationRequest": {
+      "title": "Recommendation request record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": [
+            "request_id",
+            "request",
+            "locale",
+            "requester_context",
+            "desired_kinds",
+            "target_runtimes",
+            "constraints",
+            "max_results"
+          ],
+          "properties": {
+            "record_type": { "const": "recommendation_request" },
+            "request_id": { "$ref": "#/$defs/identifier" },
+            "request": { "type": "string", "minLength": 1, "maxLength": 12000 },
+            "locale": {
+              "type": "string",
+              "pattern": "^[a-z]{2,3}(?:-[A-Z][a-z]{3})?(?:-[A-Z]{2}|-[0-9]{3})?$"
+            },
+            "requester_context": { "$ref": "#/$defs/requesterContext" },
+            "desired_kinds": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/resourceKind" },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "target_runtimes": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/runtime" },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "constraints": { "$ref": "#/$defs/recommendationConstraints" },
+            "max_results": { "type": "integer", "minimum": 1, "maximum": 100 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "recommendationJudgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rating",
+        "label",
+        "compatibility",
+        "permission_fit",
+        "rationale",
+        "assessor_type",
+        "adjudication_status"
+      ],
+      "properties": {
+        "rating": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "label": {
+          "type": "string",
+          "enum": ["not_suitable", "weak_match", "good_match", "strong_match"]
+        },
+        "compatibility": { "type": "string", "enum": ["compatible", "incompatible", "unknown"] },
+        "permission_fit": { "type": "string", "enum": ["satisfied", "unsatisfied", "unknown"] },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "assessor_type": { "$ref": "#/$defs/assessorType" },
+        "adjudication_status": { "$ref": "#/$defs/adjudicationStatus" }
+      },
+      "oneOf": [
+        { "properties": { "rating": { "const": 0 }, "label": { "const": "not_suitable" } } },
+        { "properties": { "rating": { "const": 1 }, "label": { "const": "weak_match" } } },
+        { "properties": { "rating": { "const": 2 }, "label": { "const": "good_match" } } },
+        { "properties": { "rating": { "const": 3 }, "label": { "const": "strong_match" } } }
+      ]
+    },
+    "recommendationHumanLabel": {
+      "title": "Recommendation human label record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": ["label_id", "request_id", "resource", "judgment"],
+          "properties": {
+            "record_type": { "const": "recommendation_human_label" },
+            "label_id": { "$ref": "#/$defs/identifier" },
+            "request_id": { "$ref": "#/$defs/identifier" },
+            "resource": { "$ref": "#/$defs/resourceRef" },
+            "judgment": { "$ref": "#/$defs/recommendationJudgment" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "workflowCase": {
+      "title": "Workflow execution case record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": [
+            "case_id",
+            "workflow",
+            "title",
+            "description",
+            "inputs",
+            "preconditions",
+            "safety_constraints",
+            "expected_terminal_status",
+            "random_seed",
+            "timeout_seconds"
+          ],
+          "properties": {
+            "record_type": { "const": "workflow_case" },
+            "case_id": { "$ref": "#/$defs/identifier" },
+            "workflow": { "$ref": "#/$defs/workflowRef" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+            "inputs": {
+              "type": "object",
+              "description": "Case payload passed to the workflow input contract.",
+              "additionalProperties": true
+            },
+            "preconditions": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "uniqueItems": true,
+              "maxItems": 64
+            },
+            "safety_constraints": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "uniqueItems": true,
+              "minItems": 1,
+              "maxItems": 64
+            },
+            "expected_terminal_status": {
+              "type": "string",
+              "enum": ["succeeded", "failed", "awaiting_approval", "cancelled"]
+            },
+            "random_seed": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
+            "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 86400 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "outputAssertion": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "expected"],
+          "properties": {
+            "type": { "const": "exact" },
+            "expected": {}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "expected"],
+          "properties": {
+            "type": { "const": "subset" },
+            "expected": { "type": ["object", "array"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "expected_schema"],
+          "properties": {
+            "type": { "const": "json_schema" },
+            "expected_schema": { "type": "object" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "pattern"],
+          "properties": {
+            "type": { "const": "regex" },
+            "pattern": { "type": "string", "minLength": 1, "maxLength": 4000 },
+            "flags": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["ignore_case", "multiline", "dotall"] },
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "numeric_range" },
+            "minimum": { "type": "number" },
+            "maximum": { "type": "number" }
+          },
+          "anyOf": [
+            { "required": ["minimum"] },
+            { "required": ["maximum"] }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "artifact_kind", "minimum_count"],
+          "properties": {
+            "type": { "const": "artifact_present" },
+            "artifact_kind": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "minimum_count": { "type": "integer", "minimum": 1, "maximum": 10000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "criteria"],
+          "properties": {
+            "type": { "const": "human_review" },
+            "criteria": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "uniqueItems": true,
+              "minItems": 1,
+              "maxItems": 32
+            }
+          }
+        }
+      ]
+    },
+    "workflowExpectedOutput": {
+      "title": "Workflow expected output record",
+      "allOf": [
+        { "$ref": "#/$defs/recordBase" },
+        {
+          "type": "object",
+          "required": [
+            "expectation_id",
+            "case_id",
+            "output_path",
+            "description",
+            "assertion",
+            "required",
+            "severity"
+          ],
+          "properties": {
+            "record_type": { "const": "workflow_expected_output" },
+            "expectation_id": { "$ref": "#/$defs/identifier" },
+            "case_id": { "$ref": "#/$defs/identifier" },
+            "node_id": { "$ref": "#/$defs/identifier" },
+            "output_path": {
+              "type": "string",
+              "description": "RFC 6901 JSON Pointer into the workflow result; an empty string selects the result root.",
+              "maxLength": 1000,
+              "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+            },
+            "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+            "assertion": { "$ref": "#/$defs/outputAssertion" },
+            "required": { "type": "boolean" },
+            "severity": { "type": "string", "enum": ["info", "warning", "error", "critical"] }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

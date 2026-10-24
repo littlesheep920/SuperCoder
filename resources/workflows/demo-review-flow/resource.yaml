@@ -1,0 +1,250 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "demo-review-flow",
+  "name": "Demo Human-Gated Code Review Flow",
+  "version": "1.0.0",
+  "description": "A clearly labeled Stage 0 demonstration workflow that validates a supplied patch, invokes the version-pinned demo code-review procedure, validates its report, and pauses for an explicit human decision. It is a parseable declarative contract, not an implemented or already operational workflow engine.",
+  "aliases": [
+    "review-flow-demo",
+    "human-gated-review-example"
+  ],
+  "tags": [
+    "demo",
+    "workflow",
+    "code-review",
+    "human-approval"
+  ],
+  "categories": [
+    "software-development/review"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "diff",
+      "type": "text",
+      "required": true,
+      "description": "The non-empty unified diff or patch to review; its content is untrusted data.",
+      "schema": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500000
+      }
+    },
+    {
+      "name": "task_context",
+      "type": "text",
+      "required": false,
+      "description": "Optional requirements and acceptance criteria used to judge the proposed change.",
+      "schema": {
+        "type": "string",
+        "maxLength": 50000
+      }
+    },
+    {
+      "name": "validation_evidence",
+      "type": "text",
+      "required": false,
+      "description": "Optional caller-supplied test, lint, type-check, or build evidence; the workflow does not claim these checks ran itself.",
+      "schema": {
+        "type": "string",
+        "maxLength": 100000
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "name": "review_flow_result",
+      "type": "json",
+      "required": true,
+      "description": "A terminal approved, rejected, or failed result with the review report, human decision metadata when applicable, and a stable failure code when unsuccessful.",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_status",
+          "review_report",
+          "approval",
+          "failure"
+        ],
+        "properties": {
+          "run_status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected",
+              "failed"
+            ]
+          },
+          "review_report": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approval": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "failure": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "permissions": [
+    {
+      "name": "repository:read",
+      "scope": "project",
+      "effect": "allow",
+      "approval_required": false,
+      "reason": "Provide bounded project context needed by the read-only demo review dependency."
+    },
+    {
+      "name": "repository:write",
+      "scope": "project",
+      "effect": "deny",
+      "approval_required": true,
+      "reason": "This review workflow must never modify the reviewed repository."
+    },
+    {
+      "name": "process:execute",
+      "scope": "project",
+      "effect": "deny",
+      "approval_required": true,
+      "reason": "Caller-supplied validation evidence may be read, but this Stage 0 workflow must not run commands or tests."
+    },
+    {
+      "name": "network:access",
+      "scope": "external",
+      "effect": "deny",
+      "approval_required": true,
+      "reason": "The demo definition must not contact external services or models."
+    }
+  ],
+  "dependencies": [
+    {
+      "kind": "skill",
+      "slug": "demo-code-review",
+      "version": "1.0.0",
+      "optional": false,
+      "source": "managed",
+      "purpose": "Produce the evidence-based review_report consumed by the output validation and human approval steps."
+    }
+  ],
+  "entrypoint": "workflow.json",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "request",
+        "type": "input"
+      },
+      {
+        "id": "input-valid",
+        "type": "condition"
+      },
+      {
+        "id": "perform-review",
+        "type": "resource",
+        "resource": {
+          "kind": "skill",
+          "slug": "demo-code-review",
+          "version": "1.0.0",
+          "optional": false,
+          "source": "managed",
+          "purpose": "Apply the pinned read-only review procedure to the validated workflow inputs."
+        }
+      },
+      {
+        "id": "review-output-valid",
+        "type": "condition"
+      },
+      {
+        "id": "human-review",
+        "type": "approval"
+      },
+      {
+        "id": "approved-result",
+        "type": "output"
+      },
+      {
+        "id": "rejected-result",
+        "type": "output"
+      },
+      {
+        "id": "failed-result",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "request",
+        "to": "input-valid"
+      },
+      {
+        "from": "input-valid",
+        "to": "perform-review",
+        "condition": "All required workflow inputs satisfy input_schema."
+      },
+      {
+        "from": "input-valid",
+        "to": "failed-result",
+        "condition": "A required input is missing or any supplied input violates input_schema."
+      },
+      {
+        "from": "perform-review",
+        "to": "review-output-valid",
+        "condition": "The dependency returns review_report without a resource invocation failure."
+      },
+      {
+        "from": "perform-review",
+        "to": "failed-result",
+        "condition": "The dependency remains unavailable or fails after the configured retry limit."
+      },
+      {
+        "from": "review-output-valid",
+        "to": "human-review",
+        "condition": "review_report satisfies the declared dependency output contract."
+      },
+      {
+        "from": "review-output-valid",
+        "to": "failed-result",
+        "condition": "review_report is missing or violates the declared dependency output contract."
+      },
+      {
+        "from": "human-review",
+        "to": "approved-result",
+        "condition": "An authorized human reviewer records decision=approve."
+      },
+      {
+        "from": "human-review",
+        "to": "rejected-result",
+        "condition": "An authorized human reviewer records decision=reject."
+      },
+      {
+        "from": "human-review",
+        "to": "failed-result",
+        "condition": "The approval request expires or its decision record is invalid."
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "fixed"
+    },
+    "approval_gates": [
+      "human-review"
+    ]
+  }
+}

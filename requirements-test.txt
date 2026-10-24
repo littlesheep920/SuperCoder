@@ -1,0 +1,10 @@
+# Test-only dependencies, on top of requirements-stage1.lock.txt.
+# The API test suite drives the app through Starlette's TestClient, which needs
+# an ASGI-capable HTTP client.  These are NOT runtime dependencies: the container
+# images install only requirements-stage1.lock.txt.
+
+# Pinned for the same reproducibility reason as the runtime lock.
+-r requirements-stage1.lock.txt
+
+httpx==0.28.1
+httpx-sse==0.4.3

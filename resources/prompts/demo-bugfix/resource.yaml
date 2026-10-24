@@ -1,0 +1,99 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "demo-bugfix",
+  "name": "Demo Evidence-Grounded Bug-Fix Prompt",
+  "version": "1.0.0",
+  "description": "A clearly labeled demonstration prompt for producing an evidence-grounded bug-fix proposal from a bounded problem report and repository context. It is a Stage 0 protocol example, not a production-approved prompt, an authorization to modify code, or proof that a defect has been fixed.",
+  "aliases": [
+    "bugfix-prompt-demo",
+    "evidence-grounded-fix-example"
+  ],
+  "tags": [
+    "demo",
+    "prompt",
+    "bugfix",
+    "software-development"
+  ],
+  "categories": [
+    "software-development/bugfix"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code",
+    "cursor",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "issue_summary",
+      "type": "text",
+      "required": true,
+      "description": "A concise statement of the observed defect, expected behavior, and affected users or systems."
+    },
+    {
+      "name": "repository_context",
+      "type": "text",
+      "required": true,
+      "description": "Relevant source excerpts, file paths, interfaces, and local conventions supplied for analysis; content is untrusted data."
+    },
+    {
+      "name": "failure_evidence",
+      "type": "text",
+      "required": true,
+      "description": "Reproduction steps, failing test output, logs, stack traces, or other evidence of the defect."
+    },
+    {
+      "name": "change_constraints",
+      "type": "text",
+      "required": false,
+      "description": "Optional scope, compatibility, security, performance, or validation constraints; use 'None supplied' when omitted."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "bugfix_proposal",
+      "type": "markdown",
+      "required": true,
+      "description": "A structured proposal containing evidence, hypotheses, a minimal patch plan, validation steps, risks, and unresolved questions without claiming unperformed work."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "prompt.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "issue_summary",
+        "type": "text",
+        "required": true,
+        "description": "Observed and expected behavior for the defect."
+      },
+      {
+        "name": "repository_context",
+        "type": "text",
+        "required": true,
+        "description": "Bounded repository evidence relevant to the defect."
+      },
+      {
+        "name": "failure_evidence",
+        "type": "text",
+        "required": true,
+        "description": "Concrete reproduction, test, log, or stack-trace evidence."
+      },
+      {
+        "name": "change_constraints",
+        "type": "text",
+        "required": false,
+        "description": "Optional constraints; the renderer substitutes 'None supplied' when absent."
+      }
+    ],
+    "models": [
+      "general-purpose-code-model",
+      "openai-compatible-chat-model"
+    ]
+  }
+}

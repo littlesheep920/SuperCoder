@@ -1,0 +1,55 @@
+{
+  "description": "DEVELOPMENT-ONLY opaque token registry TEMPLATE. Copy this file to scripts/dev_tokens.json (git-ignored) before local runs: `Copy-Item scripts/dev_tokens.example.json scripts/dev_tokens.json`. Tokens are server-owned secrets that map to fixed identities; they are not client-supplied identity and must never be used in production. Production identity must come from a directory-synchronization adapter (HOLD).",
+  "tokens": [
+    {
+      "token": "dev-owner-token",
+      "subject_id": "user-owner",
+      "display_name": "Demo Owner",
+      "teams": ["platform-ai"],
+      "ui_role": "maintainer",
+      "organization_member": true,
+      "governance_roles": ["owner"],
+      "grants": ["resource:read", "resource:write", "job:read"]
+    },
+    {
+      "token": "dev-reviewer-token",
+      "subject_id": "user-reviewer",
+      "display_name": "Demo Reviewer",
+      "teams": ["platform-ai"],
+      "ui_role": "member",
+      "organization_member": true,
+      "governance_roles": ["reviewer"],
+      "grants": ["resource:read", "job:read"]
+    },
+    {
+      "token": "dev-publisher-token",
+      "subject_id": "user-publisher",
+      "display_name": "Demo Publisher",
+      "teams": ["platform-ai"],
+      "ui_role": "administrator",
+      "organization_member": true,
+      "governance_roles": ["owner", "publisher"],
+      "grants": ["resource:read", "resource:write", "job:read"]
+    },
+    {
+      "token": "dev-validator-token",
+      "subject_id": "user-validator",
+      "display_name": "Demo Validator",
+      "teams": ["platform-ai"],
+      "ui_role": "member",
+      "organization_member": true,
+      "governance_roles": ["validator"],
+      "grants": ["resource:read", "job:read"]
+    },
+    {
+      "token": "dev-member-token",
+      "subject_id": "user-member",
+      "display_name": "Demo Member",
+      "teams": ["other-team"],
+      "ui_role": "member",
+      "organization_member": true,
+      "governance_roles": [],
+      "grants": ["resource:read", "job:read"]
+    }
+  ]
+}

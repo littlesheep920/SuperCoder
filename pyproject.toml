@@ -1,0 +1,20 @@
+[project]
+name = "supercoder-stage1"
+version = "0.1.0"
+description = "SuperCoder Stage 1 resource asset center (FastAPI control plane + worker)."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "sqlalchemy>=2.0.30",
+    "pydantic>=2.6.0",
+    "jsonschema>=4.21.0",
+    "PyYAML>=6.0.0",
+    "PyMySQL>=1.1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["apps*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

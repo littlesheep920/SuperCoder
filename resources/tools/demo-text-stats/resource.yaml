@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "demo-text-stats",
+  "name": "Demo Deterministic Text Statistics Tool",
+  "version": "1.0.0",
+  "description": "A clearly labeled Stage 0 demonstration tool that computes deterministic statistics for caller-supplied text using only the Python standard library. It performs no network or filesystem access and is not a published or production-certified enterprise asset.",
+  "aliases": [
+    "text-stats-demo",
+    "local-text-counter-example"
+  ],
+  "tags": [
+    "demo",
+    "tool",
+    "text-analysis",
+    "deterministic",
+    "local-only"
+  ],
+  "categories": [
+    "developer-tools/text-analysis"
+  ],
+  "runtimes": [
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "json",
+      "required": true,
+      "description": "A JSON object containing the text to measure; unknown properties are rejected.",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000000
+          }
+        }
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "name": "statistics",
+      "type": "json",
+      "required": true,
+      "description": "Deterministic counts for the supplied Unicode text.",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "character_count",
+          "non_whitespace_character_count",
+          "word_count",
+          "line_count",
+          "utf8_byte_count"
+        ],
+        "properties": {
+          "character_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "non_whitespace_character_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "word_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "line_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "utf8_byte_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  ],
+  "permissions": [
+    {
+      "name": "process:execute",
+      "scope": "resource",
+      "effect": "allow",
+      "approval_required": false,
+      "reason": "Run the checked-in Python entrypoint in a bounded local process."
+    },
+    {
+      "name": "network:access",
+      "scope": "external",
+      "effect": "deny",
+      "approval_required": false,
+      "reason": "The deterministic text-statistics operation requires no network access."
+    },
+    {
+      "name": "filesystem:read",
+      "scope": "project",
+      "effect": "deny",
+      "approval_required": false,
+      "reason": "Input is accepted only as JSON from an argument or standard input."
+    },
+    {
+      "name": "filesystem:write",
+      "scope": "project",
+      "effect": "deny",
+      "approval_required": false,
+      "reason": "The tool returns JSON through standard output and writes no files."
+    }
+  ],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 1000000
+        }
+      }
+    },
+    "returns_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "character_count",
+        "non_whitespace_character_count",
+        "word_count",
+        "line_count",
+        "utf8_byte_count"
+      ],
+      "properties": {
+        "character_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "non_whitespace_character_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "word_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "line_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "utf8_byte_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

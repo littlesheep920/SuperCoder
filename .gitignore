@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node / frontend build output
+node_modules/
+apps/web/dist/
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Development-only bearer-token registry.
+# The committed template is `scripts/dev_tokens.example.json`; a real local
+# registry is generated from it and must never be committed.
+scripts/dev_tokens.json
+
+# Test / tooling caches and reports
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# OS noise
+Thumbs.db
+.DS_Store
+
+# Editor / agent scratch
+.idea/
+.vscode/
+.kiro/settings/*.lock

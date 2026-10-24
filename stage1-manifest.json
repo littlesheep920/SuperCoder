@@ -1,0 +1,332 @@
+{
+  "schema_version": "1.0",
+  "stage": "stage-1",
+  "description": "Authoritative inventory of Stage 1 managed artifacts (FastAPI control plane, deterministic worker, Vue web client, tests, scripts, and acceptance docs). Stage 0 files remain owned by stage0-manifest.json.",
+  "artifacts": [
+    {
+      "path": "pyproject.toml",
+      "role": "Python package metadata and dependencies.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "requirements-stage1.txt",
+      "role": "Pinned dependency set for the API and worker.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docker-compose.yml",
+      "role": "Compose definition for MySQL, API, worker, and web.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "infra/migrations/0002_stage1_extensions.sql",
+      "role": "Stage 1 governance and identity projection migration.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/main.py",
+      "role": "FastAPI composition root (apps.api.main:app).",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/config.py",
+      "role": "Typed, fail-closed settings.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/dependencies.py",
+      "role": "Dependency-injection composition root.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/auth.py",
+      "role": "Server-owned dev token auth (dev only; production HOLD).",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/presenters.py",
+      "role": "Domain-record to API-model presentation mapping.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/domain/models.py",
+      "role": "Canonical enums, SemVer, ULID, value objects.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/domain/errors.py",
+      "role": "Stable domain error codes and exceptions.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/domain/validation.py",
+      "role": "Path/slug/category/tag/SemVer validation.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/domain/permissions.py",
+      "role": "Permission declarations and deny-wins intersection.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/domain/dependencies.py",
+      "role": "Version ranges, cycle detection, dependency rules.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/db/session.py",
+      "role": "Engine and unit-of-work boundary.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/db/health.py",
+      "role": "Read-only MySQL connectivity/schema checks.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/repositories/sql_resources.py",
+      "role": "SQLAlchemy resource/version/metadata repositories.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/repositories/sql_governance.py",
+      "role": "SQLAlchemy permission/review/job/audit repositories.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/providers/git_repository.py",
+      "role": "Contained managed-Git adapter.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/providers/manifest_loader.py",
+      "role": "Manifest parse/schema/cross-field/hash loader.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/resource_commands.py",
+      "role": "Resource/version command orchestration.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/governance.py",
+      "role": "Lifecycle/review/publication/withdrawal commands.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/job_service.py",
+      "role": "Durable job commands and events.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/rollback.py",
+      "role": "Rollback-as-new-version.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/diffs.py",
+      "role": "Deterministic authorized diff.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/versions.py",
+      "role": "Exact version queries.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/resource_queries.py",
+      "role": "Permission-filtered resource listing.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/catalog.py",
+      "role": "Taxonomy/dependency/runtime queries.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/snapshots.py",
+      "role": "Git content to governance projections.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/application/helpers.py",
+      "role": "Clock, canonical hashing, audit writer.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/schemas/common.py",
+      "role": "Error envelope and pagination models.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/schemas/resources.py",
+      "role": "Resource/version/review API models.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/schemas/governance.py",
+      "role": "Job/event/audit API models.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/middleware/context.py",
+      "role": "Request context and RFC 9457 error mapping.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/middleware/concurrency.py",
+      "role": "ETag and idempotency transport helpers.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/routers/system.py",
+      "role": "Health/readiness/jobs routes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/routers/resources.py",
+      "role": "Resource identity routes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/routers/versions.py",
+      "role": "Version/diff/rollback routes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/routers/governance.py",
+      "role": "Lifecycle/review/audit routes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/Dockerfile",
+      "role": "API container image.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/worker/main.py",
+      "role": "Deterministic job consumer.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/worker/Dockerfile",
+      "role": "Worker container image.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/package.json",
+      "role": "Web client dependencies and scripts.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "role": "Vite build configuration.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/api/client.ts",
+      "role": "Typed REST client.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/api/types.ts",
+      "role": "API TypeScript types.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/router/index.ts",
+      "role": "Client-side routes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/ResourceListView.vue",
+      "role": "Resource list page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/ResourceDetailView.vue",
+      "role": "Resource detail page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/RegisterView.vue",
+      "role": "Resource registration page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/VersionsView.vue",
+      "role": "Versions and diff page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/ReviewsView.vue",
+      "role": "Review queue page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/DependenciesView.vue",
+      "role": "Dependencies page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/src/views/JobsView.vue",
+      "role": "Jobs monitoring page.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/Dockerfile",
+      "role": "Web container image.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "scripts/dev_tokens.json",
+      "role": "Development-only server-owned token registry.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "scripts/seed_demo_resources.py",
+      "role": "MySQL demo-resource seed.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "scripts/validate_stage1.py",
+      "role": "Stage 1 validator and gate reporter.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/support/memory.py",
+      "role": "In-memory repository test doubles (test scope only).",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/test_stage1_domain.py",
+      "role": "Domain unit tests.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/test_stage1_git_repository.py",
+      "role": "Git provider tests.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/test_stage1_api.py",
+      "role": "End-to-end API tests with in-memory repositories.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/STAGE1_IMPLEMENTATION.md",
+      "role": "Stage 1 implementation notes and deviations.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/STAGE1_ACCEPTANCE_REPORT.md",
+      "role": "Generated Stage 1 acceptance report.",
+      "authorship": "generated"
+    },
+    {
+      "path": "tests/test_stage1_startup.py",
+      "role": "Regression tests for the compose startup contract (both migrations mounted, seed gate ordering, seed script execution, non-zero exit on seed failure).",
+      "authorship": "hand-authored"
+    }
+  ]
+}

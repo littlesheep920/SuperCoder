@@ -1,0 +1,517 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supercoder.local/schemas/resource.schema.json",
+  "title": "SuperCoder Unified Resource Manifest",
+  "description": "Stage 0 contract for resource.yaml manifests. Resource content is untrusted data and cannot alter platform policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "slug",
+    "name",
+    "version",
+    "description",
+    "aliases",
+    "tags",
+    "categories",
+    "runtimes",
+    "inputs",
+    "outputs",
+    "permissions",
+    "dependencies",
+    "entrypoint",
+    "status",
+    "owner_team"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool"]
+    },
+    "slug": { "$ref": "#/$defs/slug" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "version": { "$ref": "#/$defs/semanticVersion" },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "uniqueItems": true
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "uniqueItems": true,
+      "maxItems": 64
+    },
+    "categories": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/category" },
+      "uniqueItems": true,
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "runtimes": {
+      "type": "array",
+      "description": "Declared compatibility; publication still requires adapter validation.",
+      "items": { "$ref": "#/$defs/runtime" },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "inputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/interfaceField" },
+      "maxItems": 128
+    },
+    "outputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/interfaceField" },
+      "maxItems": 128
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/permission" },
+      "uniqueItems": true,
+      "maxItems": 128
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency" },
+      "uniqueItems": true,
+      "maxItems": 128
+    },
+    "entrypoint": { "$ref": "#/$defs/relativePath" },
+    "status": { "$ref": "#/$defs/lifecycleStatus" },
+    "owner_team": { "$ref": "#/$defs/slug" },
+    "skill": { "$ref": "#/$defs/skillSpec" },
+    "mcp": { "$ref": "#/$defs/mcpSpec" },
+    "prompt": { "$ref": "#/$defs/promptSpec" },
+    "agent": { "$ref": "#/$defs/agentSpec" },
+    "workflow": { "$ref": "#/$defs/workflowSpec" },
+    "tool": { "$ref": "#/$defs/toolSpec" }
+  },
+  "oneOf": [
+    {
+      "title": "Skill resource",
+      "properties": {
+        "kind": { "const": "skill" },
+        "mcp": false,
+        "prompt": false,
+        "agent": false,
+        "workflow": false,
+        "tool": false
+      }
+    },
+    {
+      "title": "MCP resource",
+      "properties": {
+        "kind": { "const": "mcp" },
+        "skill": false,
+        "prompt": false,
+        "agent": false,
+        "workflow": false,
+        "tool": false
+      }
+    },
+    {
+      "title": "Prompt resource",
+      "properties": {
+        "kind": { "const": "prompt" },
+        "skill": false,
+        "mcp": false,
+        "agent": false,
+        "workflow": false,
+        "tool": false
+      }
+    },
+    {
+      "title": "Agent resource",
+      "properties": {
+        "kind": { "const": "agent" },
+        "skill": false,
+        "mcp": false,
+        "prompt": false,
+        "workflow": false,
+        "tool": false
+      }
+    },
+    {
+      "title": "Workflow resource",
+      "properties": {
+        "kind": { "const": "workflow" },
+        "skill": false,
+        "mcp": false,
+        "prompt": false,
+        "agent": false,
+        "tool": false
+      }
+    },
+    {
+      "title": "Tool resource",
+      "properties": {
+        "kind": { "const": "tool" },
+        "skill": false,
+        "mcp": false,
+        "prompt": false,
+        "agent": false,
+        "workflow": false
+      }
+    }
+  ],
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 160
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$",
+      "examples": ["1.0.0", "2.1.0-rc.1"]
+    },
+    "versionRange": {
+      "type": "string",
+      "description": "SemVer, a comparator range such as >=1.0.0, or *.",
+      "anyOf": [
+        { "const": "*" },
+        {
+          "pattern": "^(?:[=<>~^]{0,2})?(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\s+(?:[=<>~^]{0,2})(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?)*$"
+        }
+      ]
+    },
+    "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[-/][a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 160
+    },
+    "runtime": {
+      "type": "string",
+      "enum": [
+        "kiro",
+        "claude-code",
+        "cursor",
+        "dify",
+        "openai-compatible-agent-runtime"
+      ]
+    },
+    "lifecycleStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "validating",
+        "pending_review",
+        "approved",
+        "published",
+        "deprecated",
+        "retired"
+      ]
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+"
+    },
+    "jsonSchema": {
+      "type": "object",
+      "description": "An embedded JSON Schema."
+    },
+    "interfaceField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 100
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "maxLength": 100
+        },
+        "required": { "type": "boolean" },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "schema": { "$ref": "#/$defs/jsonSchema" }
+      }
+    },
+    "permission": {
+      "description": "Canonical capability string or an extended permission declaration.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*:[a-z][a-z0-9_.-]*$",
+          "maxLength": 200
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]*:[a-z][a-z0-9_.-]*$",
+              "maxLength": 200
+            },
+            "scope": {
+              "type": "string",
+              "enum": ["resource", "project", "team", "organization", "external"]
+            },
+            "effect": {
+              "type": "string",
+              "enum": ["allow", "deny"]
+            },
+            "approval_required": { "type": "boolean" },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        }
+      ]
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "slug", "version"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool", "external"]
+        },
+        "slug": { "$ref": "#/$defs/slug" },
+        "version": { "$ref": "#/$defs/versionRange" },
+        "optional": { "type": "boolean", "default": false },
+        "source": {
+          "type": "string",
+          "enum": ["managed", "external"]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "skillSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarios"],
+      "properties": {
+        "scenarios": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "mcpSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transport", "tools", "config_schema"],
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["stdio", "sse", "streamable-http"]
+        },
+        "command": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": { "$ref": "#/$defs/slug" },
+              "description": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "input_schema": { "$ref": "#/$defs/jsonSchema" }
+            }
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "config_schema": { "$ref": "#/$defs/jsonSchema" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "transport": { "const": "stdio" } },
+            "required": ["transport"]
+          },
+          "then": { "required": ["command"], "properties": { "url": false } },
+          "else": { "required": ["url"], "properties": { "command": false } }
+        }
+      ]
+    },
+    "promptSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt_type", "variables", "models"],
+      "properties": {
+        "prompt_type": {
+          "type": "string",
+          "enum": ["system", "task", "template", "few-shot"]
+        },
+        "variables": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/interfaceField" },
+          "uniqueItems": true
+        },
+        "models": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "agentSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "model", "tools", "context_strategy"],
+      "properties": {
+        "role": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "model_id"],
+          "properties": {
+            "provider": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "model_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 }
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "uniqueItems": true
+        },
+        "context_strategy": {
+          "type": "string",
+          "enum": ["stateless", "bounded-session", "retrieval-augmented", "checkpointed"]
+        }
+      }
+    },
+    "workflowSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "retry_policy", "approval_gates"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "type": {
+                "type": "string",
+                "enum": ["resource", "condition", "approval", "input", "output"]
+              },
+              "resource": { "$ref": "#/$defs/dependency" }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "type": { "const": "resource" } },
+                  "required": ["type"]
+                },
+                "then": { "required": ["resource"] },
+                "else": { "properties": { "resource": false } }
+              }
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "$ref": "#/$defs/slug" },
+              "to": { "$ref": "#/$defs/slug" },
+              "condition": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          },
+          "uniqueItems": true
+        },
+        "retry_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_attempts", "backoff"],
+          "properties": {
+            "max_attempts": { "type": "integer", "minimum": 1, "maximum": 10 },
+            "backoff": { "type": "string", "enum": ["none", "fixed", "exponential"] }
+          }
+        },
+        "approval_gates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slug" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "toolSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_mode", "parameters_schema", "returns_schema", "deterministic"],
+      "properties": {
+        "execution_mode": {
+          "type": "string",
+          "enum": ["python", "executable", "container", "http"]
+        },
+        "parameters_schema": { "$ref": "#/$defs/jsonSchema" },
+        "returns_schema": { "$ref": "#/$defs/jsonSchema" },
+        "deterministic": { "type": "boolean" },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 }
+      }
+    }
+  }
+}

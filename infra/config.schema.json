@@ -1,0 +1,358 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.supercoder.example/infra/config.schema.json",
+  "title": "SuperCoder Runtime Configuration",
+  "description": "Stage 0 contract for non-secret runtime configuration. Credential fields name environment variables; credentials themselves must never be stored in a configuration document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "environment",
+    "git",
+    "mysql",
+    "redis",
+    "qdrant",
+    "embedding",
+    "rerank",
+    "docker",
+    "external_llm"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "Independent version of this configuration contract."
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["local", "test", "staging", "production"],
+      "default": "local"
+    },
+    "git": { "$ref": "#/$defs/gitConfig" },
+    "mysql": { "$ref": "#/$defs/mysqlConfig" },
+    "redis": { "$ref": "#/$defs/redisConfig" },
+    "qdrant": { "$ref": "#/$defs/qdrantConfig" },
+    "embedding": { "$ref": "#/$defs/modelServiceConfig" },
+    "rerank": { "$ref": "#/$defs/modelServiceConfig" },
+    "docker": { "$ref": "#/$defs/dockerConfig" },
+    "external_llm": { "$ref": "#/$defs/externalLlmConfig" }
+  },
+  "$defs": {
+    "envName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Name of an environment variable that is injected at runtime. This is not the secret value."
+    },
+    "blankOrUri": {
+      "type": "string",
+      "anyOf": [
+        { "const": "" },
+        { "format": "uri" }
+      ]
+    },
+    "gitConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "repository_root",
+        "default_branch",
+        "remote_name",
+        "remote_url",
+        "sync_enabled",
+        "read_only",
+        "credential_env"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables local Git metadata and content access."
+        },
+        "repository_root": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".",
+          "description": "Local repository root; must be resolved without directory traversal."
+        },
+        "default_branch": {
+          "type": "string",
+          "pattern": "^(?!.*(?:\\.\\.|~|\\^|:|\\?|\\*|\\[|\\\\|@\\{|//))[A-Za-z0-9._/-]+$",
+          "default": "main"
+        },
+        "remote_name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$",
+          "default": "origin"
+        },
+        "remote_url": {
+          "type": "string",
+          "default": "",
+          "description": "Optional public repository locator. It must not contain inline credentials."
+        },
+        "sync_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Remote fetch/pull/push remains disabled unless explicitly enabled by deployment policy."
+        },
+        "read_only": {
+          "type": "boolean",
+          "default": true,
+          "description": "Prevents Git write operations in the default configuration."
+        },
+        "credential_env": {
+          "$ref": "#/$defs/envName",
+          "default": "SUPERCODER_GIT_TOKEN"
+        }
+      }
+    },
+    "mysqlConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "host",
+        "port",
+        "database",
+        "user",
+        "password_env",
+        "ssl_mode",
+        "connect_timeout_seconds",
+        "pool_size",
+        "max_overflow"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "host": { "type": "string", "minLength": 1, "default": "127.0.0.1" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 3306 },
+        "database": { "type": "string", "pattern": "^[A-Za-z0-9_]+$", "default": "supercoder" },
+        "user": { "type": "string", "minLength": 1, "default": "supercoder_local" },
+        "password_env": { "$ref": "#/$defs/envName", "default": "SUPERCODER_MYSQL_PASSWORD" },
+        "ssl_mode": {
+          "type": "string",
+          "enum": ["disabled", "preferred", "required", "verify_ca", "verify_identity"],
+          "default": "disabled"
+        },
+        "connect_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 120, "default": 5 },
+        "pool_size": { "type": "integer", "minimum": 1, "maximum": 100, "default": 5 },
+        "max_overflow": { "type": "integer", "minimum": 0, "maximum": 100, "default": 5 }
+      }
+    },
+    "redisConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "host",
+        "port",
+        "database",
+        "username",
+        "password_env",
+        "tls_enabled",
+        "connect_timeout_seconds",
+        "key_prefix"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "host": { "type": "string", "minLength": 1, "default": "127.0.0.1" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 6379 },
+        "database": { "type": "integer", "minimum": 0, "maximum": 255, "default": 0 },
+        "username": { "type": "string", "default": "" },
+        "password_env": { "$ref": "#/$defs/envName", "default": "SUPERCODER_REDIS_PASSWORD" },
+        "tls_enabled": { "type": "boolean", "default": false },
+        "connect_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 120, "default": 5 },
+        "key_prefix": { "type": "string", "pattern": "^[A-Za-z0-9:_-]+$", "default": "supercoder:local:" }
+      }
+    },
+    "qdrantConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "url",
+        "collection_prefix",
+        "api_key_env",
+        "tls_verify",
+        "request_timeout_seconds"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "url": { "$ref": "#/$defs/blankOrUri", "default": "http://127.0.0.1:6333" },
+        "collection_prefix": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$", "default": "supercoder_local" },
+        "api_key_env": { "$ref": "#/$defs/envName", "default": "SUPERCODER_QDRANT_API_KEY" },
+        "tls_verify": { "type": "boolean", "default": true },
+        "request_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 300, "default": 10 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+          "then": { "properties": { "url": { "type": "string", "format": "uri", "minLength": 1 } } }
+        }
+      ]
+    },
+    "modelServiceConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "provider",
+        "model",
+        "base_url",
+        "api_key_env",
+        "allow_remote",
+        "request_timeout_seconds",
+        "batch_size"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "provider": {
+          "type": "string",
+          "enum": ["disabled", "local", "openai_compatible"],
+          "default": "disabled"
+        },
+        "model": { "type": "string", "default": "" },
+        "base_url": { "$ref": "#/$defs/blankOrUri", "default": "" },
+        "api_key_env": { "$ref": "#/$defs/envName" },
+        "allow_remote": {
+          "type": "boolean",
+          "default": false,
+          "description": "Must be explicitly enabled before sending resource or query data outside the local environment."
+        },
+        "request_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 600, "default": 30 },
+        "batch_size": { "type": "integer", "minimum": 1, "maximum": 1024, "default": 16 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "enabled": { "const": false } }, "required": ["enabled"] },
+          "then": { "properties": { "provider": { "const": "disabled" }, "allow_remote": { "const": false } } }
+        },
+        {
+          "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+          "then": {
+            "properties": {
+              "provider": { "enum": ["local", "openai_compatible"] },
+              "model": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "provider": { "const": "openai_compatible" } }, "required": ["provider"] },
+          "then": {
+            "properties": {
+              "base_url": { "type": "string", "format": "uri", "minLength": 1 },
+              "allow_remote": { "const": true }
+            }
+          }
+        }
+      ]
+    },
+    "dockerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "socket_uri",
+        "image_allowlist",
+        "network_mode",
+        "read_only_root_filesystem",
+        "no_new_privileges",
+        "cpu_limit",
+        "memory_limit_mb",
+        "pids_limit",
+        "execution_timeout_seconds"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "socket_uri": {
+          "type": "string",
+          "default": "",
+          "description": "Blank by default; access to a Docker daemon is not implied."
+        },
+        "image_allowlist": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "default": []
+        },
+        "network_mode": { "type": "string", "enum": ["none", "internal"], "default": "none" },
+        "read_only_root_filesystem": { "type": "boolean", "const": true, "default": true },
+        "no_new_privileges": { "type": "boolean", "const": true, "default": true },
+        "cpu_limit": { "type": "number", "exclusiveMinimum": 0, "maximum": 16, "default": 1 },
+        "memory_limit_mb": { "type": "integer", "minimum": 64, "maximum": 32768, "default": 512 },
+        "pids_limit": { "type": "integer", "minimum": 16, "maximum": 4096, "default": 256 },
+        "execution_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600, "default": 300 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+          "then": {
+            "properties": {
+              "socket_uri": { "type": "string", "minLength": 1 },
+              "image_allowlist": { "type": "array", "minItems": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "externalLlmConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "provider",
+        "base_url",
+        "model",
+        "api_key_env",
+        "allow_project_data",
+        "request_timeout_seconds",
+        "max_output_tokens",
+        "temperature"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "External model access is opt-in and disabled by default."
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["disabled", "openai_compatible"],
+          "default": "disabled"
+        },
+        "base_url": { "$ref": "#/$defs/blankOrUri", "default": "" },
+        "model": { "type": "string", "default": "" },
+        "api_key_env": { "$ref": "#/$defs/envName", "default": "SUPERCODER_LLM_API_KEY" },
+        "allow_project_data": {
+          "type": "boolean",
+          "default": false,
+          "description": "A separate explicit consent gate for transmitting project data."
+        },
+        "request_timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 600, "default": 60 },
+        "max_output_tokens": { "type": "integer", "minimum": 1, "maximum": 65536, "default": 2048 },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2, "default": 0 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "enabled": { "const": false } }, "required": ["enabled"] },
+          "then": {
+            "properties": {
+              "provider": { "const": "disabled" },
+              "base_url": { "const": "" },
+              "model": { "const": "" },
+              "allow_project_data": { "const": false }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+          "then": {
+            "properties": {
+              "provider": { "const": "openai_compatible" },
+              "base_url": { "type": "string", "format": "uri", "minLength": 1 },
+              "model": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

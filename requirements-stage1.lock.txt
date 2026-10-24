@@ -1,0 +1,26 @@
+# Fully pinned runtime dependency set for the API, worker, and seed step.
+#
+# Why this file exists: `requirements-stage1.txt` expresses ranges (>=) so humans
+# can read intent, but the reproducibility principle (plan §2.4) requires that a
+# given commit behave identically whenever it is installed. Docker builds and CI
+# install THIS file; the range file stays as the human-readable contract.
+#
+# Regenerate deliberately, never casually:
+#     python -m pip install -r requirements-stage1.txt
+#     pip freeze > requirements-stage1.lock.txt
+# then re-run `python scripts/validate_stage1.py` before committing.
+
+fastapi==0.141.1
+starlette==1.6.0
+uvicorn==0.52.1
+SQLAlchemy==2.0.51
+greenlet==3.5.4
+pydantic==2.13.4
+pydantic_core==2.46.4
+pydantic-settings==2.15.0
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+PyYAML==6.0.3
+PyMySQL==1.1.1
+typing_extensions==4.16.0
+typing-inspection==0.4.2

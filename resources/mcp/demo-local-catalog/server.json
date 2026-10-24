@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "server": {
+    "name": "demo-local-catalog",
+    "transport": "stdio",
+    "command": "python",
+    "args": [
+      "-m",
+      "supercoder_demo_local_catalog_mcp",
+      "--config",
+      "server.json"
+    ],
+    "working_directory": ".",
+    "environment": {
+      "SUPERCODER_CATALOG_ROOT": "${config.catalog_root}",
+      "SUPERCODER_CATALOG_MAX_RESULTS": "${config.max_results}",
+      "SUPERCODER_CATALOG_FOLLOW_SYMLINKS": "false",
+      "SUPERCODER_CATALOG_NETWORK": "disabled"
+    },
+    "startup_timeout_seconds": 10,
+    "shutdown_timeout_seconds": 5
+  },
+  "implementation": {
+    "module": "supercoder_demo_local_catalog_mcp",
+    "status": "not-implemented",
+    "required_protocol": "MCP stdio",
+    "notes": "This Stage 0 file freezes a concrete launch contract only. A later implementation must provide the module and pass protocol, sandbox, permission, and runtime-adapter validation before execution."
+  }
+}

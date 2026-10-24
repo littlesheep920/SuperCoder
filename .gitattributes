@@ -1,0 +1,28 @@
+# Normalize line endings so the repository has one canonical representation
+# regardless of the developer's OS. Without this, Windows checkouts produce
+# CRLF and every cross-platform diff shows whole-file changes.
+* text=auto eol=lf
+
+# Windows-only scripts keep native endings.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary artifacts: never attempt text normalization.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+
+# Lockfiles are generated; mark them so reviewers fold them by default.
+apps/web/package-lock.json linguist-generated=true
+requirements-stage1.lock.txt linguist-generated=true
+
+# Vendor and build output must never be committed.
+apps/web/node_modules/** -text
+apps/web/dist/** -text

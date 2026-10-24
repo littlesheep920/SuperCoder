@@ -1,0 +1,1927 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "SuperCoder Control Plane API",
+    "version": "0.1.0-stage0",
+    "summary": "Frozen Stage 0 contract for the SuperCoder synchronous control plane.",
+    "description": "This document is a contract, not a claim that an API service is running. Git remains the resource-content source of truth; MySQL stores governance and execution facts; indexes and caches are rebuildable projections. Long-running work is represented by Jobs. Resource content, prompts, model output, and imported evaluation material are untrusted data and cannot alter authorization or platform policy. External LLM access is disabled by default and no endpoint accepts provider secrets."
+  },
+  "servers": [
+    {
+      "url": "https://api.supercoder.example/v1",
+      "description": "Illustrative production base URL; deployment chooses the actual host."
+    }
+  ],
+  "tags": [
+    { "name": "Resources", "description": "Stable resource identities and immutable versions." },
+    { "name": "Reviews", "description": "Append-only governance reviews bound to exact artifact hashes." },
+    { "name": "Search", "description": "Permission-filtered discovery over rebuildable indexes." },
+    { "name": "Agent registration", "description": "Specialized, asynchronous registration of agent resources." },
+    { "name": "Workflows", "description": "Published workflow definitions and immutable execution runs." },
+    { "name": "Jobs", "description": "Durable background work and append-only events." },
+    { "name": "Evaluations", "description": "Evaluation runs with truthful assessor provenance." }
+  ],
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/resources": {
+      "get": {
+        "tags": ["Resources"],
+        "operationId": "listResources",
+        "summary": "List resource identities",
+        "description": "Returns permission-filtered resource identities with an optional selected version. Cursor ordering is stable by created_at and public ID.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/ResourceKindQuery" },
+          { "$ref": "#/components/parameters/OwnerTeamQuery" },
+          { "$ref": "#/components/parameters/LifecycleStatusQuery" },
+          { "$ref": "#/components/parameters/RuntimeQuery" },
+          { "$ref": "#/components/parameters/TagQuery" },
+          { "$ref": "#/components/parameters/CategoryQuery" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of resource identities.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceList" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "post": {
+        "tags": ["Resources"],
+        "operationId": "createResource",
+        "summary": "Create a resource identity and first draft version",
+        "description": "Atomically validates the manifest, creates the stable (kind, slug) identity, and stores the first draft version. It does not publish, execute, index, or approve the resource.",
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateResourceRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Resource identity and first draft version created.",
+            "headers": {
+              "Location": { "$ref": "#/components/headers/Location" },
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "Idempotent-Replayed": { "$ref": "#/components/headers/IdempotentReplayed" }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceDetail" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/resources/{resourceId}": {
+      "get": {
+        "tags": ["Resources"],
+        "operationId": "getResource",
+        "summary": "Get a stable resource identity",
+        "parameters": [
+          { "$ref": "#/components/parameters/ResourceId" },
+          {
+            "name": "include_versions",
+            "in": "query",
+            "required": false,
+            "description": "Include a bounded newest-first version summary list.",
+            "schema": { "type": "boolean", "default": false }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource identity and selected version details.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceDetail" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/resources/{resourceId}/versions": {
+      "get": {
+        "tags": ["Resources"],
+        "operationId": "listResourceVersions",
+        "summary": "List versions for one resource identity",
+        "parameters": [
+          { "$ref": "#/components/parameters/ResourceId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/LifecycleStatusQuery" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of immutable version records.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceVersionList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "post": {
+        "tags": ["Resources"],
+        "operationId": "createResourceVersion",
+        "summary": "Create a new draft version",
+        "description": "Creates a new SemVer under an existing stable identity. Published version numbers are never reused.",
+        "parameters": [
+          { "$ref": "#/components/parameters/ResourceId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateResourceVersionRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Draft version created.",
+            "headers": {
+              "Location": { "$ref": "#/components/headers/Location" },
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "Idempotent-Replayed": { "$ref": "#/components/headers/IdempotentReplayed" }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceVersion" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/resource-versions/{versionId}": {
+      "get": {
+        "tags": ["Resources"],
+        "operationId": "getResourceVersion",
+        "summary": "Get an exact resource version",
+        "parameters": [
+          { "$ref": "#/components/parameters/VersionId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exact resource version, projections, and immutable hashes.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceVersion" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "patch": {
+        "tags": ["Resources"],
+        "operationId": "updateDraftResourceVersion",
+        "summary": "Update draft version content",
+        "description": "Only draft versions may change content. The request must carry both If-Match and row_version; later lifecycle states reject the operation.",
+        "parameters": [
+          { "$ref": "#/components/parameters/VersionId" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/merge-patch+json": { "schema": { "$ref": "#/components/schemas/UpdateDraftVersionRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft version updated and hashes recomputed.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceVersion" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/resource-versions/{versionId}/transitions": {
+      "post": {
+        "tags": ["Resources"],
+        "operationId": "transitionResourceVersionLifecycle",
+        "summary": "Request an allowed lifecycle transition",
+        "description": "Performs a policy-checked, audited state transition. Transitions that require validation or indexing may return an associated Job. The endpoint never lets a model self-approve or bypass required reviews.",
+        "parameters": [
+          { "$ref": "#/components/parameters/VersionId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LifecycleTransitionRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Transition completed synchronously.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LifecycleTransitionResult" } } }
+          },
+          "202": {
+            "description": "Transition accepted and a durable Job was created.",
+            "headers": { "Location": { "$ref": "#/components/headers/Location" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LifecycleTransitionResult" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/resource-versions/{versionId}/reviews": {
+      "get": {
+        "tags": ["Reviews"],
+        "operationId": "listResourceVersionReviews",
+        "summary": "List reviews bound to a resource version",
+        "parameters": [
+          { "$ref": "#/components/parameters/VersionId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "include_invalidated",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": false }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of append-only review decisions.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceReviewList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "post": {
+        "tags": ["Reviews"],
+        "operationId": "createResourceVersionReview",
+        "summary": "Append a review decision",
+        "description": "Appends a human governance decision against exact artifact and manifest hashes. Conditional approval must be recorded as request_changes.",
+        "parameters": [
+          { "$ref": "#/components/parameters/VersionId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateResourceReviewRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Review decision appended.",
+            "headers": { "Location": { "$ref": "#/components/headers/Location" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceReview" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/search/resources": {
+      "post": {
+        "tags": ["Search"],
+        "operationId": "searchResources",
+        "summary": "Search discoverable resource versions",
+        "description": "Searches permission-filtered, lifecycle-eligible versions. Scores and snippets are non-authoritative projections; each hit identifies an exact relational resource version and source artifact hash.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceSearchRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked resource hits and cursor metadata.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResourceSearchResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "503": { "$ref": "#/components/responses/ProjectionUnavailable" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/agent-registrations": {
+      "get": {
+        "tags": ["Agent registration"],
+        "operationId": "listAgentRegistrations",
+        "summary": "List agent registration attempts",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/AgentRegistrationStatus" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of registration attempts.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AgentRegistrationList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "post": {
+        "tags": ["Agent registration"],
+        "operationId": "registerAgentResource",
+        "summary": "Register and validate an agent resource",
+        "description": "Validates an agent manifest, creates or reuses the stable identity, stores a draft version, and creates a Job for runtime/dependency checks. Registration never implies approval or publication.",
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AgentRegistrationRequest" } } }
+        },
+        "responses": {
+          "202": {
+            "description": "Registration accepted for durable validation.",
+            "headers": {
+              "Location": { "$ref": "#/components/headers/Location" },
+              "Idempotent-Replayed": { "$ref": "#/components/headers/IdempotentReplayed" }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AgentRegistration" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/agent-registrations/{registrationId}": {
+      "get": {
+        "tags": ["Agent registration"],
+        "operationId": "getAgentRegistration",
+        "summary": "Get one agent registration attempt",
+        "parameters": [
+          { "$ref": "#/components/parameters/RegistrationId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration state and linked durable Job.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AgentRegistration" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflows": {
+      "get": {
+        "tags": ["Workflows"],
+        "operationId": "listWorkflows",
+        "summary": "List executable workflow definitions",
+        "description": "Returns lifecycle-eligible workflow definitions whose graph hashes and exact resource versions are known.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/RuntimeQuery" },
+          { "$ref": "#/components/parameters/LifecycleStatusQuery" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of workflow definitions.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowDefinitionList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflows/{workflowId}": {
+      "get": {
+        "tags": ["Workflows"],
+        "operationId": "getWorkflowDefinition",
+        "summary": "Get an exact executable workflow definition",
+        "parameters": [
+          { "$ref": "#/components/parameters/WorkflowId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Compiled workflow definition and input/output contracts.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowDefinition" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflows/{workflowId}/runs": {
+      "post": {
+        "tags": ["Workflows"],
+        "operationId": "createWorkflowRun",
+        "summary": "Create an immutable workflow run",
+        "description": "Validates input, resolves the full reachable resource and dependency graph to exact versions, persists an immutable resolution snapshot in the same transaction, and creates the root Job. Missing or floating dependencies fail closed before a queued run exists.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WorkflowId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateWorkflowRunRequest" } } }
+        },
+        "responses": {
+          "202": {
+            "description": "Run and root Job durably created.",
+            "headers": {
+              "Location": { "$ref": "#/components/headers/Location" },
+              "Idempotent-Replayed": { "$ref": "#/components/headers/IdempotentReplayed" }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflow-runs": {
+      "get": {
+        "tags": ["Workflows"],
+        "operationId": "listWorkflowRuns",
+        "summary": "List workflow runs",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "workflow_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/PublicId" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/WorkflowRunStatus" }
+          },
+          {
+            "name": "correlation_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/CorrelationId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of workflow runs.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRunList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflow-runs/{runId}": {
+      "get": {
+        "tags": ["Workflows"],
+        "operationId": "getWorkflowRun",
+        "summary": "Get an immutable workflow run record",
+        "description": "Returns the definition hash and complete resolution snapshot captured at creation; current registry state never rewrites this history.",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow run, output or error, and immutable resolution snapshot.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflow-runs/{runId}/approvals": {
+      "post": {
+        "tags": ["Workflows"],
+        "operationId": "decideWorkflowRunApproval",
+        "summary": "Approve or reject the active human gate",
+        "description": "A decision is bound to one run, one gate, the current row version, and a non-empty reason. It cannot be reused across runs.",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowApprovalRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Gate decision recorded and run state advanced or terminated.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/workflow-runs/{runId}/cancel": {
+      "post": {
+        "tags": ["Workflows"],
+        "operationId": "cancelWorkflowRun",
+        "summary": "Request cancellation of a workflow run",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CancelRequest" } } }
+        },
+        "responses": {
+          "202": {
+            "description": "Cancellation durably requested; workers observe it cooperatively.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "tags": ["Jobs"],
+        "operationId": "listJobs",
+        "summary": "List durable background jobs",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/JobStatus" }
+          },
+          {
+            "name": "queue_name",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "minLength": 1, "maxLength": 100 }
+          },
+          {
+            "name": "workflow_run_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/PublicId" }
+          },
+          {
+            "name": "resource_version_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/PublicId" }
+          },
+          {
+            "name": "correlation_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/CorrelationId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of jobs.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/jobs/{jobId}": {
+      "get": {
+        "tags": ["Jobs"],
+        "operationId": "getJob",
+        "summary": "Get a durable job",
+        "parameters": [
+          { "$ref": "#/components/parameters/JobId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job state and structured result or failure.",
+            "headers": { "ETag": { "$ref": "#/components/headers/ETag" } },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Job" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/jobs/{jobId}/cancel": {
+      "post": {
+        "tags": ["Jobs"],
+        "operationId": "cancelJob",
+        "summary": "Request cancellation of a job",
+        "parameters": [
+          { "$ref": "#/components/parameters/JobId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CancelRequest" } } }
+        },
+        "responses": {
+          "202": {
+            "description": "Cancellation request recorded as a Job event.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Job" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/jobs/{jobId}/events": {
+      "get": {
+        "tags": ["Jobs"],
+        "operationId": "listJobEvents",
+        "summary": "List append-only events for a job",
+        "description": "Events are ordered by sequence_no. The cursor encodes the last observed sequence and cannot address another Job.",
+        "parameters": [
+          { "$ref": "#/components/parameters/JobId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "event_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An ordered page of Job events.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobEventList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/jobs/{jobId}/events/stream": {
+      "get": {
+        "tags": ["Jobs"],
+        "operationId": "streamJobEvents",
+        "summary": "Stream Job events using Server-Sent Events",
+        "description": "Each SSE id is the decimal sequence_no, event is event_type, and data is one JSON-encoded JobEvent. Clients resume with Last-Event-ID. Authorization is rechecked when the stream is established.",
+        "parameters": [
+          { "$ref": "#/components/parameters/JobId" },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "description": "Last fully processed decimal Job event sequence number.",
+            "schema": { "type": "string", "pattern": "^[0-9]+$" }
+          },
+          {
+            "name": "heartbeat_seconds",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 5, "maximum": 60, "default": 15 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream. Heartbeats are comment frames and are not Job events.",
+            "headers": {
+              "Cache-Control": { "description": "Always no-cache.", "schema": { "type": "string", "const": "no-cache" } }
+            },
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" },
+                "examples": {
+                  "statusChange": {
+                    "value": "id: 4\nevent: status_changed\ndata: {\"job_id\":\"01J00000000000000000000000\",\"sequence_no\":4,\"event_type\":\"status_changed\",\"actor_type\":\"worker\",\"actor_id\":\"worker-a\",\"payload\":{},\"occurred_at\":\"2026-01-01T00:00:00Z\"}\n\n"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "410": {
+            "description": "Requested event history is outside the retained stream window; use the event list endpoint to re-establish a cursor.",
+            "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/evaluations": {
+      "get": {
+        "tags": ["Evaluations"],
+        "operationId": "listEvaluations",
+        "summary": "List evaluation runs",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "resource_version_id",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/PublicId" }
+          },
+          {
+            "name": "evaluation_kind",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/EvaluationKind" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "$ref": "#/components/schemas/EvaluationStatus" }
+          },
+          {
+            "name": "dataset_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "minLength": 1, "maxLength": 160 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of evaluation records.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EvaluationList" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      },
+      "post": {
+        "tags": ["Evaluations"],
+        "operationId": "createEvaluation",
+        "summary": "Create a reproducible evaluation run",
+        "description": "Pins candidate, dataset snapshot, evaluator version, and truthful assessor provenance before creating a durable Job. Model or synthetic judgments must use model or mixed assessor_type and cannot claim human adjudication.",
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateEvaluationRequest" } } }
+        },
+        "responses": {
+          "202": {
+            "description": "Evaluation record and durable Job created.",
+            "headers": {
+              "Location": { "$ref": "#/components/headers/Location" },
+              "Idempotent-Replayed": { "$ref": "#/components/headers/IdempotentReplayed" }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Evaluation" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/evaluations/{evaluationId}": {
+      "get": {
+        "tags": ["Evaluations"],
+        "operationId": "getEvaluation",
+        "summary": "Get an evaluation run",
+        "parameters": [
+          { "$ref": "#/components/parameters/EvaluationId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pinned evaluation identity, status, metrics, and result reference.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Evaluation" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Short-lived access token. Authorization is evaluated server-side; claims from request content are never trusted as grants."
+      }
+    },
+    "headers": {
+      "Location": {
+        "description": "Canonical API path of the created or accepted resource.",
+        "schema": { "type": "string", "format": "uri-reference" }
+      },
+      "ETag": {
+        "description": "Strong entity tag derived from public ID and row_version.",
+        "schema": { "type": "string", "pattern": "^\"[^\"]+\"$" }
+      },
+      "IdempotentReplayed": {
+        "description": "True when the response replays the original result for the same authenticated caller and Idempotency-Key.",
+        "schema": { "type": "boolean" }
+      },
+      "RetryAfter": {
+        "description": "Seconds before a retry is advised.",
+        "schema": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "parameters": {
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "description": "Opaque, endpoint- and filter-bound cursor returned by page.next_cursor. Clients must not construct or reuse it with different filters.",
+        "schema": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Maximum records to return.",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 25 }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Caller-generated key scoped to authenticated actor and operation. Reuse with a different canonical request hash returns 409.",
+        "schema": { "type": "string", "minLength": 8, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$" }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "description": "Strong ETag from the latest read; stale values return 412.",
+        "schema": { "type": "string", "pattern": "^\"[^\"]+\"$" }
+      },
+      "ResourceId": {
+        "name": "resourceId",
+        "in": "path",
+        "required": true,
+        "description": "Stable resource public ULID.",
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "VersionId": {
+        "name": "versionId",
+        "in": "path",
+        "required": true,
+        "description": "Exact resource-version public ULID.",
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "RegistrationId": {
+        "name": "registrationId",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "WorkflowId": {
+        "name": "workflowId",
+        "in": "path",
+        "required": true,
+        "description": "Workflow-definition public ULID, not a mutable slug.",
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "RunId": {
+        "name": "runId",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "JobId": {
+        "name": "jobId",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "EvaluationId": {
+        "name": "evaluationId",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/PublicId" }
+      },
+      "ResourceKindQuery": {
+        "name": "kind",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/ResourceKind" }
+      },
+      "OwnerTeamQuery": {
+        "name": "owner_team",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/Slug" }
+      },
+      "LifecycleStatusQuery": {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/LifecycleStatus" }
+      },
+      "RuntimeQuery": {
+        "name": "runtime",
+        "in": "query",
+        "required": false,
+        "schema": { "$ref": "#/components/schemas/Runtime" }
+      },
+      "TagQuery": {
+        "name": "tag",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 1, "maxLength": 100 }
+      },
+      "CategoryQuery": {
+        "name": "category",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "string", "minLength": 2, "maxLength": 160 }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Malformed syntax, invalid cursor, or unsupported parameter combination.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Unauthorized": {
+        "description": "Authentication is missing or invalid.",
+        "headers": { "WWW-Authenticate": { "schema": { "type": "string" } } },
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Forbidden": {
+        "description": "Authenticated actor lacks permission; resource existence may be concealed.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NotFound": {
+        "description": "The addressed entity does not exist or is not visible to the actor.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Conflict": {
+        "description": "Identity, idempotency, lifecycle, gate, or terminal-state conflict.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "PreconditionFailed": {
+        "description": "If-Match or row_version does not match current state.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "ValidationFailed": {
+        "description": "Structurally valid request violates schema, governance, dependency, permission, runtime, or provenance rules.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "RateLimited": {
+        "description": "Caller rate limit exceeded.",
+        "headers": { "Retry-After": { "$ref": "#/components/headers/RetryAfter" } },
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "ProjectionUnavailable": {
+        "description": "Search projection is unavailable or stale; relational facts remain unchanged.",
+        "headers": { "Retry-After": { "$ref": "#/components/headers/RetryAfter" } },
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "UnexpectedError": {
+        "description": "Unexpected server failure with a stable request identifier and no secret-bearing diagnostics.",
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "PublicId": {
+        "type": "string",
+        "description": "Uppercase Crockford Base32 ULID exposed by the API.",
+        "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+      },
+      "Slug": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "minLength": 2,
+        "maxLength": 160
+      },
+      "SemanticVersion": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+      },
+      "Hash": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "RFC 3339 timestamp normalized to UTC by the server."
+      },
+      "CorrelationId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+      },
+      "JsonObject": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ResourceKind": {
+        "type": "string",
+        "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool"]
+      },
+      "Runtime": {
+        "type": "string",
+        "enum": ["kiro", "claude-code", "cursor", "dify", "openai-compatible-agent-runtime"]
+      },
+      "LifecycleStatus": {
+        "type": "string",
+        "enum": ["draft", "validating", "pending_review", "approved", "published", "deprecated", "retired"]
+      },
+      "PageInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["limit", "has_more"],
+        "properties": {
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "has_more": { "type": "boolean" },
+          "next_cursor": { "type": ["string", "null"], "maxLength": 2048 }
+        }
+      },
+      "InterfaceField": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "required"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "maxLength": 100 },
+          "type": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$", "maxLength": 100 },
+          "required": { "type": "boolean" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "schema": { "$ref": "#/components/schemas/JsonObject" }
+        }
+      },
+      "PermissionDeclaration": {
+        "oneOf": [
+          { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*:[a-z][a-z0-9_.-]*$", "maxLength": 200 },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*:[a-z][a-z0-9_.-]*$", "maxLength": 200 },
+              "scope": { "type": "string", "enum": ["resource", "project", "team", "organization", "external"] },
+              "effect": { "type": "string", "enum": ["allow", "deny"] },
+              "approval_required": { "type": "boolean" },
+              "reason": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          }
+        ]
+      },
+      "DependencyDeclarationFields": {
+        "type": "object",
+        "required": ["kind", "slug", "version", "optional", "source"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool", "external"] },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "version": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "optional": { "type": "boolean" },
+          "source": { "type": "string", "enum": ["managed", "external"] },
+          "purpose": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      },
+      "DependencyDeclaration": {
+        "allOf": [
+          { "$ref": "#/components/schemas/DependencyDeclarationFields" }
+        ],
+        "unevaluatedProperties": false
+      },
+      "ArtifactReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "digest", "size_bytes"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Secret-free path relative to the version root; no absolute path or parent traversal.",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "^(?![A-Za-z]:)(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+"
+          },
+          "digest": { "$ref": "#/components/schemas/Hash" },
+          "size_bytes": { "type": "integer", "minimum": 0, "maximum": 104857600 },
+          "media_type": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      },
+      "ResourceManifest": {
+        "type": "object",
+        "description": "API projection of resource.yaml. Exact kind-specific validation remains governed by schemas/resource.schema.json; exactly one key matching kind must be present.",
+        "additionalProperties": false,
+        "required": ["schema_version", "kind", "slug", "name", "version", "description", "aliases", "tags", "categories", "runtimes", "inputs", "outputs", "permissions", "dependencies", "entrypoint", "status", "owner_team"],
+        "properties": {
+          "schema_version": { "type": "string", "const": "1" },
+          "kind": { "$ref": "#/components/schemas/ResourceKind" },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "aliases": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 200 }, "uniqueItems": true },
+          "tags": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 100 }, "uniqueItems": true, "maxItems": 64 },
+          "categories": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9]+(?:[-/][a-z0-9]+)*$", "maxLength": 160 }, "uniqueItems": true, "minItems": 1, "maxItems": 32 },
+          "runtimes": { "type": "array", "items": { "$ref": "#/components/schemas/Runtime" }, "uniqueItems": true, "minItems": 1 },
+          "inputs": { "type": "array", "items": { "$ref": "#/components/schemas/InterfaceField" }, "maxItems": 128 },
+          "outputs": { "type": "array", "items": { "$ref": "#/components/schemas/InterfaceField" }, "maxItems": 128 },
+          "permissions": { "type": "array", "items": { "$ref": "#/components/schemas/PermissionDeclaration" }, "maxItems": 128 },
+          "dependencies": { "type": "array", "items": { "$ref": "#/components/schemas/DependencyDeclaration" }, "maxItems": 128 },
+          "entrypoint": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "status": { "$ref": "#/components/schemas/LifecycleStatus" },
+          "owner_team": { "$ref": "#/components/schemas/Slug" },
+          "skill": { "$ref": "#/components/schemas/JsonObject" },
+          "mcp": { "$ref": "#/components/schemas/JsonObject" },
+          "prompt": { "$ref": "#/components/schemas/JsonObject" },
+          "agent": { "$ref": "#/components/schemas/JsonObject" },
+          "workflow": { "$ref": "#/components/schemas/JsonObject" },
+          "tool": { "$ref": "#/components/schemas/JsonObject" }
+        },
+        "oneOf": [
+          { "required": ["skill"], "properties": { "kind": { "const": "skill" } } },
+          { "required": ["mcp"], "properties": { "kind": { "const": "mcp" } } },
+          { "required": ["prompt"], "properties": { "kind": { "const": "prompt" } } },
+          { "required": ["agent"], "properties": { "kind": { "const": "agent" } } },
+          { "required": ["workflow"], "properties": { "kind": { "const": "workflow" } } },
+          { "required": ["tool"], "properties": { "kind": { "const": "tool" } } }
+        ]
+      },
+      "CreateResourceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "artifacts", "reason"],
+        "properties": {
+          "manifest": { "$ref": "#/components/schemas/ResourceManifest" },
+          "artifacts": { "type": "array", "items": { "$ref": "#/components/schemas/ArtifactReference" }, "minItems": 1, "maxItems": 512 },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      },
+      "CreateResourceVersionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "artifacts", "reason"],
+        "properties": {
+          "manifest": { "$ref": "#/components/schemas/ResourceManifest" },
+          "artifacts": { "type": "array", "items": { "$ref": "#/components/schemas/ArtifactReference" }, "minItems": 1, "maxItems": 512 },
+          "replacement_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      },
+      "UpdateDraftVersionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["row_version", "reason"],
+        "properties": {
+          "manifest": { "$ref": "#/components/schemas/ResourceManifest" },
+          "artifacts": { "type": "array", "items": { "$ref": "#/components/schemas/ArtifactReference" }, "minItems": 1, "maxItems": 512 },
+          "row_version": { "type": "integer", "minimum": 1 },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "anyOf": [
+          { "required": ["manifest"] },
+          { "required": ["artifacts"] }
+        ]
+      },
+      "ResourceSummaryFields": {
+        "type": "object",
+        "required": ["resource_id", "kind", "slug", "owner_team", "created_by", "created_at", "updated_at", "row_version"],
+        "properties": {
+          "resource_id": { "$ref": "#/components/schemas/PublicId" },
+          "kind": { "$ref": "#/components/schemas/ResourceKind" },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "owner_team": { "$ref": "#/components/schemas/Slug" },
+          "created_by": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "selected_version": { "oneOf": [{ "$ref": "#/components/schemas/ResourceVersionSummary" }, { "type": "null" }] },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "ResourceSummary": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResourceSummaryFields" }
+        ],
+        "unevaluatedProperties": false
+      },
+      "ResourceDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResourceSummaryFields" },
+          {
+            "type": "object",
+            "properties": {
+              "version": { "$ref": "#/components/schemas/ResourceVersion" },
+              "versions": { "type": "array", "items": { "$ref": "#/components/schemas/ResourceVersionSummary" }, "maxItems": 20 }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "ResourceVersionSummaryFields": {
+        "type": "object",
+        "required": ["version_id", "resource_id", "version", "name", "status", "artifact_hash", "manifest_snapshot_hash", "status_changed_at", "created_at", "row_version"],
+        "properties": {
+          "version_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_id": { "$ref": "#/components/schemas/PublicId" },
+          "version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "status": { "$ref": "#/components/schemas/LifecycleStatus" },
+          "artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "manifest_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "status_changed_at": { "$ref": "#/components/schemas/Timestamp" },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "ResourceVersionSummary": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResourceVersionSummaryFields" }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RuntimeValidation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["runtime", "validation_status"],
+        "properties": {
+          "runtime": { "$ref": "#/components/schemas/Runtime" },
+          "validation_status": { "type": "string", "enum": ["unvalidated", "validating", "validated", "failed", "stale"] },
+          "adapter_version": { "type": ["string", "null"], "maxLength": 64 },
+          "validated_artifact_hash": { "oneOf": [{ "$ref": "#/components/schemas/Hash" }, { "type": "null" }] },
+          "validation_evidence_ref": { "type": ["string", "null"], "maxLength": 500 },
+          "validated_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] }
+        }
+      },
+      "ResolvedDependency": {
+        "allOf": [
+          { "$ref": "#/components/schemas/DependencyDeclarationFields" },
+          {
+            "type": "object",
+            "required": ["ordinal", "resolution_status"],
+            "properties": {
+              "ordinal": { "type": "integer", "minimum": 0, "maximum": 65535 },
+              "resolution_status": { "type": "string", "enum": ["unresolved", "resolved", "failed", "stale"] },
+              "resolved_resource_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+              "external_locator": { "type": ["string", "null"], "maxLength": 1000 },
+              "external_digest": { "type": ["string", "null"], "maxLength": 255 },
+              "resolution_error_code": { "type": ["string", "null"], "maxLength": 100 }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "ResourceVersion": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResourceVersionSummaryFields" },
+          {
+            "type": "object",
+            "required": ["schema_version", "description", "owner_team", "entrypoint", "manifest", "artifacts", "runtimes", "dependencies", "status_changed_by", "status_reason", "created_by", "updated_at"],
+            "properties": {
+              "schema_version": { "type": "string", "const": "1" },
+              "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+              "owner_team": { "$ref": "#/components/schemas/Slug" },
+              "entrypoint": { "type": "string", "minLength": 1, "maxLength": 500 },
+              "manifest": { "$ref": "#/components/schemas/ResourceManifest" },
+              "artifacts": { "type": "array", "items": { "$ref": "#/components/schemas/ArtifactReference" } },
+              "runtimes": { "type": "array", "items": { "$ref": "#/components/schemas/RuntimeValidation" } },
+              "dependencies": { "type": "array", "items": { "$ref": "#/components/schemas/ResolvedDependency" } },
+              "status_changed_by": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "status_reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+              "validated_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "approved_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "published_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "deprecated_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "retire_after": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "retired_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+              "replacement_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+              "created_by": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "updated_at": { "$ref": "#/components/schemas/Timestamp" }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "ResourceList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ResourceSummary" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "ResourceVersionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ResourceVersionSummary" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "LifecycleTransitionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["target_status", "reason", "row_version", "evidence_refs"],
+        "properties": {
+          "target_status": { "$ref": "#/components/schemas/LifecycleStatus" },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "row_version": { "type": "integer", "minimum": 1 },
+          "replacement_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "retire_after": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "evidence_refs": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 500 }, "uniqueItems": true, "maxItems": 64 }
+        }
+      },
+      "LifecycleTransitionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "audit_id"],
+        "properties": {
+          "version": { "$ref": "#/components/schemas/ResourceVersion" },
+          "job": { "oneOf": [{ "$ref": "#/components/schemas/Job" }, { "type": "null" }] },
+          "audit_id": { "$ref": "#/components/schemas/PublicId" }
+        }
+      },
+      "ReviewType": {
+        "type": "string",
+        "enum": ["governance", "security", "runtime", "publication"]
+      },
+      "CreateResourceReviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["review_type", "decision", "reviewer_role", "artifact_hash", "manifest_snapshot_hash", "runtime_scope", "validation_evidence_ref", "permission_summary", "dependency_summary", "evaluation_refs", "rationale"],
+        "properties": {
+          "review_type": { "$ref": "#/components/schemas/ReviewType" },
+          "decision": { "type": "string", "enum": ["approve", "request_changes"] },
+          "reviewer_role": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "manifest_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "runtime_scope": { "type": "array", "items": { "$ref": "#/components/schemas/Runtime" }, "uniqueItems": true },
+          "validation_evidence_ref": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "permission_summary": { "$ref": "#/components/schemas/JsonObject" },
+          "dependency_summary": { "$ref": "#/components/schemas/JsonObject" },
+          "evaluation_refs": { "type": "array", "items": { "$ref": "#/components/schemas/PublicId" }, "uniqueItems": true },
+          "rationale": { "type": "string", "minLength": 1, "maxLength": 8000 }
+        }
+      },
+      "ResourceReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["review_id", "resource_version_id", "review_type", "reviewer_id", "reviewer_role", "decision", "artifact_hash", "manifest_snapshot_hash", "runtime_scope", "validation_evidence_ref", "permission_summary", "dependency_summary", "evaluation_refs", "rationale", "decided_at", "created_at"],
+        "properties": {
+          "review_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "review_type": { "$ref": "#/components/schemas/ReviewType" },
+          "reviewer_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "reviewer_role": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "decision": { "type": "string", "enum": ["approve", "request_changes"] },
+          "artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "manifest_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "runtime_scope": { "type": "array", "items": { "$ref": "#/components/schemas/Runtime" }, "uniqueItems": true },
+          "validation_evidence_ref": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "permission_summary": { "$ref": "#/components/schemas/JsonObject" },
+          "dependency_summary": { "$ref": "#/components/schemas/JsonObject" },
+          "evaluation_refs": { "type": "array", "items": { "$ref": "#/components/schemas/PublicId" }, "uniqueItems": true },
+          "rationale": { "type": "string", "minLength": 1, "maxLength": 8000 },
+          "invalidated_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "invalidation_reason": { "type": ["string", "null"], "maxLength": 2000 },
+          "decided_at": { "$ref": "#/components/schemas/Timestamp" },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" }
+        }
+      },
+      "ResourceReviewList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ResourceReview" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "ResourceSearchFilters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kinds": { "type": "array", "items": { "$ref": "#/components/schemas/ResourceKind" }, "uniqueItems": true },
+          "statuses": { "type": "array", "items": { "$ref": "#/components/schemas/LifecycleStatus" }, "uniqueItems": true },
+          "runtimes": { "type": "array", "items": { "$ref": "#/components/schemas/Runtime" }, "uniqueItems": true },
+          "owner_teams": { "type": "array", "items": { "$ref": "#/components/schemas/Slug" }, "uniqueItems": true },
+          "tags": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 100 }, "uniqueItems": true },
+          "categories": { "type": "array", "items": { "type": "string", "minLength": 2, "maxLength": 160 }, "uniqueItems": true },
+          "required_permissions": { "type": "array", "items": { "type": "string", "minLength": 3, "maxLength": 200 }, "uniqueItems": true }
+        }
+      },
+      "ResourceSearchRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["query", "filters", "limit"],
+        "properties": {
+          "query": { "type": "string", "minLength": 1, "maxLength": 8000 },
+          "locale": { "type": "string", "minLength": 2, "maxLength": 35, "default": "en" },
+          "filters": { "$ref": "#/components/schemas/ResourceSearchFilters" },
+          "ranking_profile": { "type": "string", "enum": ["hybrid", "keyword", "semantic"], "default": "hybrid" },
+          "sort": { "type": "string", "enum": ["relevance", "newest", "name"], "default": "relevance" },
+          "cursor": { "type": ["string", "null"], "maxLength": 2048 },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+          "include_highlights": { "type": "boolean", "default": true }
+        }
+      },
+      "SearchHit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rank", "score", "resource", "version", "source_artifact_hash", "matched_fields", "highlights"],
+        "properties": {
+          "rank": { "type": "integer", "minimum": 1 },
+          "score": { "type": "number", "minimum": 0 },
+          "score_components": { "$ref": "#/components/schemas/JsonObject" },
+          "resource": { "$ref": "#/components/schemas/ResourceSummary" },
+          "version": { "$ref": "#/components/schemas/ResourceVersionSummary" },
+          "source_artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "matched_fields": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 100 }, "uniqueItems": true },
+          "highlights": { "type": "array", "items": { "type": "string", "maxLength": 1000 }, "maxItems": 20 },
+          "index_revision": { "type": "string", "minLength": 1, "maxLength": 100 }
+        }
+      },
+      "ResourceSearchResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["query_id", "items", "page", "took_ms"],
+        "properties": {
+          "query_id": { "$ref": "#/components/schemas/CorrelationId" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/SearchHit" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" },
+          "took_ms": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "AgentRegistrationStatus": {
+        "type": "string",
+        "enum": ["accepted", "validating", "registered", "rejected", "failed"]
+      },
+      "AgentRegistrationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "artifacts", "validation_runtimes", "reason"],
+        "properties": {
+          "manifest": {
+            "allOf": [
+              { "$ref": "#/components/schemas/ResourceManifest" },
+              { "type": "object", "properties": { "kind": { "const": "agent" }, "status": { "const": "draft" } } }
+            ]
+          },
+          "artifacts": { "type": "array", "items": { "$ref": "#/components/schemas/ArtifactReference" }, "minItems": 1, "maxItems": 512 },
+          "validation_runtimes": { "type": "array", "items": { "$ref": "#/components/schemas/Runtime" }, "uniqueItems": true, "minItems": 1 },
+          "existing_resource_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      },
+      "AgentRegistration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["registration_id", "status", "resource_id", "resource_version_id", "job_id", "requested_by", "created_at", "updated_at"],
+        "properties": {
+          "registration_id": { "$ref": "#/components/schemas/PublicId" },
+          "status": { "$ref": "#/components/schemas/AgentRegistrationStatus" },
+          "resource_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "job_id": { "$ref": "#/components/schemas/PublicId" },
+          "requested_by": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "validation_summary": { "$ref": "#/components/schemas/JsonObject" },
+          "error": { "oneOf": [{ "$ref": "#/components/schemas/Error" }, { "type": "null" }] },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" }
+        }
+      },
+      "AgentRegistrationList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/AgentRegistration" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "WorkflowDefinition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["workflow_id", "resource_version_id", "definition_schema_version", "definition", "input_schema", "output_schema", "graph_hash", "is_deterministic", "created_at", "updated_at", "row_version"],
+        "properties": {
+          "workflow_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "definition_schema_version": { "type": "string", "minLength": 1, "maxLength": 32 },
+          "definition": { "$ref": "#/components/schemas/JsonObject" },
+          "input_schema": { "$ref": "#/components/schemas/JsonObject" },
+          "output_schema": { "$ref": "#/components/schemas/JsonObject" },
+          "graph_hash": { "$ref": "#/components/schemas/Hash" },
+          "is_deterministic": { "type": "boolean" },
+          "compiler_version": { "type": ["string", "null"], "maxLength": 64 },
+          "compiled_artifact_ref": { "type": ["string", "null"], "maxLength": 500 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "WorkflowDefinitionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/WorkflowDefinition" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "CreateWorkflowRunRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["runtime", "input", "timeout_seconds"],
+        "properties": {
+          "runtime": { "$ref": "#/components/schemas/Runtime" },
+          "input": { "$ref": "#/components/schemas/JsonObject" },
+          "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+          "random_seed": { "type": ["integer", "null"], "minimum": 0, "maximum": 9223372036854775807 },
+          "correlation_id": { "$ref": "#/components/schemas/CorrelationId" }
+        }
+      },
+      "ResolvedResourceNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["node_id", "resource_version_id", "resource_public_id", "kind", "slug", "version", "artifact_hash", "manifest_snapshot_hash", "runtime", "adapter_version"],
+        "properties": {
+          "node_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_public_id": { "$ref": "#/components/schemas/PublicId" },
+          "kind": { "$ref": "#/components/schemas/ResourceKind" },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "manifest_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "runtime": { "$ref": "#/components/schemas/Runtime" },
+          "adapter_version": { "type": "string", "minLength": 1, "maxLength": 64 }
+        }
+      },
+      "ResolvedDependencyEdge": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["parent_resource_version_id", "ordinal", "kind", "slug", "version_constraint", "source", "optional"],
+        "properties": {
+          "parent_resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "ordinal": { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "kind": { "type": "string", "enum": ["skill", "mcp", "prompt", "agent", "workflow", "tool", "external"] },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "version_constraint": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "source": { "type": "string", "enum": ["managed", "external"] },
+          "optional": { "type": "boolean" },
+          "resolved_resource_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "resolved_version": { "oneOf": [{ "$ref": "#/components/schemas/SemanticVersion" }, { "type": "null" }] },
+          "resolved_artifact_hash": { "oneOf": [{ "$ref": "#/components/schemas/Hash" }, { "type": "null" }] },
+          "external_locator": { "type": ["string", "null"], "maxLength": 1000 },
+          "external_version": { "type": ["string", "null"], "maxLength": 255 },
+          "external_digest": { "type": ["string", "null"], "maxLength": 255 }
+        }
+      },
+      "WorkflowResolutionSnapshot": {
+        "type": "object",
+        "description": "Canonical, secret-free, immutable execution snapshot. Arrays are sorted by stable keys before hashing.",
+        "additionalProperties": false,
+        "required": ["workflow_resource_version_id", "workflow_resource_public_id", "kind", "slug", "version", "artifact_hash", "manifest_snapshot_hash", "definition_graph_hash", "nodes", "dependency_edges", "resolver_version", "resolved_at"],
+        "properties": {
+          "workflow_resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "workflow_resource_public_id": { "$ref": "#/components/schemas/PublicId" },
+          "kind": { "type": "string", "const": "workflow" },
+          "slug": { "$ref": "#/components/schemas/Slug" },
+          "version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "manifest_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "definition_graph_hash": { "$ref": "#/components/schemas/Hash" },
+          "nodes": { "type": "array", "items": { "$ref": "#/components/schemas/ResolvedResourceNode" } },
+          "dependency_edges": { "type": "array", "items": { "$ref": "#/components/schemas/ResolvedDependencyEdge" } },
+          "resolver_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "resolved_at": { "$ref": "#/components/schemas/Timestamp" }
+        }
+      },
+      "WorkflowRunStatus": {
+        "type": "string",
+        "enum": ["queued", "running", "awaiting_approval", "succeeded", "failed", "cancelled", "timed_out"]
+      },
+      "WorkflowRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["run_id", "workflow_id", "definition_graph_hash", "resolution_snapshot", "resolution_snapshot_hash", "requested_by", "runtime", "status", "correlation_id", "input", "input_hash", "timeout_seconds", "created_at", "updated_at", "row_version"],
+        "properties": {
+          "run_id": { "$ref": "#/components/schemas/PublicId" },
+          "workflow_id": { "$ref": "#/components/schemas/PublicId" },
+          "definition_graph_hash": { "$ref": "#/components/schemas/Hash" },
+          "resolution_snapshot": { "$ref": "#/components/schemas/WorkflowResolutionSnapshot" },
+          "resolution_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "requested_by": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "runtime": { "$ref": "#/components/schemas/Runtime" },
+          "status": { "$ref": "#/components/schemas/WorkflowRunStatus" },
+          "correlation_id": { "$ref": "#/components/schemas/CorrelationId" },
+          "input": { "$ref": "#/components/schemas/JsonObject" },
+          "input_hash": { "$ref": "#/components/schemas/Hash" },
+          "output": { "oneOf": [{ "$ref": "#/components/schemas/JsonObject" }, { "type": "null" }] },
+          "output_hash": { "oneOf": [{ "$ref": "#/components/schemas/Hash" }, { "type": "null" }] },
+          "checkpoint": { "oneOf": [{ "$ref": "#/components/schemas/JsonObject" }, { "type": "null" }] },
+          "random_seed": { "type": ["integer", "null"] },
+          "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+          "approval_gate": { "type": ["string", "null"], "maxLength": 160 },
+          "approval_reason": { "type": ["string", "null"], "maxLength": 8000 },
+          "approved_by": { "type": ["string", "null"], "maxLength": 160 },
+          "approved_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "root_job_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "started_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "finished_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "error_code": { "type": ["string", "null"], "maxLength": 100 },
+          "error_summary": { "type": ["string", "null"], "maxLength": 1000 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "WorkflowRunList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/WorkflowRun" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "WorkflowApprovalRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate", "decision", "reason", "row_version"],
+        "properties": {
+          "gate": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "decision": { "type": "string", "enum": ["approve", "reject"] },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 8000 },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "CancelRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason", "row_version"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "JobStatus": {
+        "type": "string",
+        "enum": ["queued", "leased", "running", "retry_scheduled", "succeeded", "failed", "cancelled", "dead_letter"]
+      },
+      "Job": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["job_id", "job_kind", "queue_name", "status", "priority", "attempt", "max_attempts", "correlation_id", "payload_hash", "available_at", "created_at", "updated_at", "row_version"],
+        "properties": {
+          "job_id": { "$ref": "#/components/schemas/PublicId" },
+          "job_kind": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "queue_name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "workflow_run_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "resource_version_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "parent_job_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "status": { "$ref": "#/components/schemas/JobStatus" },
+          "priority": { "type": "integer", "minimum": -32768, "maximum": 32767 },
+          "attempt": { "type": "integer", "minimum": 0 },
+          "max_attempts": { "type": "integer", "minimum": 1 },
+          "correlation_id": { "$ref": "#/components/schemas/CorrelationId" },
+          "payload": { "$ref": "#/components/schemas/JsonObject" },
+          "payload_hash": { "$ref": "#/components/schemas/Hash" },
+          "result": { "oneOf": [{ "$ref": "#/components/schemas/JsonObject" }, { "type": "null" }] },
+          "result_hash": { "oneOf": [{ "$ref": "#/components/schemas/Hash" }, { "type": "null" }] },
+          "worker_id": { "type": ["string", "null"], "maxLength": 160 },
+          "available_at": { "$ref": "#/components/schemas/Timestamp" },
+          "leased_until": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "heartbeat_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "cancel_requested_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "started_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "finished_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "error_code": { "type": ["string", "null"], "maxLength": 100 },
+          "error_summary": { "type": ["string", "null"], "maxLength": 1000 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" },
+          "row_version": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "JobList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Job" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "JobEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["job_id", "sequence_no", "event_type", "actor_type", "actor_id", "payload", "occurred_at"],
+        "properties": {
+          "job_id": { "$ref": "#/components/schemas/PublicId" },
+          "sequence_no": { "type": "integer", "minimum": 1 },
+          "event_type": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "from_status": { "oneOf": [{ "$ref": "#/components/schemas/JobStatus" }, { "type": "null" }] },
+          "to_status": { "oneOf": [{ "$ref": "#/components/schemas/JobStatus" }, { "type": "null" }] },
+          "actor_type": { "type": "string", "enum": ["user", "service", "worker", "system"] },
+          "actor_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "payload": { "$ref": "#/components/schemas/JsonObject" },
+          "occurred_at": { "$ref": "#/components/schemas/Timestamp" }
+        }
+      },
+      "JobEventList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/JobEvent" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "EvaluationKind": {
+        "type": "string",
+        "enum": ["retrieval", "duplicate", "recommendation", "workflow", "contract", "security", "runtime"]
+      },
+      "EvaluationStatus": {
+        "type": "string",
+        "enum": ["queued", "running", "passed", "failed", "error", "incomplete"]
+      },
+      "AssessorType": {
+        "type": "string",
+        "description": "Truthful origin of judgments. Model-generated or synthetic judgments must not be labeled human.",
+        "enum": ["none", "human", "model", "imported", "mixed"]
+      },
+      "AdjudicationStatus": {
+        "type": "string",
+        "enum": ["not_applicable", "draft", "single_reviewed", "adjudicated"]
+      },
+      "CreateEvaluationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resource_version_id", "evaluation_kind", "dataset_id", "dataset_version", "dataset_snapshot_hash", "evaluator_id", "evaluator_version", "assessor_type", "adjudication_status", "candidate_artifact_hash", "parameters"],
+        "properties": {
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "workflow_run_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "evaluation_kind": { "$ref": "#/components/schemas/EvaluationKind" },
+          "dataset_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "dataset_version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "dataset_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "evaluator_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "evaluator_version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "assessor_type": { "$ref": "#/components/schemas/AssessorType" },
+          "adjudication_status": { "$ref": "#/components/schemas/AdjudicationStatus" },
+          "candidate_artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "parameters": { "$ref": "#/components/schemas/JsonObject" }
+        }
+      },
+      "Evaluation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evaluation_id", "resource_version_id", "evaluation_kind", "dataset_id", "dataset_version", "dataset_snapshot_hash", "evaluator_id", "evaluator_version", "assessor_type", "adjudication_status", "candidate_artifact_hash", "status", "metrics", "job_id", "created_at"],
+        "properties": {
+          "evaluation_id": { "$ref": "#/components/schemas/PublicId" },
+          "resource_version_id": { "$ref": "#/components/schemas/PublicId" },
+          "workflow_run_id": { "oneOf": [{ "$ref": "#/components/schemas/PublicId" }, { "type": "null" }] },
+          "evaluation_kind": { "$ref": "#/components/schemas/EvaluationKind" },
+          "dataset_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "dataset_version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "dataset_snapshot_hash": { "$ref": "#/components/schemas/Hash" },
+          "evaluator_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "evaluator_version": { "$ref": "#/components/schemas/SemanticVersion" },
+          "assessor_type": { "$ref": "#/components/schemas/AssessorType" },
+          "adjudication_status": { "$ref": "#/components/schemas/AdjudicationStatus" },
+          "candidate_artifact_hash": { "$ref": "#/components/schemas/Hash" },
+          "status": { "$ref": "#/components/schemas/EvaluationStatus" },
+          "metrics": { "$ref": "#/components/schemas/JsonObject" },
+          "passed_count": { "type": ["integer", "null"], "minimum": 0 },
+          "failed_count": { "type": ["integer", "null"], "minimum": 0 },
+          "excluded_count": { "type": ["integer", "null"], "minimum": 0 },
+          "result_artifact_ref": { "type": ["string", "null"], "maxLength": 500 },
+          "job_id": { "$ref": "#/components/schemas/PublicId" },
+          "started_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "completed_at": { "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }] },
+          "error_code": { "type": ["string", "null"], "maxLength": 100 },
+          "error_summary": { "type": ["string", "null"], "maxLength": 1000 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" }
+        }
+      },
+      "EvaluationList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "page"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Evaluation" } },
+          "page": { "$ref": "#/components/schemas/PageInfo" }
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,99}$" },
+          "message": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "field": { "type": "string", "maxLength": 500 },
+          "rejected_value": { "description": "Redacted, bounded scalar only; secrets and resource body content are never echoed.", "type": ["string", "number", "integer", "boolean", "null"] },
+          "metadata": { "$ref": "#/components/schemas/JsonObject" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "RFC 9457-compatible problem details with stable machine codes.",
+        "additionalProperties": false,
+        "required": ["type", "title", "status", "code", "message", "request_id", "correlation_id", "retryable", "details"],
+        "properties": {
+          "type": { "type": "string", "format": "uri-reference" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+          "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,99}$" },
+          "message": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "request_id": { "$ref": "#/components/schemas/CorrelationId" },
+          "correlation_id": { "$ref": "#/components/schemas/CorrelationId" },
+          "retryable": { "type": "boolean" },
+          "details": { "type": "array", "items": { "$ref": "#/components/schemas/ErrorDetail" }, "maxItems": 100 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "demo-local-catalog",
+  "name": "Demo Local Catalog MCP Server",
+  "version": "1.0.0",
+  "description": "A clearly labeled, local-only demonstration MCP resource that specifies read-only catalog discovery tools over the stdio transport. It is a Stage 0 contract example; the referenced server module is not implemented, validated, published, or production-ready.",
+  "aliases": [
+    "local-catalog-demo",
+    "catalog-mcp-example"
+  ],
+  "tags": [
+    "demo",
+    "mcp",
+    "catalog",
+    "local-only"
+  ],
+  "categories": [
+    "platform-integration/mcp"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "tool_request",
+      "type": "json",
+      "required": true,
+      "description": "One MCP tool invocation matching the selected tool's embedded input schema."
+    },
+    {
+      "name": "catalog_root",
+      "type": "directory_path",
+      "required": true,
+      "description": "An explicitly configured local catalog directory; the runtime must constrain access to this root."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "tool_result",
+      "type": "json",
+      "required": true,
+      "description": "A JSON-compatible MCP result containing catalog metadata or a structured error."
+    }
+  ],
+  "permissions": [
+    {
+      "name": "resource:read",
+      "scope": "project",
+      "effect": "allow",
+      "approval_required": false,
+      "reason": "Read resource manifests beneath the explicitly configured local catalog root only."
+    },
+    {
+      "name": "network:access",
+      "scope": "external",
+      "effect": "deny",
+      "approval_required": false,
+      "reason": "This demonstration server is local-only and must not make network requests."
+    }
+  ],
+  "dependencies": [],
+  "entrypoint": "server.json",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "mcp": {
+    "transport": "stdio",
+    "command": [
+      "python",
+      "-m",
+      "supercoder_demo_local_catalog_mcp",
+      "--config",
+      "server.json"
+    ],
+    "tools": [
+      {
+        "name": "catalog-list",
+        "description": "List resource summaries found beneath the configured local catalog root, with optional kind and text filters. The operation is read-only, deterministic for an unchanged catalog, and performs no network access.",
+        "input_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Optional case-insensitive text matched against slug, name, aliases, tags, and description."
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "skill",
+                "mcp",
+                "prompt",
+                "agent",
+                "workflow",
+                "tool"
+              ]
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        }
+      },
+      {
+        "name": "catalog-get",
+        "description": "Return the parsed manifest metadata for one exact resource identity beneath the configured local catalog root. The operation does not return resource body files and must reject paths that escape the catalog root.",
+        "input_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "slug"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "skill",
+                "mcp",
+                "prompt",
+                "agent",
+                "workflow",
+                "tool"
+              ]
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "minLength": 2,
+              "maxLength": 160
+            }
+          }
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalog_root"
+      ],
+      "properties": {
+        "catalog_root": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the local resources directory. The launcher must provide it; no default home-directory scan is allowed."
+        },
+        "max_results": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "follow_symlinks": {
+          "type": "boolean",
+          "const": false,
+          "default": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,624 @@
+{
+  "definition_version": "1",
+  "workflow_id": "demo-review-flow",
+  "workflow_version": "1.0.0",
+  "display_name": "Demo Human-Gated Code Review Flow",
+  "demo_only": true,
+  "execution_contract": {
+    "definition_mode": "declarative-only",
+    "operational": false,
+    "engine_binding": null,
+    "adapter_required": true,
+    "description": "This file defines a parseable execution contract. Stage 0 provides no workflow scheduler, durable state store, resource adapter, or approval service, so parsing this file must not start a run."
+  },
+  "runtime": {
+    "default": "kiro",
+    "compatible": [
+      "kiro",
+      "claude-code",
+      "cursor"
+    ],
+    "concurrency": 1,
+    "ordering": "strict-sequential"
+  },
+  "binding_semantics": {
+    "path_syntax": "jsonpath-subset",
+    "schema_defaults_materialized": false,
+    "missing_source_actions": [
+      "omit",
+      "use_literal"
+    ],
+    "description": "Each binding declares its missing-source action. JSON Schema default annotations are never used to populate run state."
+  },
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "diff"
+    ],
+    "properties": {
+      "diff": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500000
+      },
+      "task_context": {
+        "type": "string",
+        "maxLength": 50000
+      },
+      "validation_evidence": {
+        "type": "string",
+        "maxLength": 100000
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "review_flow_result"
+    ],
+    "properties": {
+      "review_flow_result": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/approvedResult"
+          },
+          {
+            "$ref": "#/$defs/rejectedResult"
+          },
+          {
+            "$ref": "#/$defs/failedResult"
+          }
+        ]
+      }
+    },
+    "$defs": {
+      "approvalRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gate_id",
+          "decision",
+          "reviewer_id",
+          "decided_at",
+          "reason"
+        ],
+        "properties": {
+          "gate_id": {
+            "const": "human-review"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ]
+          },
+          "reviewer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decided_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "failureRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "step_id",
+          "message",
+          "attempts"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_INPUT",
+              "DEPENDENCY_UNRESOLVED",
+              "RESOURCE_EXECUTION_FAILED",
+              "OUTPUT_CONTRACT_VIOLATION",
+              "APPROVAL_EXPIRED",
+              "APPROVAL_RECORD_INVALID",
+              "MAPPING_FAILED"
+            ]
+          },
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+          }
+        }
+      },
+      "approvedResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_status",
+          "review_report",
+          "approval",
+          "failure"
+        ],
+        "properties": {
+          "run_status": {
+            "const": "approved"
+          },
+          "review_report": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approval": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/approvalRecord"
+              },
+              {
+                "properties": {
+                  "decision": {
+                    "const": "approve"
+                  }
+                }
+              }
+            ]
+          },
+          "failure": {
+            "type": "null"
+          }
+        }
+      },
+      "rejectedResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_status",
+          "review_report",
+          "approval",
+          "failure"
+        ],
+        "properties": {
+          "run_status": {
+            "const": "rejected"
+          },
+          "review_report": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approval": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/approvalRecord"
+              },
+              {
+                "properties": {
+                  "decision": {
+                    "const": "reject"
+                  }
+                }
+              }
+            ]
+          },
+          "failure": {
+            "type": "null"
+          }
+        }
+      },
+      "failedResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_status",
+          "review_report",
+          "approval",
+          "failure"
+        ],
+        "properties": {
+          "run_status": {
+            "const": "failed"
+          },
+          "review_report": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approval": {
+            "type": "null"
+          },
+          "failure": {
+            "$ref": "#/$defs/failureRecord"
+          }
+        }
+      }
+    }
+  },
+  "resources": [
+    {
+      "binding_id": "review-skill",
+      "kind": "skill",
+      "slug": "demo-code-review",
+      "version": "1.0.0",
+      "required": true,
+      "input_contract": [
+        "diff",
+        "task_context",
+        "validation_evidence"
+      ],
+      "output_contract": [
+        "review_report"
+      ]
+    }
+  ],
+  "retry_policies": {
+    "review-resource": {
+      "max_attempts": 2,
+      "backoff": "fixed",
+      "delay_seconds": 2,
+      "retry_on": [
+        "RESOURCE_EXECUTION_FAILED"
+      ],
+      "do_not_retry_on": [
+        "INVALID_INPUT",
+        "DEPENDENCY_UNRESOLVED",
+        "OUTPUT_CONTRACT_VIOLATION",
+        "APPROVAL_EXPIRED",
+        "APPROVAL_RECORD_INVALID",
+        "MAPPING_FAILED"
+      ]
+    }
+  },
+  "approval_points": [
+    {
+      "gate_id": "human-review",
+      "step_id": "await-human-review",
+      "required_role": "code-reviewer",
+      "mode": "blocking",
+      "present": [
+        "review_report",
+        "diff"
+      ],
+      "allowed_decisions": [
+        "approve",
+        "reject"
+      ],
+      "reason_required": true,
+      "timeout": "PT24H",
+      "on_timeout": {
+        "transition": "emit-failure",
+        "failure_code": "APPROVAL_EXPIRED"
+      },
+      "meaning": "Approval accepts this demo review report as reviewed input to downstream governance. It does not authorize merge, repository writes, deployment, publication, or any other side effect."
+    }
+  ],
+  "ordered_steps": [
+    {
+      "order": 1,
+      "step_id": "accept-request",
+      "node_id": "request",
+      "action": "accept_input",
+      "input_bindings": {
+        "diff": {
+          "source": "$.input.diff",
+          "on_missing": {
+            "action": "omit"
+          }
+        },
+        "task_context": {
+          "source": "$.input.task_context",
+          "on_missing": {
+            "action": "use_literal",
+            "value": ""
+          }
+        },
+        "validation_evidence": {
+          "source": "$.input.validation_evidence",
+          "on_missing": {
+            "action": "use_literal",
+            "value": ""
+          }
+        }
+      },
+      "output_bindings": {
+        "request": "$.state.request"
+      },
+      "on_success": "validate-input",
+      "on_failure": {
+        "step_id": "emit-failure",
+        "failure_code": "MAPPING_FAILED"
+      }
+    },
+    {
+      "order": 2,
+      "step_id": "validate-input",
+      "node_id": "input-valid",
+      "action": "validate_json_schema",
+      "schema_ref": "#/input_schema",
+      "value_ref": "$.state.request",
+      "branches": [
+        {
+          "when": "valid",
+          "step_id": "run-review"
+        },
+        {
+          "when": "invalid",
+          "step_id": "emit-failure",
+          "failure_code": "INVALID_INPUT"
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "step_id": "run-review",
+      "node_id": "perform-review",
+      "action": "invoke_resource",
+      "resource_binding": "review-skill",
+      "input_bindings": {
+        "diff": "$.state.request.diff",
+        "task_context": "$.state.request.task_context",
+        "validation_evidence": "$.state.request.validation_evidence"
+      },
+      "output_bindings": {
+        "review_report": "$.state.review_report"
+      },
+      "retry_policy": "review-resource",
+      "on_success": "validate-review-output",
+      "on_failure": {
+        "step_id": "emit-failure",
+        "failure_code": "RESOURCE_EXECUTION_FAILED"
+      },
+      "on_unresolved_dependency": {
+        "step_id": "emit-failure",
+        "failure_code": "DEPENDENCY_UNRESOLVED"
+      }
+    },
+    {
+      "order": 4,
+      "step_id": "validate-review-output",
+      "node_id": "review-output-valid",
+      "action": "validate_json_schema",
+      "inline_schema": {
+        "type": "string",
+        "minLength": 1
+      },
+      "value_ref": "$.state.review_report",
+      "branches": [
+        {
+          "when": "valid",
+          "step_id": "await-human-review"
+        },
+        {
+          "when": "invalid",
+          "step_id": "emit-failure",
+          "failure_code": "OUTPUT_CONTRACT_VIOLATION"
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "step_id": "await-human-review",
+      "node_id": "human-review",
+      "action": "request_approval",
+      "approval_gate": "human-review",
+      "input_bindings": {
+        "review_report": "$.state.review_report",
+        "diff": "$.state.request.diff"
+      },
+      "branches": [
+        {
+          "when": "decision == 'approve'",
+          "step_id": "emit-approved"
+        },
+        {
+          "when": "decision == 'reject'",
+          "step_id": "emit-rejected"
+        },
+        {
+          "when": "expired",
+          "step_id": "emit-failure",
+          "failure_code": "APPROVAL_EXPIRED"
+        },
+        {
+          "when": "invalid_record",
+          "step_id": "emit-failure",
+          "failure_code": "APPROVAL_RECORD_INVALID"
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "step_id": "emit-approved",
+      "node_id": "approved-result",
+      "action": "emit_output",
+      "output": {
+        "review_flow_result": {
+          "run_status": "approved",
+          "review_report_ref": "$.state.review_report",
+          "approval_ref": "$.state.approval",
+          "failure": null
+        }
+      },
+      "terminal_state": "SUCCEEDED_APPROVED"
+    },
+    {
+      "order": 7,
+      "step_id": "emit-rejected",
+      "node_id": "rejected-result",
+      "action": "emit_output",
+      "output": {
+        "review_flow_result": {
+          "run_status": "rejected",
+          "review_report_ref": "$.state.review_report",
+          "approval_ref": "$.state.approval",
+          "failure": null
+        }
+      },
+      "terminal_state": "SUCCEEDED_REJECTED"
+    },
+    {
+      "order": 8,
+      "step_id": "emit-failure",
+      "node_id": "failed-result",
+      "action": "emit_failure_output",
+      "output": {
+        "review_flow_result": {
+          "run_status": "failed",
+          "review_report_ref": "$.state.review_report_or_null",
+          "approval": null,
+          "failure_ref": "$.state.failure"
+        }
+      },
+      "terminal_state": "FAILED"
+    }
+  ],
+  "state_model": {
+    "initial": "CREATED",
+    "non_terminal": [
+      "CREATED",
+      "VALIDATING_INPUT",
+      "RUNNING_REVIEW",
+      "VALIDATING_OUTPUT",
+      "WAITING_FOR_APPROVAL"
+    ],
+    "terminal": [
+      "SUCCEEDED_APPROVED",
+      "SUCCEEDED_REJECTED",
+      "FAILED"
+    ],
+    "transitions": [
+      {
+        "from": "CREATED",
+        "to": "VALIDATING_INPUT",
+        "by_step": "accept-request"
+      },
+      {
+        "from": "VALIDATING_INPUT",
+        "to": "RUNNING_REVIEW",
+        "by_step": "validate-input",
+        "when": "valid"
+      },
+      {
+        "from": "VALIDATING_INPUT",
+        "to": "FAILED",
+        "by_step": "validate-input",
+        "when": "invalid"
+      },
+      {
+        "from": "RUNNING_REVIEW",
+        "to": "VALIDATING_OUTPUT",
+        "by_step": "run-review",
+        "when": "success"
+      },
+      {
+        "from": "RUNNING_REVIEW",
+        "to": "FAILED",
+        "by_step": "run-review",
+        "when": "retry_exhausted_or_dependency_unresolved"
+      },
+      {
+        "from": "VALIDATING_OUTPUT",
+        "to": "WAITING_FOR_APPROVAL",
+        "by_step": "validate-review-output",
+        "when": "valid"
+      },
+      {
+        "from": "VALIDATING_OUTPUT",
+        "to": "FAILED",
+        "by_step": "validate-review-output",
+        "when": "invalid"
+      },
+      {
+        "from": "WAITING_FOR_APPROVAL",
+        "to": "SUCCEEDED_APPROVED",
+        "by_step": "await-human-review",
+        "when": "decision == 'approve'"
+      },
+      {
+        "from": "WAITING_FOR_APPROVAL",
+        "to": "SUCCEEDED_REJECTED",
+        "by_step": "await-human-review",
+        "when": "decision == 'reject'"
+      },
+      {
+        "from": "WAITING_FOR_APPROVAL",
+        "to": "FAILED",
+        "by_step": "await-human-review",
+        "when": "expired_or_invalid_record"
+      }
+    ]
+  },
+  "failure_states": [
+    {
+      "code": "INVALID_INPUT",
+      "source_step": "validate-input",
+      "retryable": false,
+      "terminal": true,
+      "description": "A required input is absent or a supplied input violates input_schema."
+    },
+    {
+      "code": "DEPENDENCY_UNRESOLVED",
+      "source_step": "run-review",
+      "retryable": false,
+      "terminal": true,
+      "description": "The exact managed dependency skill/demo-code-review@1.0.0 cannot be resolved or authorized."
+    },
+    {
+      "code": "RESOURCE_EXECUTION_FAILED",
+      "source_step": "run-review",
+      "retryable": true,
+      "terminal": true,
+      "description": "The review resource failed twice under the fixed retry policy."
+    },
+    {
+      "code": "OUTPUT_CONTRACT_VIOLATION",
+      "source_step": "validate-review-output",
+      "retryable": false,
+      "terminal": true,
+      "description": "The review resource did not return a non-empty review_report."
+    },
+    {
+      "code": "APPROVAL_EXPIRED",
+      "source_step": "await-human-review",
+      "retryable": false,
+      "terminal": true,
+      "description": "No authorized human decision was recorded within the gate timeout."
+    },
+    {
+      "code": "APPROVAL_RECORD_INVALID",
+      "source_step": "await-human-review",
+      "retryable": false,
+      "terminal": true,
+      "description": "The approval service returned a malformed or unauthorized decision record."
+    },
+    {
+      "code": "MAPPING_FAILED",
+      "source_step": "accept-request",
+      "retryable": false,
+      "terminal": true,
+      "description": "A declared input or output binding could not be resolved without coercion."
+    }
+  ],
+  "security_boundaries": {
+    "resource_content_is_untrusted_data": true,
+    "external_network": "denied",
+    "credentials": "not-required-and-must-not-be-read",
+    "repository_write": "denied",
+    "process_execution": "denied",
+    "approval_cannot_expand_permissions": true,
+    "output_is_not_execution_evidence": true
+  }
+}
