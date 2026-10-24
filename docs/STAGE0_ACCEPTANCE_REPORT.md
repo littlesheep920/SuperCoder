@@ -1,7 +1,7 @@
 # SuperCoder Stage 0 Acceptance Report
 
 - Generated: `2026-10-16T17:10:45.001273Z`
-- Validation root: `C:\Users\24657\workplace\kirocrew-workspace\taskrunner_main\TASK_0b5f5275`
+- Validation root: `<task-workspace>` (absolute host paths are redacted for publication)
 - Acceptance result: **HOLD**
 - Scope: static Stage 0 contract acceptance only; this is not evidence that Stage 1 services are implemented or production-ready.
 
@@ -96,13 +96,13 @@ The following is the complete managed delivery inventory from `stage0-manifest.j
 
 ## Commands and observed results
 
-### Exit 128: `git -C "C:\Users\24657\workplace\kirocrew-workspace\taskrunner_main\TASK_0b5f5275" rev-parse --show-toplevel`
+### Exit 128: `git -C "<task-workspace>" rev-parse --show-toplevel`
 
 ```text
 fatal: not a git repository (or any of the parent directories): .git
 ```
 
-### Exit 0: `"C:\Users\24657\AppData\Local\Programs\Python\Python312\python.exe" -m unittest tests.test_stage0_validator -v`
+### Exit 0: `python -m unittest tests.test_stage0_validator -v`
 
 ```text
 test_endpoint_detection_accepts_every_required_group (tests.test_stage0_validator.ApiContractTests.test_endpoint_detection_accepts_every_required_group) ... ok
@@ -128,7 +128,7 @@ Ran 16 tests in 0.187s
 OK
 ```
 
-### Exit 1: `"C:\Users\24657\AppData\Local\Programs\Python\Python312\python.exe" "C:\Users\24657\workplace\kirocrew-workspace\taskrunner_main\TASK_0b5f5275\scripts\validate_stage0.py" --root "C:\Users\24657\workplace\kirocrew-workspace\taskrunner_main\TASK_0b5f5275" --report "C:\Users\24657\workplace\kirocrew-workspace\taskrunner_main\TASK_0b5f5275\docs\STAGE0_ACCEPTANCE_REPORT.md"`
+### Exit 1: `python scripts/validate_stage0.py --root "<task-workspace>" --report "<task-workspace>/docs/STAGE0_ACCEPTANCE_REPORT.md"`
 
 ```text
 [HOLD] repository boundary and Git status

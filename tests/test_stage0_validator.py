@@ -317,10 +317,14 @@ class SecretDetectionTests(TemporaryRootTestCase):
     def test_secret_scan_still_detects_prefixed_real_password(self) -> None:
         """The fixture allowance must not become a blanket bypass for real keys."""
 
+        # Assembled at run time so this file never contains a literal token
+        # shape: GitHub's secret scanning would otherwise flag the test fixture
+        # itself and report a leak that does not exist.
+        fake_github_token = "gh" + "p_" + "a" * 36
         self.write_text(
             "config/leak.env",
             "API_KEY=placeholder\n"
-            "GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789\n"
+            f"GITHUB_TOKEN={fake_github_token}\n"
             "MYSQL_PASSWORD=dev-not-a-fixture-supersecret123\n",
         )
 
