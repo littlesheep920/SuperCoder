@@ -148,3 +148,52 @@ export interface ErrorBody {
   trace_id?: string | null;
   status: number;
 }
+
+// --- Stage 2 search -------------------------------------------------------
+
+export type RankingProfile = "hybrid" | "keyword" | "semantic";
+export type SearchSort = "relevance" | "newest" | "name";
+
+export interface SearchFilters {
+  kinds?: string[];
+  statuses?: string[];
+  runtimes?: string[];
+  owner_teams?: string[];
+  tags?: string[];
+  categories?: string[];
+  required_permissions?: string[];
+}
+
+export interface SearchRequest {
+  query: string;
+  filters: SearchFilters;
+  limit: number;
+  ranking_profile?: RankingProfile;
+  sort?: SearchSort;
+  include_highlights?: boolean;
+}
+
+export interface SearchHit {
+  rank: number;
+  score: number;
+  score_components?: Record<string, number> | null;
+  resource: ResourceSummary;
+  version: ResourceVersionSummary;
+  source_artifact_hash: string;
+  matched_fields: string[];
+  highlights: string[];
+  index_revision?: string | null;
+}
+
+export interface SearchResponse {
+  query_id: string;
+  items: SearchHit[];
+  page: PageInfo;
+  took_ms: number;
+}
+
+/** Headers carrying facts the frozen response body cannot hold. */
+export interface SearchDiagnostics {
+  degraded: string[];
+  indexRevision: string;
+}

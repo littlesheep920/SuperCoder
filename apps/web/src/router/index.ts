@@ -6,12 +6,15 @@ import RegisterView from "../views/RegisterView.vue";
 import VersionsView from "../views/VersionsView.vue";
 import ReviewsView from "../views/ReviewsView.vue";
 import DependenciesView from "../views/DependenciesView.vue";
+import DiscoveryView from "../views/DiscoveryView.vue";
 import JobsView from "../views/JobsView.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: "/", component: ResourceListView },
+    // Capability discovery: three-column console (filters | results | explanation).
+    { path: "/discovery", component: DiscoveryView },
     { path: "/resources", component: ResourceListView },
     { path: "/resources/:id", component: ResourceDetailView, props: true },
     { path: "/register", component: RegisterView },

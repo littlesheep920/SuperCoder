@@ -8,6 +8,9 @@ import type {
   ResourceReview,
   ResourceSummary,
   ResourceVersion,
+  SearchDiagnostics,
+  SearchRequest,
+  SearchResponse,
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "/v1";
@@ -118,5 +121,38 @@ export const api = {
   listAudit: (params: Record<string, string> = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request<ListResponse<AuditRecord>>(`/audit${qs ? `?${qs}` : ""}`);
+  },
+
+  /**
+   * Search resources. Returns the response together with its diagnostic
+   * headers: the frozen response body cannot carry degradation information
+   * (additionalProperties:false), so it arrives in X-Search-Degraded.
+   */
+  searchResources: async (
+    body: SearchRequest,
+  ): Promise<{ data: SearchResponse; diagnostics: SearchDiagnostics }> => {
+    const headers = new Headers({ Accept: "application/json", "Content-Type": "application/json" });
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const response = await fetch(`${BASE}/search/resources`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      let errorBody: ErrorBody = { code: "HTTP_ERROR", status: response.status };
+      try {
+        errorBody = await response.json();
+      } catch {
+        /* keep default */
+      }
+      throw new ApiError(errorBody, response.status);
+    }
+    const degradedHeader = response.headers.get("X-Search-Degraded") ?? "";
+    const diagnostics: SearchDiagnostics = {
+      degraded: degradedHeader ? degradedHeader.split(",").filter(Boolean) : [],
+      indexRevision: response.headers.get("X-Index-Revision") ?? "",
+    };
+    return { data: (await response.json()) as SearchResponse, diagnostics };
   },
 };

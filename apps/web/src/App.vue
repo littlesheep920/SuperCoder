@@ -25,6 +25,7 @@ function save() {
         </div>
       </div>
       <nav>
+        <router-link to="/discovery">能力发现</router-link>
         <router-link to="/resources">能力资产</router-link>
         <router-link to="/register">资源登记</router-link>
         <router-link to="/jobs">任务监控</router-link>
