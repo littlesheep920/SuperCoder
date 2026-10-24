@@ -3,6 +3,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# git is required at runtime: the Git provider shells out to `git rev-parse` for
+# commit evidence before executing validation jobs.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y git \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install the pinned lock file, not the human-readable range file, so image
 # builds are reproducible across time (plan §2.4).
 COPY requirements-stage1.lock.txt .

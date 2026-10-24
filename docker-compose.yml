@@ -20,10 +20,20 @@ services:
       MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      # `mysqladmin ping` alone is not a readiness signal: during the
+      # initialization phase MySQL answers but rejects connections, and the
+      # seed step raced ahead of it with "Connection refused". Readiness here
+      # means "a real query over TCP succeeds AND the migrations ran", using the
+      # app user exactly as the seed does.
+      test:
+        - CMD-SHELL
+        - >-
+          mysql -h 127.0.0.1 -u "$$MYSQL_USER" -p"$$MYSQL_PASSWORD" -D supercoder
+          -e "SELECT 1 FROM resource LIMIT 1" >/dev/null 2>&1
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30
+      start_period: 30s
     volumes:
       # docker-entrypoint-initdb.d executes every *.sql file exactly once, in
       # lexicographic order, on a fresh data directory. Both migrations are
@@ -47,6 +57,17 @@ services:
       SUPERCODER_GIT_REPOSITORY_ROOT: /app
       SUPERCODER_GIT_READ_ONLY: "true"
       SUPERCODER_DEV_AUTH_TOKENS_FILE: /app/scripts/dev_tokens.json
+      # Search pipeline. Providers stay off unless the operator exports the
+      # matching variables; the key is never written into this file, only
+      # interpolated from the host environment at run time.
+      SUPERCODER_SEARCH_REMOTE_ENABLED: ${SUPERCODER_SEARCH_REMOTE_ENABLED:-false}
+      SUPERCODER_EMBEDDING_ENABLED: ${SUPERCODER_EMBEDDING_ENABLED:-false}
+      SUPERCODER_RERANK_ENABLED: ${SUPERCODER_RERANK_ENABLED:-false}
+      SUPERCODER_SEARCH_BASE_URL: ${SUPERCODER_SEARCH_BASE_URL:-https://api.siliconflow.cn/v1}
+      SUPERCODER_SEARCH_EMBEDDING_MODEL: ${SUPERCODER_SEARCH_EMBEDDING_MODEL:-Qwen/Qwen3-Embedding-0.6B}
+      SUPERCODER_SEARCH_EMBEDDING_DIMENSIONS: ${SUPERCODER_SEARCH_EMBEDDING_DIMENSIONS:-1024}
+      SUPERCODER_SEARCH_RERANK_MODEL: ${SUPERCODER_SEARCH_RERANK_MODEL:-BAAI/bge-reranker-v2-m3}
+      SUPERCODER_SEARCH_API_KEY: ${SUPERCODER_SEARCH_API_KEY:-}
     ports:
       - "8000:8000"
     depends_on:

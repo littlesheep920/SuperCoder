@@ -187,6 +187,57 @@ class RepositoryHygieneTests(unittest.TestCase):
             ]
             self.assertEqual(unpinned, [], f"{name} must pin every dependency")
 
+    def test_every_third_party_import_in_shipped_code_is_in_the_runtime_lock(self) -> None:
+        """Regression for both ``httpx`` and ``numpy``.
+
+        Stage 2 added two runtime imports (an HTTP client and a numeric library)
+        that were only ever installed on the developer's machine. Containers
+        built from the lock file crashed at import time with
+        "No module named '<dep>'". Rather than hard-code a dependency list, this
+        walks the shipped sources and requires every third-party import to be
+        pinned in the runtime lock.
+        """
+
+        import ast
+        import sys
+
+        runtime_lock = (ROOT / "requirements-stage1.lock.txt").read_text(encoding="utf-8").lower()
+        stdlib = set(sys.stdlib_module_names)
+        # Import names that differ from their distribution name.
+        import_to_distribution = {
+            "yaml": "pyyaml",
+            "pymysql": "pymysql",
+            "sqlalchemy": "sqlalchemy",
+            "pydantic_core": "pydantic_core",
+        }
+
+        found: set[str] = set()
+        for path in (ROOT / "apps").rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        found.add(alias.name.split(".")[0])
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    found.add(node.module.split(".")[0])
+
+        third_party = {
+            name for name in found if name not in stdlib and name not in {"apps"}
+        }
+        self.assertTrue(third_party, "expected to find third-party imports")
+
+        missing = sorted(
+            name
+            for name in third_party
+            if f"{import_to_distribution.get(name.lower(), name.lower())}==" not in runtime_lock
+        )
+        self.assertEqual(
+            missing,
+            [],
+            f"shipped code imports these but they are not pinned in the runtime "
+            f"lock, so containers will fail at import: {missing}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

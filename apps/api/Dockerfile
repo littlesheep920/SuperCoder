@@ -3,6 +3,14 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# git is a runtime dependency, not a build convenience: the managed Git provider
+# shells out to `git rev-parse` for the commit SHA recorded in health and audit
+# evidence. slim images omit it, which surfaced as a 500 with
+# FileNotFoundError: 'git'.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y git \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install the pinned lock file, not the human-readable range file, so image
 # builds are reproducible across time (plan §2.4).
 COPY requirements-stage1.lock.txt .

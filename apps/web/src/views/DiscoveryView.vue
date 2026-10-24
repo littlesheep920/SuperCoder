@@ -103,8 +103,31 @@ function componentEntries(hit: SearchHit): [string, number][] {
   return Object.entries(hit.score_components ?? {});
 }
 
-function scorePercent(value: number): string {
-  return (value * 100).toFixed(1) + "%";
+/**
+ * A single comparable number to show users.
+ *
+ * `score` is whichever value decided the ordering, so its meaning changes with
+ * the stage that ran (a rerank confidence, an RRF sum near 0.016, or a BM25
+ * value in the tens). Displaying it directly made every hit read "0.0%".
+ * Semantic similarity is the one figure with a stable 0-1 meaning, so it is
+ * preferred; otherwise fall back to naming the ranking stage instead of showing
+ * a misleading percentage.
+ */
+function similarityLabel(hit: SearchHit): string {
+  const components = hit.score_components ?? {};
+  if (typeof components.embedding === "number") {
+    return `语义相似度 ${(components.embedding * 100).toFixed(0)}%`;
+  }
+  if (typeof components.bm25 === "number") {
+    return "关键词命中";
+  }
+  return "";
+}
+
+function similarityTitle(hit: SearchHit): string {
+  const components = hit.score_components ?? {};
+  const parts = Object.entries(components).map(([name, value]) => `${name}=${value}`);
+  return parts.length ? `排序依据：${parts.join("  ")}` : "无分数明细";
 }
 </script>
 
@@ -208,7 +231,9 @@ function scorePercent(value: number): string {
             </div>
             <p class="hit-desc">{{ hit.highlights[0] ?? "（无摘要）" }}</p>
             <div class="hit-meta muted small">
-              <span>相关度 {{ scorePercent(hit.score) }}</span>
+              <span v-if="similarityLabel(hit)" :title="similarityTitle(hit)">
+                {{ similarityLabel(hit) }}
+              </span>
               <span v-if="hit.matched_fields.length">
                 命中字段：{{ hit.matched_fields.join(" / ") }}
               </span>

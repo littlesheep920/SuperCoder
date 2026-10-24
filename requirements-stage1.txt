@@ -5,3 +5,7 @@ pydantic>=2.6.0
 jsonschema>=4.21.0
 PyYAML>=6.0.0
 PyMySQL>=1.1.0
+# Runtime HTTP client for the Stage 2 embedding/rerank providers.
+httpx>=0.28.0
+# In-process vector index for Stage 2 retrieval.
+numpy>=2.0.0

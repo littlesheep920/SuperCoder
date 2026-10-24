@@ -27,6 +27,7 @@ from ..schemas.search import (
 )
 from ..search import IndexDocument, RankingProfile, SearchSort
 from ..search.service import SearchFilters
+from ..search.tokenizer import tokenize
 
 router = APIRouter(tags=["Search"])
 
@@ -44,51 +45,82 @@ def _filters(model: ResourceSearchFiltersModel) -> SearchFilters:
 
 
 def _highlights(document: IndexDocument, query: str) -> list[str]:
-    """Return short excerpts around the first matching chunk.
+    """Return short excerpts around the best-matching chunk.
 
     Deterministic: the same document and query always yield the same excerpts,
     so a stored evaluation can be replayed (B7).
+
+    Matching uses the same tokenizer as the index rather than whitespace
+    splitting. Splitting on spaces made every Chinese query a single "term" that
+    could never appear in the text, so all hits rendered "（无摘要）" even when
+    the query matched semantically.
     """
 
-    terms = [term for term in query.casefold().split() if term]
-    if not terms:
+    query_tokens = {token for token in tokenize(query) if len(token) > 1}
+    if not query_tokens:
         return []
-    excerpts: list[str] = []
-    for chunk in document.chunks:
-        haystack = chunk.text.casefold()
-        if any(term in haystack for term in terms):
-            excerpt = chunk.text[:200].strip()
+
+    scored: list[tuple[int, int, str]] = []
+    for position, chunk in enumerate(document.chunks):
+        chunk_tokens = set(tokenize(chunk.text))
+        overlap = len(query_tokens & chunk_tokens)
+        if overlap:
+            excerpt = chunk.text.strip()[:200]
             if excerpt:
-                excerpts.append(excerpt)
-        if len(excerpts) >= 3:
-            break
-    return excerpts
+                scored.append((overlap, -position, excerpt))
+
+    # Most-overlapping chunk first; earlier chunks win ties for stability.
+    scored.sort(reverse=True)
+    return [excerpt for _overlap, _position, excerpt in scored[:3]]
 
 
-def build_hit(
+def _summary_excerpt(document: IndexDocument) -> str:
+    """Fallback text so a hit is never rendered without any description.
+
+    A pure semantic match has no lexical overlap, so highlights are legitimately
+    empty. Showing the resource description instead of "（无摘要）" tells the
+    reader what the resource is without implying a lexical match occurred.
+    """
+
+    description = (document.description or "").strip()
+    if description:
+        return description[:200]
+    for chunk in document.chunks:
+        text = chunk.text.strip()
+        if text:
+            return text[:200]
+    return ""
+
+
+def to_search_hit(
     *,
     rank: int,
     document: IndexDocument,
     item: ResourceWithVersion,
-    score: float,
-    score_components: dict[str, float],
-    matched_fields: tuple[str, ...],
+    candidate,
     query: str,
     include_highlights: bool,
     index_revision: str,
 ) -> SearchHitModel:
-    """Map engine output onto the frozen ``SearchHit`` shape."""
+    """Map one engine result onto the frozen ``SearchHit`` shape."""
+
+    highlights = _highlights(document, query) if include_highlights else []
+    if not highlights:
+        # Never leave a hit without readable text; the description is the
+        # governed summary of the resource, not a fabricated snippet.
+        fallback = _summary_excerpt(document)
+        highlights = [fallback] if fallback else []
 
     return SearchHitModel(
         rank=rank,
-        score=max(0.0, score),
-        score_components=dict(score_components) or None,
+        score=max(0.0, candidate.score),
+        score_components=dict(candidate.score_components) or None,
         resource=to_resource_summary(item),
         version=to_version_summary(item.version),
         # B9: a hit without the exact content hash would be unverifiable.
         source_artifact_hash=document.artifact_hash,
-        matched_fields=list(matched_fields),
-        highlights=_highlights(document, query) if include_highlights else [],
+        matched_fields=list(candidate.matched_fields),
+        highlights=highlights,
         index_revision=index_revision or None,
     )
 
@@ -121,13 +153,11 @@ def search_resources(
             # than returning a hit we cannot re-verify.
             continue
         items.append(
-            build_hit(
+            to_search_hit(
                 rank=len(items) + 1,
                 document=document,
                 item=item,
-                score=candidate.score,
-                score_components=candidate.score_components,
-                matched_fields=candidate.matched_fields,
+                candidate=candidate,
                 query=body.query,
                 include_highlights=body.include_highlights,
                 index_revision=outcome.index_revision,
