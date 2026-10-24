@@ -279,8 +279,8 @@
       "authorship": "hand-authored"
     },
     {
-      "path": "scripts/dev_tokens.json",
-      "role": "Development-only server-owned token registry.",
+      "path": "scripts/dev_tokens.example.json",
+      "role": "Development-only token registry TEMPLATE (committed). The real dev_tokens.json is git-ignored and generated from it, or loaded as a fallback by DevTokenAuth.",
       "authorship": "hand-authored"
     },
     {

@@ -19,6 +19,7 @@ require Docker or MySQL, so they run in every environment.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -159,6 +160,56 @@ class RepositoryHygieneTests(unittest.TestCase):
 
         template = ROOT / "scripts/dev_tokens.example.json"
         self.assertTrue(template.is_file(), "dev_tokens.example.json must be committed")
+
+    def test_missing_registry_falls_back_to_the_template(self) -> None:
+        """Regression: CI failed on a fresh clone because the registry is ignored.
+
+        ``dev_tokens.json`` is git-ignored, so a clean checkout has only the
+        template. Without a fallback every request returned 401 and the Stage 1
+        suite failed with "invalid or unknown bearer token".
+        """
+
+        import tempfile
+        from pathlib import Path
+
+        from apps.api.auth import DevTokenAuth
+
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            (directory / "dev_tokens.example.json").write_text(
+                json.dumps(
+                    {"tokens": [{"token": "dev-fixture-token", "subject_id": "user-x"}]}
+                ),
+                encoding="utf-8",
+            )
+
+            auth = DevTokenAuth(directory / "dev_tokens.json")
+
+            self.assertIsNotNone(auth.resolve("dev-fixture-token"))
+            self.assertEqual(auth._source.name, "dev_tokens.example.json")
+
+    def test_missing_registry_and_template_fails_closed(self) -> None:
+        """With neither file present, no token may resolve."""
+
+        import tempfile
+        from pathlib import Path
+
+        from apps.api.auth import DevTokenAuth
+
+        with tempfile.TemporaryDirectory() as tmp:
+            auth = DevTokenAuth(Path(tmp) / "dev_tokens.json")
+
+            self.assertIsNone(auth.resolve("dev-owner-token"))
+            self.assertFalse(auth.has_any_token)
+
+    def test_manifest_references_the_committed_template(self) -> None:
+        """The manifest must not require the git-ignored registry to exist."""
+
+        manifest = json.loads((ROOT / "stage1-manifest.json").read_text(encoding="utf-8"))
+        paths = {entry["path"] for entry in manifest["artifacts"]}
+
+        self.assertIn("scripts/dev_tokens.example.json", paths)
+        self.assertNotIn("scripts/dev_tokens.json", paths)
 
     def test_containers_do_not_run_as_root(self) -> None:
         for relative in ("apps/api/Dockerfile", "apps/worker/Dockerfile", "apps/web/Dockerfile"):

@@ -98,7 +98,12 @@ jobs:
 
       - name: Six demo resources are seeded
         run: |
-          TOKEN=$(python -c "import json;print(json.load(open('scripts/dev_tokens.json'))['tokens'][0]['token'])")
+          # dev_tokens.json is git-ignored, so a CI checkout only has the
+          # template. DevTokenAuth falls back to it at runtime; the test below
+          # must read the token from whichever file exists.
+          TOKENS=scripts/dev_tokens.json
+          [ -f "$TOKENS" ] || TOKENS=scripts/dev_tokens.example.json
+          TOKEN=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['tokens'][0]['token'])" "$TOKENS")
           curl --fail --silent -H "Authorization: Bearer $TOKEN" \
             http://localhost:8000/v1/resources | tee resources.json
           python - <<'PY'

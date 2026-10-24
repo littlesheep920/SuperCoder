@@ -55,13 +55,27 @@ class AuthContext:
 
 
 class DevTokenAuth:
-    """Resolves bearer tokens from a server-owned dev token registry."""
+    """Resolves bearer tokens from a server-owned dev token registry.
+
+    The registry is git-ignored (it is a credential-shaped file), so a fresh
+    clone has no ``dev_tokens.json``. When it is missing, the checked-in
+    ``dev_tokens.example.json`` template next to it is loaded instead. That keeps
+    a clean clone runnable for tests, CI, and the compose stack without
+    committing a token file, and without weakening the git-ignore rule.
+    """
 
     def __init__(self, tokens_file: str | Path) -> None:
         self._tokens: dict[str, TokenEntry] = {}
         path = Path(tokens_file)
-        if path.is_file():
-            payload = json.loads(path.read_text(encoding="utf-8"))
+        source = path
+        if not source.is_file():
+            # Fall back to the committed template in the same directory.
+            template = path.with_name(f"{path.stem}.example{path.suffix}")
+            if template.is_file():
+                source = template
+        self._source = source if source.is_file() else None
+        if self._source is not None:
+            payload = json.loads(self._source.read_text(encoding="utf-8"))
             for entry in payload.get("tokens", []):
                 token = entry.get("token")
                 if not token:
