@@ -49,8 +49,16 @@ jobs:
 
       - name: Seed script is executable and fails cleanly without MySQL
         run: |
+          # GitHub Actions runs bash with `set -e`, so the exit status must be
+          # captured in the same statement; a bare `python ... ; test $? -eq 2`
+          # aborts before the test can evaluate. `set +e` makes the intent
+          # explicit: a non-zero status here is expected and is the assertion.
+          set +e
           python scripts/seed_demo_resources.py
-          test $? -eq 2
+          status=$?
+          set -e
+          echo "exit status: $status (expected 2 = MySQL not enabled)"
+          test "$status" -eq 2
 
   web:
     name: Web typecheck and build
