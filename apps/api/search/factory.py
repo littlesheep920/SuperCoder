@@ -34,7 +34,11 @@ def build_embedding_provider(settings: SearchSettings) -> EmbeddingProvider:
     if settings.remote_enabled and settings.remote_available and settings.embedding_enabled:
         return RemoteEmbeddingProvider(
             base_url=settings.base_url,
-            api_key=str(settings.api_key_if_remote_enabled()),
+            # ``expose()`` is required: ``str(Secret)`` yields its repr
+            # ("Secret(<redacted>)"), which would be sent as the bearer token and
+            # rejected with 401. Redacting on str is correct for logs; this is
+            # the one place that legitimately needs the value.
+            api_key=settings.api_key_if_remote_enabled().expose(),
             model=settings.embedding_model,
             dimensions=settings.embedding_dimensions,
             timeout_seconds=settings.timeout_seconds,
@@ -50,7 +54,7 @@ def build_rerank_provider(settings: SearchSettings) -> RerankProvider:
     if settings.remote_enabled and settings.remote_available and settings.rerank_enabled:
         return RemoteRerankProvider(
             base_url=settings.base_url,
-            api_key=str(settings.api_key_if_remote_enabled()),
+            api_key=settings.api_key_if_remote_enabled().expose(),
             model=settings.rerank_model,
             timeout_seconds=settings.timeout_seconds,
             enabled=True,

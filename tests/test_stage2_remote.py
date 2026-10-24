@@ -118,6 +118,38 @@ class FactoryTests(unittest.TestCase):
 
         self.assertEqual(provider.name, "some/other-model-d256")
 
+    def test_provider_receives_the_real_key_not_the_redacted_repr(self) -> None:
+        """Regression: ``str(Secret)`` yields "Secret(<redacted>)".
+
+        Passing that to the provider sent a bogus bearer token, so every remote
+        call failed with HTTP 401 while the offline fallback silently hid it.
+        ``Secret.expose()`` is the only correct conversion here.
+        """
+
+        provider = build_embedding_provider(
+            _settings(remote_enabled=True, embedding_enabled=True, api_key=Secret(FIXTURE_KEY))
+        )
+
+        self.assertEqual(provider._api_key, FIXTURE_KEY)
+        self.assertNotIn("redacted", provider._api_key)
+        self.assertNotIn("Secret(", provider._api_key)
+
+    def test_rerank_provider_receives_the_real_key(self) -> None:
+        provider = build_rerank_provider(
+            _settings(remote_enabled=True, rerank_enabled=True, api_key=Secret(FIXTURE_KEY))
+        )
+
+        self.assertEqual(provider._api_key, FIXTURE_KEY)
+
+    def test_secret_repr_stays_redacted(self) -> None:
+        """The fix must not weaken the redaction that protects logs."""
+
+        secret = Secret(FIXTURE_KEY)
+        self.assertIn("redacted", repr(secret))
+        self.assertNotIn(FIXTURE_KEY, repr(secret))
+        self.assertNotIn(FIXTURE_KEY, str(secret))
+        self.assertEqual(secret.expose(), FIXTURE_KEY)
+
 
 class _SemanticStub:
     """Embedding stub that returns vectors with real semantic structure.

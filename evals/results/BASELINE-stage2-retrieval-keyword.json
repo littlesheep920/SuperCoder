@@ -9,27 +9,27 @@
   },
   "config": {
     "profile": "keyword",
-    "embedding_provider": "local-hash-256",
+    "embedding_provider": "Qwen/Qwen3-Embedding-0.6B-d1024",
     "rerank_provider": "BAAI/bge-reranker-v2-m3",
-    "remote_enabled": false,
+    "remote_enabled": true,
     "seed": 0,
     "corpus_size": 6
   },
   "environment": {
-    "generated_at": "2026-10-24T13:37:46.855011+00:00",
+    "generated_at": "2026-10-24T14:11:43.161718+00:00",
     "python": "3.12.10"
   },
   "metrics": {
     "hit_at_5": 0.3,
-    "mrr_at_10": 0.275,
-    "ndcg_at_10": 0.2815,
+    "mrr_at_10": 0.3,
+    "ndcg_at_10": 0.3,
     "zero_result_queries": 14,
     "no_relevant_retrieved": 14,
-    "p95_latency_ms": 0
+    "p95_latency_ms": 717
   },
   "honesty": {
-    "semantic_quality_claimed": false,
-    "note": "Offline hashing embedding is a pipeline baseline and cannot measure semantic quality; these numbers must not be cited as retrieval quality."
+    "semantic_quality_claimed": true,
+    "note": "Embedding used a real semantic model."
   },
   "per_query": [
     {
@@ -49,9 +49,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q02",
@@ -68,9 +66,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q03",
@@ -87,9 +83,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q04",
@@ -106,9 +100,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q05",
@@ -126,9 +118,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q06",
@@ -145,9 +135,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q07",
@@ -168,10 +156,8 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "took_ms": 800,
+      "degraded": []
     },
     {
       "query_id": "s2q08",
@@ -190,9 +176,7 @@
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q09",
@@ -209,9 +193,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q10",
@@ -230,10 +212,8 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "took_ms": 717,
+      "degraded": []
     },
     {
       "query_id": "s2q11",
@@ -250,9 +230,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q12",
@@ -271,10 +249,8 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "took_ms": 708,
+      "degraded": []
     },
     {
       "query_id": "s2q13",
@@ -293,9 +269,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q14",
@@ -312,9 +286,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q15",
@@ -322,8 +294,8 @@
       "profile": "keyword",
       "ranked_ids": [
         "workflow/demo-review-flow@1.0.0",
-        "skill/demo-code-review@1.0.0",
         "agent/demo-planner@1.0.0",
+        "skill/demo-code-review@1.0.0",
         "mcp/demo-local-catalog@1.0.0"
       ],
       "relevant_ids": [
@@ -335,10 +307,8 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "took_ms": 709,
+      "degraded": []
     },
     {
       "query_id": "s2q16",
@@ -355,9 +325,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q17",
@@ -374,9 +342,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q18",
@@ -393,9 +359,7 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q19",
@@ -412,17 +376,15 @@
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
       "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "degraded": []
     },
     {
       "query_id": "s2q20",
       "query": "read only catalog stdio no network",
       "profile": "keyword",
       "ranked_ids": [
-        "agent/demo-planner@1.0.0",
         "mcp/demo-local-catalog@1.0.0",
+        "agent/demo-planner@1.0.0",
         "tool/demo-text-stats@1.0.0",
         "skill/demo-code-review@1.0.0"
       ],
@@ -432,13 +394,11 @@
       "graded": {
         "mcp/demo-local-catalog@1.0.0": 3
       },
-      "first_relevant_rank": 2,
-      "reciprocal_rank": 0.5,
-      "ndcg_at_10": 0.63093,
-      "took_ms": 0,
-      "degraded": [
-        "rerank_unavailable"
-      ]
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 707,
+      "degraded": []
     }
   ]
 }

@@ -10,6 +10,7 @@ covered elsewhere or reported as HOLD.
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from apps.api.config import get_settings
@@ -22,11 +23,43 @@ class MinimumInfrastructureTests(unittest.TestCase):
     stateful services (MySQL, Redis, Qdrant, RocketMQ) at a scale of ~120
     resources. That made the whole stack depend on services unavailable on the
     developer's machine, so most acceptance gates could never pass.
+
+    These tests assert the **code's defaults**, so every SuperCoder environment
+    variable is removed for the duration of the test. Without that isolation a
+    developer who legitimately enables remote search in their shell would see
+    this suite fail, which says nothing about the defaults.
     """
 
+    MANAGED_VARIABLES = (
+        "SUPERCODER_QDRANT_ENABLED",
+        "SUPERCODER_REDIS_ENABLED",
+        "SUPERCODER_EXTERNAL_LLM_ENABLED",
+        "SUPERCODER_EMBEDDING_ENABLED",
+        "SUPERCODER_RERANK_ENABLED",
+        "SUPERCODER_SEARCH_REMOTE_ENABLED",
+        "SUPERCODER_DOCKER_ENABLED",
+        "SUPERCODER_GIT_ENABLED",
+        "SUPERCODER_GIT_SYNC_ENABLED",
+        "SUPERCODER_GIT_READ_ONLY",
+        "SUPERCODER_GIT_REMOTE_URL",
+        "SUPERCODER_MYSQL_ENABLED",
+        "SUPERCODER_API_PREFIX",
+        "SUPERCODER_SEARCH_API_KEY",
+    )
+
     def setUp(self) -> None:
-        # get_settings() is lru_cached; the defaults are what a fresh clone sees.
+        self._saved = {name: os.environ.pop(name, None) for name in self.MANAGED_VARIABLES}
+        get_settings.cache_clear()
+        # A fresh clone's defaults are what the code produces with no config.
         self.settings = get_settings()
+
+    def tearDown(self) -> None:
+        for name, value in self._saved.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+        get_settings.cache_clear()
 
     def test_qdrant_is_disabled_by_default(self) -> None:
         self.assertFalse(self.settings.qdrant_enabled)
@@ -61,8 +94,52 @@ class MinimumInfrastructureTests(unittest.TestCase):
 class ApiPrefixTests(unittest.TestCase):
     """PRD T-4: the authoritative prefix is /v1, not /api."""
 
+    def setUp(self) -> None:
+        self._saved = os.environ.pop("SUPERCODER_API_PREFIX", None)
+        get_settings.cache_clear()
+
+    def tearDown(self) -> None:
+        if self._saved is not None:
+            os.environ["SUPERCODER_API_PREFIX"] = self._saved
+        get_settings.cache_clear()
+
     def test_api_prefix_is_v1(self) -> None:
         self.assertEqual(get_settings().api_prefix, "/v1")
+
+
+class EnvironmentIsolationTests(unittest.TestCase):
+    """Documents the behaviour that broke when the operator enabled search.
+
+    A developer with SuperCoder variables exported must still get green
+    defaults-tests, because those tests are about code defaults, not about the
+    operator's local configuration.
+    """
+
+    def test_enabling_a_feature_in_the_environment_does_not_change_defaults(self) -> None:
+        os.environ["SUPERCODER_EMBEDDING_ENABLED"] = "true"
+        os.environ["SUPERCODER_SEARCH_REMOTE_ENABLED"] = "true"
+        get_settings.cache_clear()
+        try:
+            enabled = get_settings()
+            self.assertTrue(enabled.embedding_enabled)
+
+            # Now simulate the isolated default view.
+            saved = {
+                name: os.environ.pop(name, None)
+                for name in ("SUPERCODER_EMBEDDING_ENABLED", "SUPERCODER_SEARCH_REMOTE_ENABLED")
+            }
+            get_settings.cache_clear()
+            defaults = get_settings()
+            self.assertFalse(defaults.embedding_enabled)
+            self.assertFalse(defaults.search.remote_enabled)
+
+            for name, value in saved.items():
+                if value is not None:
+                    os.environ[name] = value
+        finally:
+            os.environ.pop("SUPERCODER_EMBEDDING_ENABLED", None)
+            os.environ.pop("SUPERCODER_SEARCH_REMOTE_ENABLED", None)
+            get_settings.cache_clear()
 
 
 if __name__ == "__main__":
