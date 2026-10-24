@@ -1,0 +1,21 @@
+# <type>(<scope>): <subject>
+#
+# type:  feat | fix | refactor | perf | test | docs | chore | contract
+#        (use "contract" for any change to schemas/, infra/migrations/,
+#         apps/api/openapi.stage0.yaml, docs/API_CONTRACT.md)
+# scope: api | worker | web | domain | db | compose | ci | stage0 | stage1 |
+#        search | agent | workflow | eval
+#
+# <body: Why did this change? What changed? Keep lines under 100 chars.>
+#
+# Verified:
+#  - python scripts/validate_stage0.py --root .  -> RESULT: PASS
+#  - python scripts/validate_stage1.py           -> <n> tests, 0 failed
+#  - cd apps/web && npx vue-tsc --noEmit         -> exit 0
+#
+# Not verified:
+#  - <environment gaps (Docker, MySQL, browser); write "None" if none>
+#
+# Refs: <issue / docs path>
+#
+# ---- Do not commit: __pycache__, node_modules, dist, .env, dev_tokens.json ----
