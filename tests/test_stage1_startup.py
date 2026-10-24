@@ -140,5 +140,53 @@ class SeedScriptTests(unittest.TestCase):
         self.assertIn("SUPERCODER_MYSQL_PASSWORD", result.stderr)
 
 
+class RepositoryHygieneTests(unittest.TestCase):
+    """Guard the rules in docs/GIT_WORKFLOW.md that protect reproducibility."""
+
+    def test_gitignore_covers_sensitive_and_generated_paths(self) -> None:
+        text = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        for required in (
+            "scripts/dev_tokens.json",
+            "node_modules/",
+            "apps/web/dist/",
+            "__pycache__/",
+            ".env",
+        ):
+            self.assertIn(required, text, f".gitignore must cover {required}")
+
+    def test_dev_token_template_is_committed_and_not_ignored(self) -> None:
+        """A clone must be able to create the git-ignored registry from a template."""
+
+        template = ROOT / "scripts/dev_tokens.example.json"
+        self.assertTrue(template.is_file(), "dev_tokens.example.json must be committed")
+
+    def test_containers_do_not_run_as_root(self) -> None:
+        for relative in ("apps/api/Dockerfile", "apps/worker/Dockerfile", "apps/web/Dockerfile"):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertRegex(text, r"(?m)^USER (?!root)", f"{relative} must drop root")
+
+    def test_web_image_ships_nginx_config_with_spa_fallback(self) -> None:
+        """createWebHistory() needs try_files.../index.html or deep links 404."""
+
+        conf = ROOT / "apps/web/nginx.conf"
+        self.assertTrue(conf.is_file())
+        text = conf.read_text(encoding="utf-8")
+        self.assertIn("try_files $uri $uri/ /index.html", text)
+        self.assertIn("location /v1/", text)
+
+    def test_runtime_and_test_requirement_files_are_pinned(self) -> None:
+        for name in ("requirements-stage1.lock.txt", "requirements-test.txt"):
+            text = (ROOT / name).read_text(encoding="utf-8")
+            unpinned = [
+                line
+                for line in text.splitlines()
+                if line.strip()
+                and not line.strip().startswith("#")
+                and not line.strip().startswith("-r ")
+                and "==" not in line
+            ]
+            self.assertEqual(unpinned, [], f"{name} must pin every dependency")
+
+
 if __name__ == "__main__":
     unittest.main()

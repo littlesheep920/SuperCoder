@@ -327,6 +327,31 @@
       "path": "tests/test_stage1_startup.py",
       "role": "Regression tests for the compose startup contract (both migrations mounted, seed gate ordering, seed script execution, non-zero exit on seed failure).",
       "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/nginx.conf",
+      "role": "nginx SPA history fallback and /v1 proxy (API + SSE).",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "requirements-stage1.lock.txt",
+      "role": "Fully pinned runtime dependency lock used by image builds and CI.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "requirements-test.txt",
+      "role": "Test-only dependencies (httpx) layered on the runtime lock.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/CORRECTION_REVIEW.md",
+      "role": "Scope and technology correction review with prioritized findings.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/GIT_WORKFLOW.md",
+      "role": "Branch model, commit conventions, and pre-commit verification checklist.",
+      "authorship": "hand-authored"
     }
   ]
 }
