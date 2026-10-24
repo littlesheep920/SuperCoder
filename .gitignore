@@ -30,6 +30,11 @@ coverage.xml
 htmlcov/
 *.log
 
+# Evaluation runs are timestamped, so only curated baselines are committed.
+# Reproduce any run with: python scripts/run_retrieval_eval.py
+evals/results/*.json
+!evals/results/BASELINE-*.json
+
 # OS noise
 Thumbs.db
 .DS_Store

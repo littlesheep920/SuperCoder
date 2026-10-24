@@ -28,7 +28,7 @@ from ..repositories.contracts import (
     VisibilityScope,
 )
 from ..search import IndexDocument, RankingProfile, SearchSort
-from ..search.chunking import build_index_document
+from ..search.chunking import build_index_document, extract_type_spec
 from ..search.providers import EmbeddingProvider, RerankProvider
 from ..search.service import SearchFilters, SearchOutcome, SearchService
 
@@ -141,11 +141,11 @@ class SearchServiceFactory:
         try:
             loaded = self._manifest_loader.load(resource.kind, resource.slug)
             files = dict(loaded.files)
-            type_spec = dict(loaded.manifest.get(f"{resource.kind.value}_spec") or {})
+            type_spec = extract_type_spec(resource.kind.value, loaded.manifest)
         except (ManifestLoadError, OSError, ValueError):
             # Degrade to manifest-only indexing rather than dropping the row.
             files = {}
-            type_spec = dict(version.type_spec or {})
+            type_spec = extract_type_spec(resource.kind.value, version.manifest or {})
 
         return build_index_document(
             resource_public_id=resource.public_id,

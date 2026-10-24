@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,6 +57,36 @@ class PythonImportTests(TemporaryRootTestCase):
         self.write_text("scripts/tool.py", "print('standalone')\n")
 
         self.assertEqual(validator.check_python_files(self.root), [])
+
+    def test_standalone_script_using_dataclass_imports_cleanly(self) -> None:
+        """Regression: @dataclass in a path-loaded script raised AttributeError.
+
+        Loading a module without registering it in ``sys.modules`` makes
+        ``dataclasses`` fail with a misleading "'NoneType' object has no
+        attribute '__dict__'", which looked like a defect in the script.
+        """
+
+        self.write_text(
+            "scripts/uses_dataclass.py",
+            "from dataclasses import dataclass\n\n"
+            "@dataclass\nclass Item:\n    name: str\n\n"
+            "print(Item('x'))\n",
+        )
+
+        self.assertEqual(validator.check_python_files(self.root), [])
+
+    def test_path_loaded_script_does_not_leak_into_sys_modules(self) -> None:
+        self.write_text("scripts/leaky.py", "VALUE = 1\n")
+
+        before = set(sys.modules)
+        validator.check_python_files(self.root)
+        leaked = {
+            name
+            for name in set(sys.modules) - before
+            if name.startswith("_supercoder_stage0_script_")
+        }
+
+        self.assertEqual(leaked, set())
 
     def test_syntax_error_in_a_package_member_is_still_reported(self) -> None:
         self.write_text("pkg/__init__.py", "")

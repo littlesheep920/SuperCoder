@@ -1411,21 +1411,29 @@ def check_python_files(root: Path) -> list[str]:
     if root_string not in sys.path:
         sys.path.insert(0, root_string)
     try:
-        for path in python_paths:
+        for index, path in enumerate(python_paths):
             relative = path.relative_to(root).as_posix()
             module_name = _module_name_for(root, path)
             try:
                 if module_name is None:
                     # Not an importable package member (e.g. a standalone
                     # script): loading it by path is the only meaningful check.
-                    spec = importlib.util.spec_from_file_location(
-                        f"_supercoder_stage0_script_{len(errors)}", path
-                    )
+                    script_name = f"_supercoder_stage0_script_{index}"
+                    spec = importlib.util.spec_from_file_location(script_name, path)
                     if spec is None or spec.loader is None:
                         raise ImportError("cannot create module specification")
                     module = importlib.util.module_from_spec(spec)
                     assert isinstance(module, ModuleType)
-                    spec.loader.exec_module(module)
+                    # Register before executing: stdlib ``dataclasses`` (and other
+                    # introspection machinery) resolves the defining module via
+                    # ``sys.modules`` while the class body runs. Without this, any
+                    # script using @dataclass fails with a misleading
+                    # "'NoneType' object has no attribute '__dict__'".
+                    sys.modules[script_name] = module
+                    try:
+                        spec.loader.exec_module(module)
+                    finally:
+                        sys.modules.pop(script_name, None)
                 else:
                     # Import by dotted name so intra-package relative imports
                     # (``from .models import ...``) resolve against the real

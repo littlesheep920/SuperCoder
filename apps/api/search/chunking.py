@@ -27,6 +27,7 @@ __all__ = [
     "MIN_CHUNK_CHARS",
     "build_index_document",
     "chunk_resource",
+    "extract_type_spec",
 ]
 
 # Frozen weighting policy: a name match outranks a body match by 5x.
@@ -269,6 +270,20 @@ def _chunk_skill(files: Mapping[str, str]) -> list[Chunk]:
     for _path, text in sorted(files.items()):
         sections.extend(_markdown_sections(text))
     return _chunks_from_sections(sections, field=IndexField.BODY, start_ordinal=0)
+
+
+def extract_type_spec(kind: str, manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the kind-specific spec section of a manifest.
+
+    The frozen resource protocol stores the typed section under the bare kind
+    name (``mcp:``, ``agent:``, ...), not ``mcp_spec:``. Centralising the lookup
+    prevents the two call sites (the API projection and the evaluation script)
+    from disagreeing, which previously produced documents with zero chunks for
+    four of the six kinds.
+    """
+
+    section = manifest.get(kind)
+    return dict(section) if isinstance(section, Mapping) else {}
 
 
 def chunk_resource(
