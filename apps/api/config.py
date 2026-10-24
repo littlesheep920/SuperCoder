@@ -147,6 +147,44 @@ class ExternalModelSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class SearchSettings:
+    """Search pipeline configuration.
+
+    The embedding and rerank providers are **disabled by default** and their API
+    key is only read when explicitly enabled, matching the security contract:
+    a component that is off must never cause its secret to be touched.
+
+    Model names are configuration, never hard-coded at call sites, so a provider
+    or model change is a config change rather than a code change.
+    """
+
+    embedding_enabled: bool
+    embedding_provider: str
+    embedding_model: str
+    embedding_dimensions: int
+    rerank_enabled: bool
+    rerank_model: str
+    remote_enabled: bool
+    base_url: str
+    api_key: Secret = field(repr=False)
+    timeout_seconds: float = 30.0
+    batch_size: int = 16
+
+    def api_key_if_remote_enabled(self) -> Secret:
+        if not self.remote_enabled:
+            raise RuntimeError(
+                "remote providers are disabled; the API key must not be read"
+            )
+        return self.api_key
+
+    @property
+    def remote_available(self) -> bool:
+        """True when a remote call is both permitted and configured."""
+
+        return bool(self.remote_enabled and self.api_key)
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
     environment: str
     config_schema_version: str
@@ -166,6 +204,7 @@ class Settings:
     worker_poll_seconds: float
     worker_lease_seconds: int
     job_max_attempts: int
+    search: SearchSettings
 
 
 def _load() -> Settings:
@@ -238,6 +277,24 @@ def _load() -> Settings:
         worker_poll_seconds=float(_str("SUPERCODER_WORKER_POLL_SECONDS", "1.0")),
         worker_lease_seconds=_int("SUPERCODER_WORKER_LEASE_SECONDS", 60, minimum=1),
         job_max_attempts=_int("SUPERCODER_JOB_MAX_ATTEMPTS", 3, minimum=1),
+        search=SearchSettings(
+            embedding_enabled=_bool("SUPERCODER_EMBEDDING_ENABLED", False),
+            embedding_provider=_str("SUPERCODER_EMBEDDING_PROVIDER", "disabled"),
+            # Defaults are the reviewed choice for this corpus: a small, fast,
+            # Chinese-capable embedding model at a reduced dimension. Changing
+            # them is a configuration change, never a code edit.
+            embedding_model=_str(
+                "SUPERCODER_SEARCH_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B"
+            ),
+            embedding_dimensions=_int("SUPERCODER_SEARCH_EMBEDDING_DIMENSIONS", 1024, minimum=1),
+            rerank_enabled=_bool("SUPERCODER_RERANK_ENABLED", False),
+            rerank_model=_str("SUPERCODER_SEARCH_RERANK_MODEL", "BAAI/bge-reranker-v2-m3"),
+            remote_enabled=_bool("SUPERCODER_SEARCH_REMOTE_ENABLED", False),
+            base_url=_str("SUPERCODER_SEARCH_BASE_URL", "https://api.siliconflow.cn/v1"),
+            api_key=_secret("SUPERCODER_SEARCH_API_KEY"),
+            timeout_seconds=float(_str("SUPERCODER_SEARCH_TIMEOUT_SECONDS", "30")),
+            batch_size=_int("SUPERCODER_SEARCH_BATCH_SIZE", 16, minimum=1),
+        ),
     )
 
 

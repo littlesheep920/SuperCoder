@@ -24,6 +24,10 @@ from apps.api.search.providers import (
 )
 from apps.api.search.vector import VectorIndex
 
+# A plainly-labelled test fixture, not a credential. The Stage 0 secret scan
+# recognises this form so it never reports the test suite itself.
+FIXTURE_KEY = "test-fixture-not-a-real-key"
+
 
 def _doc(resource_id: str, name: str, description: str = "") -> IndexDocument:
     return build_index_document(
@@ -77,7 +81,7 @@ class HashingProviderTests(unittest.TestCase):
 class RemoteEmbeddingDisabledTests(unittest.TestCase):
     def test_disabled_provider_reports_unavailable(self) -> None:
         provider = RemoteEmbeddingProvider(
-            base_url="https://example.invalid", api_key="k", model="m", enabled=False
+            base_url="https://example.invalid", api_key=FIXTURE_KEY, model="m", enabled=False
         )
         self.assertFalse(provider.available)
 
@@ -98,7 +102,7 @@ class RemoteEmbeddingDisabledTests(unittest.TestCase):
 
         provider = RemoteEmbeddingProvider(
             base_url="https://example.invalid",
-            api_key="k",
+            api_key=FIXTURE_KEY,
             model="m",
             enabled=False,
             transport=httpx.MockTransport(handler),
@@ -112,7 +116,7 @@ class RemoteEmbeddingTests(unittest.TestCase):
     def _provider(self, handler, **kwargs) -> RemoteEmbeddingProvider:
         return RemoteEmbeddingProvider(
             base_url="https://api.example/v1",
-            api_key="secret-key",
+            api_key=FIXTURE_KEY,
             model="Qwen/Qwen3-Embedding-0.6B",
             dimensions=4,
             enabled=True,
@@ -140,7 +144,7 @@ class RemoteEmbeddingTests(unittest.TestCase):
         vectors = self._provider(handler).embed(["a", "b"])
 
         self.assertEqual(captured["url"], "https://api.example/v1/embeddings")
-        self.assertEqual(captured["auth"], "Bearer secret-key")
+        self.assertEqual(captured["auth"], f"Bearer {FIXTURE_KEY}")
         self.assertEqual(captured["body"]["model"], "Qwen/Qwen3-Embedding-0.6B")
         self.assertEqual(captured["body"]["input"], ["a", "b"])
         self.assertEqual(captured["body"]["dimensions"], 4)
@@ -188,7 +192,7 @@ class RemoteEmbeddingTests(unittest.TestCase):
             self._provider(handler).embed(["x"])
 
         self.assertEqual(caught.exception.status, 401)
-        self.assertNotIn("secret-key", str(caught.exception))
+        self.assertNotIn(FIXTURE_KEY, str(caught.exception))
 
     def test_malformed_response_raises_provider_error(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
@@ -209,7 +213,7 @@ class RemoteRerankTests(unittest.TestCase):
     def _provider(self, handler) -> RemoteRerankProvider:
         return RemoteRerankProvider(
             base_url="https://api.example/v1",
-            api_key="secret-key",
+            api_key=FIXTURE_KEY,
             model="BAAI/bge-reranker-v2-m3",
             enabled=True,
             transport=httpx.MockTransport(handler),
@@ -308,7 +312,7 @@ class VectorIndexTests(unittest.TestCase):
         self.assertEqual(index.model, provider.name)
 
     def test_local_hash_recall_is_lexical_only(self) -> None:
-        """Documents the baseline's limitation rather than pretending it is semantic."""
+        """Documents the baseline limitation rather than pretending it is semantic."""
 
         docs = [_doc("review", "代码审查", "审查 Java 代码"), _doc("db", "数据库迁移", "执行 SQL 迁移")]
         index = VectorIndex.build(docs, HashingEmbeddingProvider(dimensions=256))

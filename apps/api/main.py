@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from .config import Settings, get_settings
 from .dependencies import Container, build_container
 from .middleware.context import RequestContextMiddleware, register_exception_handlers
-from .routers import governance, resources, system, versions
+from .routers import governance, resources, search, system, versions
 
 __all__ = ["app", "create_app"]
 
@@ -21,8 +21,11 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     settings = settings or get_settings()
     app = FastAPI(
         title="SuperCoder Control Plane API",
-        version="0.1.0-stage1",
-        description="Stage 1 resource asset center: governance, versions, reviews, jobs, audit.",
+        version="0.2.0-stage2",
+        description=(
+            "Stage 1 resource asset center (governance, versions, reviews, jobs, audit) "
+            "and Stage 2 search (BM25 + semantic recall, RRF fusion, rerank)."
+        ),
     )
     app.state.settings = settings
     app.state.container = container or build_container(settings)
@@ -35,6 +38,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.include_router(resources.router, prefix=prefix)
     app.include_router(versions.router, prefix=prefix)
     app.include_router(governance.router, prefix=prefix)
+    app.include_router(search.router, prefix=prefix)
     return app
 
 

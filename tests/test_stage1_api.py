@@ -18,6 +18,7 @@ from apps.api.application.job_service import JobService
 from apps.api.application.resource_commands import ResourceCommandService
 from apps.api.application.resource_queries import ResourceQueryService
 from apps.api.application.rollback import RollbackService
+from apps.api.application.search_service import SearchServiceFactory
 from apps.api.application.snapshots import SnapshotService
 from apps.api.application.versions import VersionQueryService
 from apps.api.auth import DevTokenAuth
@@ -67,6 +68,7 @@ def build_container(store: MemoryStore) -> Container:
         governance=GovernanceService(uow_factory),
         catalog=CatalogService(uow_factory),
         jobs=JobService(uow_factory),
+        search=SearchServiceFactory(uow_factory, loader),
         mysql_engine=None,
     )
 

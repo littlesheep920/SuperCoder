@@ -14,6 +14,7 @@ from .application.job_service import JobService
 from .application.resource_commands import ResourceCommandService
 from .application.resource_queries import ResourceQueryService
 from .application.rollback import RollbackService
+from .application.search_service import SearchServiceFactory
 from .application.snapshots import SnapshotService
 from .application.versions import VersionQueryService
 from .config import Settings, get_settings
@@ -22,6 +23,7 @@ from .middleware.context import RequestContext
 from .providers.git_repository import GitProvider
 from .providers.manifest_loader import ManifestLoader
 from .repositories.contracts import UnitOfWorkFactory
+from .search.factory import build_embedding_provider, build_rerank_provider
 
 __all__ = ["Container", "build_container", "get_auth", "get_container", "get_context"]
 
@@ -51,6 +53,7 @@ class Container:
     governance: GovernanceService
     catalog: CatalogService
     jobs: JobService
+    search: SearchServiceFactory
     mysql_engine: object = None
 
 
@@ -85,6 +88,14 @@ def build_container(settings: Settings | None = None) -> Container:
         governance=GovernanceService(uow_factory),
         catalog=CatalogService(uow_factory),
         jobs=JobService(uow_factory),
+        # Providers are built from settings only. With remote access disabled
+        # they report unavailable and never read the API key.
+        search=SearchServiceFactory(
+            uow_factory,
+            manifest_loader,
+            embedding=build_embedding_provider(settings.search),
+            rerank=build_rerank_provider(settings.search),
+        ),
         mysql_engine=mysql_engine,
     )
 
