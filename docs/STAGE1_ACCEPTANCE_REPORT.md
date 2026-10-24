@@ -137,3 +137,69 @@ D13/D14: deferred contract decisions
 ```
 
 The project is ready for a human decision on whether to accept the documented Docker/browser HOLDs and begin Stage 2. It must not be described as fully production-validated until those HOLDs are closed.
+
+## 8. Post-review defect fixes — 2026-10-24
+
+An independent audit of the delivered tree found defects that the earlier
+reports did not record. All were reproduced, fixed, and covered by regression
+tests before the first baseline commit.
+
+### 8.1 Defects found and fixed
+
+| ID | Defect | Impact | Fix |
+|---|---|---|---|
+| D-1 | `docker-compose.yml` mounted only `0001_stage0_contract.sql` | A fresh stack never created the six tables from `0002_stage1_extensions.sql` (`user_identity_projection`, `team_identity_projection`, `team_membership_projection`, `role_capability_projection`, `resource_permission`, `authorization_grant_projection`), so every request touching identity/permission projections failed. "One-command startup" was impossible. | Mount both migrations in filename order (the entrypoint runs them lexicographically). |
+| D-2 | The API image copied only `scripts/dev_tokens.json` | The seed step had no script to run inside the container. | `COPY scripts scripts`. |
+| D-3 | No seed step existed in the stack | The worker started against an empty governance database. | Added a one-shot `seed` service with `restart: "no"`; the worker now depends on `service_completed_successfully`. |
+| D-4 | `scripts/seed_demo_resources.py` imported `apps.*` without adding the repo root to `sys.path` | `python scripts/seed_demo_resources.py` raised `ModuleNotFoundError: No module named 'apps'`, so the seed step could never succeed — including in the container. | Insert the repository root before the `apps` imports. |
+| D-5 | The seed script caught every per-resource error and still returned 0 | A compose `service_completed_successfully` gate would pass against a completely unseeded database. | Distinguish idempotent `ConflictError` (already seeded) from real failures; return 1 when any resource fails. |
+| D-6 | `validate_stage0.py` loaded every file as a synthetic top-level module | 22 healthy package files reported `attempted relative import with no known parent package`; the Stage 0 gate read HOLD for a non-existent failure. | Import package members by dotted name; load only non-package scripts by path; purge imported modules afterwards. |
+| D-7 | The secret scan's leading anchor was `\b`, but `_` is a word character | Prefixed credential names were never scanned: `MYSQL_PASSWORD=`, `DB_PASSWORD=`, `MY_API_KEY=` all passed silently. This is a real false negative in the security gate. | Anchor with `(?<![A-Za-z0-9])`. |
+| D-8 | The same scan reported false positives | Development fixture tokens (`scripts/dev_tokens.json`), `${VAR:-default}` interpolation, `$(...)` command substitution, and enum constants such as `INVALID_TOKEN = "INVALID_TOKEN"` were all reported as credentials. | Skip these forms explicitly; the fixture allowance applies **only** to a `token` field with a `dev-`/`test-` prefix, so a `password` or `api_key` value is never exempt. |
+| D-9 | A bare `RuntimeError("secret is not configured")` was raised when MySQL was enabled without a password | The operator could not tell which variable to set. | Name `SUPERCODER_MYSQL_PASSWORD` in the error. |
+| D-10 | `datetime.utcnow()` in the in-memory test double | Deprecation warning under Python 3.12. | `datetime.now(timezone.utc)`. |
+
+### 8.2 Hardening applied at the same time
+
+- Containers run as an unprivileged uid (10001 / `nginx`) instead of root.
+- Added `apps/web/nginx.conf`: SPA history fallback plus a `/v1` proxy for API and SSE.
+- Added `requirements-stage1.lock.txt` and `requirements-test.txt`; images install the lock file.
+- Added `.github/workflows/ci.yml` (contract validators, tests, web build, compose smoke) and `.gitattributes`.
+- Pinned MySQL to `8.0.40` (the `mysql_native_password` flag does not exist in 8.4).
+- Added `.githooks/pre-commit`, which blocks commits that leave validators red or stage generated/sensitive paths.
+
+### 8.3 Verification after the fixes
+
+```text
+python scripts/validate_stage0.py --root .   -> RESULT: PASS  (11/11 checks; previously HOLD)
+python scripts/validate_stage1.py            -> 60 tests, 0 failed, Overall: PASS
+npx vue-tsc --noEmit                         -> exit 0
+docker compose config --quiet                -> exit 0
+```
+
+Test count rose from 53 to 60; the new `tests/test_stage1_startup.py` locks in
+D-1 through D-5, and the Stage 0 suite gained import and secret-scan regression
+cases for D-6 through D-8. The pre-commit hook was proven to block both a staged
+`__pycache__` path and a deliberately failing test.
+
+### 8.4 Still HOLD (unchanged, not claimed as verified)
+
+| Area | Status | Reason |
+|---|---|---|
+| Live `docker compose up --build` | HOLD | Docker CLI is installed but the engine is unreachable (`dockerDesktopLinuxEngine` pipe missing); WSL has no usable distribution. |
+| Live MySQL integration, `SKIP LOCKED` contention matrix | HOLD | No MySQL server listening on `127.0.0.1:3306`. |
+| Browser E2E and accessibility | HOLD | No configured browser panel. |
+| npm audit (1 moderate, 1 high) | Open | No forced remediation applied. |
+
+The startup chain is now structurally correct and asserted by tests, but it has
+**not** been observed running end to end. D-1 through D-5 must be re-confirmed
+on a host with a working Docker daemon before "one-command startup" is claimed.
+
+### 8.5 Scope and technology corrections
+
+See `docs/CORRECTION_REVIEW.md` for the full findings: requirement conflicts
+(stage-vs-completeness, unreachable metric gates, the unverifiable 120-resource
+target, missing effort assumptions) and technology choices (four stateful
+services at demo scale, missing graph/state-management libraries, the
+`/api` vs `/v1` prefix drift, ambiguous embedding modes).
+
