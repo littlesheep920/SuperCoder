@@ -169,6 +169,18 @@ class SearchSettings:
     api_key: Secret = field(repr=False)
     timeout_seconds: float = 30.0
     batch_size: int = 16
+    # Caches. Profiling a hybrid query showed ~666 ms in the query-embedding
+    # round trip and ~703 ms in rerank, against ~19 ms of local compute, so the
+    # same query text should not pay that twice. Capacity 0 disables caching
+    # without disabling the provider itself.
+    query_cache_size: int = 256
+    rerank_cache_size: int = 256
+    # Reusing projected documents avoids re-reading Git and re-chunking text on
+    # every request. Visibility is still recomputed per request; only the pure
+    # (version row, content hash) -> document projection is reused.
+    document_cache_size: int = 2000
+    # Cache results only matter once a query repeats; a run that never repeats
+    # should not grow unbounded either, hence the caps above rather than None.
 
     def api_key_if_remote_enabled(self) -> Secret:
         if not self.remote_enabled:
@@ -294,6 +306,9 @@ def _load() -> Settings:
             api_key=_secret("SUPERCODER_SEARCH_API_KEY"),
             timeout_seconds=float(_str("SUPERCODER_SEARCH_TIMEOUT_SECONDS", "30")),
             batch_size=_int("SUPERCODER_SEARCH_BATCH_SIZE", 16, minimum=1),
+            query_cache_size=_int("SUPERCODER_SEARCH_QUERY_CACHE_SIZE", 256, minimum=0),
+            rerank_cache_size=_int("SUPERCODER_SEARCH_RERANK_CACHE_SIZE", 256, minimum=0),
+            document_cache_size=_int("SUPERCODER_SEARCH_DOCUMENT_CACHE_SIZE", 2000, minimum=0),
         ),
     )
 

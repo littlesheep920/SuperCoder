@@ -41,7 +41,9 @@ from apps.api.search.factory import (  # noqa: E402
     build_embedding_provider,
     build_rerank_provider,
 )
+from apps.api.search.cache import wrap_with_cache  # noqa: E402
 from apps.api.search.service import SearchFilters, SearchService  # noqa: E402
+from apps.api.search.vector import DocumentVectorCache  # noqa: E402
 
 QUERIES = ROOT / "evals" / "retrieval" / "stage2_queries.jsonl"
 QRELS = ROOT / "evals" / "retrieval" / "stage2_qrels.jsonl"
@@ -169,7 +171,7 @@ def _ndcg(ranked_grades: list[int], ideal_grades: list[int], k: int = 10) -> flo
     return _dcg(ranked_grades, k) / ideal
 
 
-def run(profile: RankingProfile, out_dir: Path) -> int:
+def run(profile: RankingProfile, out_dir: Path, *, no_cache: bool = False) -> int:
     settings = get_settings()
     queries = _load_jsonl(QUERIES)
     qrels = _load_jsonl(QRELS)
@@ -188,8 +190,24 @@ def run(profile: RankingProfile, out_dir: Path) -> int:
     documents = _load_documents()
     embedding = build_embedding_provider(settings.search)
     rerank = build_rerank_provider(settings.search)
+    # Measure what the API actually runs, caches included, so the reported P95
+    # matches production. Pass --no-cache to reproduce the pre-cache numbers.
+    document_vectors = None
+    if not no_cache:
+        embedding, rerank = wrap_with_cache(
+            embedding,
+            rerank,
+            embedding_capacity=settings.search.query_cache_size,
+            rerank_capacity=settings.search.rerank_cache_size,
+        )
+        if settings.search.document_cache_size > 0:
+            document_vectors = DocumentVectorCache(settings.search.document_cache_size)
     service = SearchService(
-        documents, embedding=embedding, rerank=rerank, index_revision="stage2-eval"
+        documents,
+        embedding=embedding,
+        rerank=rerank,
+        index_revision="stage2-eval",
+        document_vectors=document_vectors,
     )
 
     report = Report()
@@ -331,8 +349,16 @@ def main(argv: list[str] | None = None) -> int:
         default=str(ROOT / "evals" / "results"),
         help="directory for archived raw results",
     )
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help=(
+            "disable the query/document caches to reproduce pre-cache latency. "
+            "Quality metrics are unaffected by caching; only timings change."
+        ),
+    )
     args = parser.parse_args(argv)
-    return run(RankingProfile(args.profile), Path(args.out))
+    return run(RankingProfile(args.profile), Path(args.out), no_cache=args.no_cache)
 
 
 if __name__ == "__main__":

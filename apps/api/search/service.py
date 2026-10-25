@@ -25,7 +25,7 @@ from . import IndexDocument, RankingProfile, SearchSort
 from .bm25 import BM25Index, ScoredDocument
 from .providers import EmbeddingProvider, ProviderError, RerankProvider
 from .rrf import RankedList, fuse
-from .vector import VectorIndex
+from .vector import DocumentVectorCache, VectorIndex
 
 __all__ = ["SearchCandidateResult", "SearchOutcome", "SearchService"]
 
@@ -109,11 +109,15 @@ class SearchService:
         embedding: EmbeddingProvider | None = None,
         rerank: RerankProvider | None = None,
         index_revision: str = "",
+        document_vectors: DocumentVectorCache | None = None,
     ) -> None:
         self._all_documents = tuple(documents)
         self._embedding = embedding
         self._rerank = rerank
         self._index_revision = index_revision
+        # Shared across service instances so document vectors survive between
+        # requests; a per-instance index would re-embed the corpus every query.
+        self._document_vectors = document_vectors
         self._bm25 = BM25Index(list(self._all_documents))
         self._vectors: VectorIndex | None = None
         self._build_failed = False
@@ -135,7 +139,9 @@ class SearchService:
         if self._embedding is None or not self._embedding.available:
             return None
         try:
-            self._vectors = VectorIndex.build(self._all_documents, self._embedding)
+            self._vectors = VectorIndex.build(
+                self._all_documents, self._embedding, cache=self._document_vectors
+            )
         except ProviderError:
             self._build_failed = True
             return None

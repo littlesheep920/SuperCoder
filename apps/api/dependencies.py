@@ -14,7 +14,7 @@ from .application.job_service import JobService
 from .application.resource_commands import ResourceCommandService
 from .application.resource_queries import ResourceQueryService
 from .application.rollback import RollbackService
-from .application.search_service import SearchServiceFactory
+from .application.search_service import DocumentCache, SearchServiceFactory
 from .application.snapshots import SnapshotService
 from .application.versions import VersionQueryService
 from .config import Settings, get_settings
@@ -23,7 +23,29 @@ from .middleware.context import RequestContext
 from .providers.git_repository import GitProvider
 from .providers.manifest_loader import ManifestLoader
 from .repositories.contracts import UnitOfWorkFactory
+from .search.cache import CachingEmbeddingProvider, CachingRerankProvider, LRUCache
 from .search.factory import build_embedding_provider, build_rerank_provider
+from .search.vector import DocumentVectorCache
+
+
+def _cached_embedding(settings) -> object:
+    """Build the embedding provider and cache query vectors.
+
+    A capacity of 0 returns the provider unwrapped, which keeps the historical
+    behaviour available for benchmarking and incident triage.
+    """
+
+    provider = build_embedding_provider(settings)
+    if settings.query_cache_size <= 0:
+        return provider
+    return CachingEmbeddingProvider(provider, LRUCache(settings.query_cache_size))
+
+
+def _cached_rerank(settings) -> object:
+    provider = build_rerank_provider(settings)
+    if settings.rerank_cache_size <= 0:
+        return provider
+    return CachingRerankProvider(provider, LRUCache(settings.rerank_cache_size))
 
 __all__ = ["Container", "build_container", "get_auth", "get_container", "get_context"]
 
@@ -90,11 +112,27 @@ def build_container(settings: Settings | None = None) -> Container:
         jobs=JobService(uow_factory),
         # Providers are built from settings only. With remote access disabled
         # they report unavailable and never read the API key.
+        #
+        # Providers are wrapped once per container so their caches span
+        # requests, and the document cache reuses projections across requests.
+        # Both are pure performance layers: they cannot make an unauthorized
+        # document visible, because visibility is resolved by the repository
+        # before either cache is consulted.
         search=SearchServiceFactory(
             uow_factory,
             manifest_loader,
-            embedding=build_embedding_provider(settings.search),
-            rerank=build_rerank_provider(settings.search),
+            embedding=_cached_embedding(settings.search),
+            rerank=_cached_rerank(settings.search),
+            document_cache=(
+                DocumentCache(settings.search.document_cache_size)
+                if settings.search.document_cache_size > 0
+                else None
+            ),
+            document_vectors=(
+                DocumentVectorCache(settings.search.document_cache_size)
+                if settings.search.document_cache_size > 0
+                else None
+            ),
         ),
         mysql_engine=mysql_engine,
     )

@@ -14,6 +14,8 @@ external vector database (PRD §3.3).
 from __future__ import annotations
 
 import hashlib
+import threading
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 from ..domain.models import LifecycleState
@@ -31,13 +33,88 @@ from ..search import IndexDocument, RankingProfile, SearchSort
 from ..search.chunking import build_index_document, extract_type_spec
 from ..search.providers import EmbeddingProvider, RerankProvider
 from ..search.service import SearchFilters, SearchOutcome, SearchService
+from ..search.vector import DocumentVectorCache
 
-__all__ = ["SearchResult", "SearchServiceFactory"]
+__all__ = ["DocumentCache", "SearchResult", "SearchServiceFactory"]
 
 # Documents deeper than this are not fetched for one search request. The corpus
 # is expected to stay well below it; the cap prevents an accidental full-table
 # scan from becoming an unbounded in-process index.
 MAX_INDEX_DOCUMENTS = 5000
+
+# How many projected documents to keep between requests.
+DEFAULT_DOCUMENT_CACHE_SIZE = 2000
+
+
+class DocumentCache:
+    """Reuse projected :class:`IndexDocument` objects across requests.
+
+    Building a document reads the managed Git manifest and slices the body into
+    chunks. That work depends only on **immutable inputs**: the version row and
+    its content hash. It does not depend on who is asking.
+
+    What is deliberately *not* cached is the authorized set. Visibility is
+    re-derived from the repository on every request, so a permission change
+    takes effect immediately; only the pure projection is reused.
+
+    The key is the version id plus both content hashes. A version whose content
+    changes gets a new hash and therefore a different key, so a stale document
+    can never be served for edited content.
+    """
+
+    def __init__(self, capacity: int = DEFAULT_DOCUMENT_CACHE_SIZE) -> None:
+        self._capacity = capacity
+        self._entries: OrderedDict[str, IndexDocument] = OrderedDict()
+        self._lock = threading.Lock()
+        self.hits = 0
+        self.misses = 0
+
+    @staticmethod
+    def key_for(item: ResourceWithVersion) -> str:
+        return "|".join(
+            (
+                str(item.version.public_id),
+                str(item.version.artifact_hash),
+                str(item.version.manifest_snapshot_hash),
+                item.version.updated_at.isoformat() if item.version.updated_at else "",
+            )
+        )
+
+    def get(self, item: ResourceWithVersion) -> IndexDocument | None:
+        key = self.key_for(item)
+        with self._lock:
+            if key not in self._entries:
+                self.misses += 1
+                return None
+            self._entries.move_to_end(key)
+            self.hits += 1
+            return self._entries[key]
+
+    def put(self, item: ResourceWithVersion, document: IndexDocument) -> None:
+        if self._capacity == 0:
+            return
+        with self._lock:
+            self._entries[self.key_for(item)] = document
+            self._entries.move_to_end(self.key_for(item))
+            while len(self._entries) > self._capacity:
+                self._entries.popitem(last=False)
+
+    def stats(self) -> dict[str, float | int]:
+        with self._lock:
+            total = self.hits + self.misses
+            return {
+                "capacity": self._capacity,
+                "size": len(self._entries),
+                "hits": self.hits,
+                "misses": self.misses,
+                "hit_rate": round(self.hits / total, 4) if total else 0.0,
+            }
+
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
+            self.hits = 0
+            self.misses = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,11 +127,16 @@ class SearchResult:
 class SearchServiceFactory:
     """Creates a per-request search service bound to one visibility scope.
 
-    A fresh :class:`SearchService` per request is deliberate. It means the
-    authorized candidate set is always current, and an index can never outlive
-    a permission change. When the corpus grows past the point where rebuilding
-    per request is too slow, caching can be added *behind* this interface
-    without changing any caller.
+    A fresh :class:`SearchService` per request is deliberate: the authorized
+    candidate set must always be current, and no in-memory structure may outlive
+    a permission change.
+
+    Projection caching sits *behind* that guarantee rather than replacing it.
+    The repository still decides visibility on every request; what is reused is
+    the pure function ``(version row, content hash) -> IndexDocument``, which
+    reads Git and chunks text and is identical for every caller. Measured cost
+    of that function was ~933 ms per request on the Stage 2 corpus, almost all
+    of it a remote embedding call for the document vectors.
     """
 
     def __init__(
@@ -64,11 +146,37 @@ class SearchServiceFactory:
         *,
         embedding: EmbeddingProvider | None = None,
         rerank: RerankProvider | None = None,
+        document_cache: DocumentCache | None = None,
+        document_vectors: DocumentVectorCache | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._manifest_loader = manifest_loader
         self._embedding = embedding
         self._rerank = rerank
+        # ``None`` keeps the pre-cache behaviour (rebuild every request) for
+        # callers that want it, including most unit tests.
+        self._document_cache = document_cache
+        self._document_vectors = document_vectors
+
+    @property
+    def document_cache_stats(self) -> dict[str, float | int]:
+        return self._document_cache.stats() if self._document_cache is not None else {}
+
+    def _documents_for(self, visible: list[ResourceWithVersion]) -> list[IndexDocument]:
+        """Project each visible row, reusing cached projections when unchanged."""
+
+        if self._document_cache is None:
+            return [self._build_document(item) for item in visible]
+        documents: list[IndexDocument] = []
+        for item in visible:
+            cached = self._document_cache.get(item)
+            if cached is not None:
+                documents.append(cached)
+                continue
+            document = self._build_document(item)
+            self._document_cache.put(item, document)
+            documents.append(document)
+        return documents
 
     def search(
         self,
@@ -88,7 +196,7 @@ class SearchServiceFactory:
         """
 
         visible = self._load_visible(scope)
-        documents = [self._build_document(item) for item in visible]
+        documents = self._documents_for(visible)
         by_key = {document.index_key: document for document in documents}
 
         service = SearchService(
@@ -96,6 +204,7 @@ class SearchServiceFactory:
             embedding=self._embedding,
             rerank=self._rerank,
             index_revision=_index_revision(documents),
+            document_vectors=self._document_vectors,
         )
         outcome = service.search(
             query,
