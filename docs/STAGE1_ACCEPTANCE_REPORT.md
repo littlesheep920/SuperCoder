@@ -28,7 +28,7 @@
 | Vue3+TS+Vite 工作台 | **PASS（构建）** | `npm run build` 成功；运行期浏览器交互 HOLD |
 | 列表/详情/登记/版本/Diff/审核/依赖/任务页面 | **PASS（存在且调用真实 API）** | 7 个视图文件，均通过 `api/client.ts` 调用后端 |
 | 后端/前端/权限/异常/持久化/接口测试 | **PASS（后端）/ HOLD（前端运行期、MySQL）** | 32 个 unittest 通过；前端仅构建级验证 |
-| Docker 与运行文档 | **HOLD（Docker）/ PASS（文档）** | docker-compose + 3 个 Dockerfile 已写，未启动；`STAGE1_IMPLEMENTATION.md` 提供运行说明 |
+| Docker 与运行文档 | **HOLD（Docker）/ PASS（文档）** | docker-compose + 3 个 Dockerfile 已写，未启动；`docs/archive/STAGE1_IMPLEMENTATION.md` 提供运行说明 |
 | STAGE1_ACCEPTANCE_REPORT.md | **PASS** | 本文件 |
 
 ## 3. 测试结果
@@ -197,7 +197,7 @@ on a host with a working Docker daemon before "one-command startup" is claimed.
 
 ### 8.5 Scope and technology corrections
 
-See `docs/CORRECTION_REVIEW.md` for the full findings: requirement conflicts
+See `docs/archive/CORRECTION_REVIEW.md` for the full findings: requirement conflicts
 (stage-vs-completeness, unreachable metric gates, the unverifiable 120-resource
 target, missing effort assumptions) and technology choices (four stateful
 services at demo scale, missing graph/state-management libraries, the

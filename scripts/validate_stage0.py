@@ -697,7 +697,6 @@ def check_managed_artifacts(root: Path) -> list[str]:
 
     required_inventory_entries = {
         "stage0-manifest.json": "hand-authored",
-        "docs/STAGE0_ACCEPTANCE_REPORT.md": "generated",
     }
     for relative, authorship in required_inventory_entries.items():
         artifact = listed.get(relative)
@@ -707,6 +706,21 @@ def check_managed_artifacts(root: Path) -> list[str]:
             errors.append(
                 f"stage0-manifest.json: {relative} must have authorship {authorship!r}"
             )
+
+    # The Stage 0 acceptance report is a generated process record. It may be
+    # listed at its active path or under docs/archive/ once the stage closed;
+    # either way the manifest must declare it, so the evidence trail is explicit.
+    report_names = {"docs/STAGE0_ACCEPTANCE_REPORT.md", "docs/archive/STAGE0_ACCEPTANCE_REPORT.md"}
+    report_entries = [listed[name] for name in report_names if name in listed]
+    if not report_entries:
+        errors.append(
+            "stage0-manifest.json must list docs/STAGE0_ACCEPTANCE_REPORT.md "
+            "(active or under docs/archive/)"
+        )
+    elif all(entry.get("authorship") != "generated" for entry in report_entries):
+        errors.append(
+            "stage0-manifest.json: the Stage 0 acceptance report must have authorship 'generated'"
+        )
     return errors
 
 
@@ -1257,13 +1271,28 @@ def _closed_allof_composition_errors(schemas: dict[str, Any]) -> list[str]:
     return errors
 
 
+def _doc_path(root: Path, name: str) -> Path:
+    """Resolve a document that may live either in docs/ or in docs/archive/.
+
+    Process records (traceability, implementation notes, review reports) are
+    archived once their stage closes, but the checks that reference them stay
+    live. Resolving both locations keeps the historical record tidy without
+    deleting the evidence a check depends on.
+    """
+
+    active = root / "docs" / name
+    if active.is_file():
+        return active
+    return root / "docs" / "archive" / name
+
+
 def check_review_blocker_regressions(root: Path) -> list[str]:
     errors: list[str] = []
     paths = {
         "openapi": root / "apps/api/openapi.stage0.yaml",
         "api_document": root / "docs/API_CONTRACT.md",
         "migration": root / "infra/migrations/0001_stage0_contract.sql",
-        "traceability": root / "docs/STAGE0_SCOPE_AND_TRACEABILITY.md",
+        "traceability": _doc_path(root, "STAGE0_SCOPE_AND_TRACEABILITY.md"),
     }
     try:
         spec = _load_json(paths["openapi"])

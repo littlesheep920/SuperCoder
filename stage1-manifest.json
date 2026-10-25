@@ -314,7 +314,7 @@
       "authorship": "hand-authored"
     },
     {
-      "path": "docs/STAGE1_IMPLEMENTATION.md",
+      "path": "docs/archive/STAGE1_IMPLEMENTATION.md",
       "role": "Stage 1 implementation notes and deviations.",
       "authorship": "hand-authored"
     },
@@ -344,7 +344,7 @@
       "authorship": "hand-authored"
     },
     {
-      "path": "docs/CORRECTION_REVIEW.md",
+      "path": "docs/archive/CORRECTION_REVIEW.md",
       "role": "Scope and technology correction review with prioritized findings.",
       "authorship": "hand-authored"
     },

@@ -3,53 +3,478 @@
   "stage": "stage-0",
   "description": "Authoritative inventory of repository files managed by the SuperCoder Stage 0 contract. Files not listed here are outside this manifest and are not rejected or modified by manifest validation.",
   "artifacts": [
-    {"path": ".env.example", "requirements": ["R10"], "role": "Safe environment-variable template with external integrations disabled and secret values omitted.", "authorship": "hand-authored"},
-    {"path": "apps/api/README.md", "requirements": ["R3", "R8", "R9"], "role": "API control-plane package boundary and Stage 1 implementation entry contract.", "authorship": "hand-authored"},
-    {"path": "apps/api/openapi.stage0.yaml", "requirements": ["R9"], "role": "OpenAPI 3.1 machine-readable contract for resources, versions, search, agents, workflows, jobs, and evaluations.", "authorship": "hand-authored"},
-    {"path": "apps/web/README.md", "requirements": ["R3", "R9"], "role": "Web presentation-plane package boundary and Stage 1 implementation entry contract.", "authorship": "hand-authored"},
-    {"path": "apps/worker/README.md", "requirements": ["R3", "R8", "R9"], "role": "Worker execution-plane package boundary and Stage 1 implementation entry contract.", "authorship": "hand-authored"},
-    {"path": "docs/API_CONTRACT.md", "requirements": ["R9"], "role": "Human-readable API semantics, error, idempotency, pagination, review, and asynchronous-job contract.", "authorship": "hand-authored"},
-    {"path": "docs/ARCHITECTURE_FREEZE.md", "requirements": ["R1", "R3", "R8", "R9", "R10"], "role": "Frozen Stage 0 component boundaries, data flow, authority model, and non-implementation claims.", "authorship": "hand-authored"},
-    {"path": "docs/DATABASE_MODEL.md", "requirements": ["R8"], "role": "Relational model, constraints, indexes, transaction rules, and Stage 0/Stage 1 persistence boundary.", "authorship": "hand-authored"},
-    {"path": "docs/RESOURCE_GOVERNANCE.md", "requirements": ["R5"], "role": "Lifecycle, semantic-versioning, runtime, permission, review, publication, and dependency governance contract.", "authorship": "hand-authored"},
-    {"path": "docs/RESOURCE_PROTOCOL.md", "requirements": ["R3", "R4", "R5"], "role": "Repository layout and resource.yaml authoring, normalization, entrypoint, and cross-field protocol.", "authorship": "hand-authored"},
-    {"path": "docs/SECURITY_AND_CONFIGURATION.md", "requirements": ["R10"], "role": "Secret, trust, prompt-injection, egress, least-privilege, audit, and fail-closed security contract.", "authorship": "hand-authored"},
-    {"path": "docs/STAGE0_ACCEPTANCE_REPORT.md", "requirements": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"], "role": "Final generated Stage 0 static-validation report produced by the validator during acceptance verification.", "authorship": "generated"},
-    {"path": "docs/STAGE0_SCOPE_AND_TRACEABILITY.md", "requirements": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"], "role": "Bidirectional traceability from formal requirements to contracts, checks, limitations, and Stage 1 entry points.", "authorship": "hand-authored"},
-    {"path": "evals/FORMAT.md", "requirements": ["R7"], "role": "Evaluation JSONL field, join, provenance, privacy, and dataset-extension rules.", "authorship": "hand-authored"},
-    {"path": "evals/duplicates/labels.jsonl", "requirements": ["R7"], "role": "Parseable, provenance-labelled duplicate-detection judgments for the Stage 0 sample pairs.", "authorship": "hand-authored"},
-    {"path": "evals/duplicates/pairs.jsonl", "requirements": ["R7"], "role": "Parseable, sanitized duplicate-resource candidate-pair sample dataset.", "authorship": "hand-authored"},
-    {"path": "evals/recommendations/human_labels.jsonl", "requirements": ["R7"], "role": "Parseable human-provenance recommendation relevance labels for sample requests.", "authorship": "hand-authored"},
-    {"path": "evals/recommendations/requests.jsonl", "requirements": ["R7"], "role": "Parseable, sanitized recommendation-request sample dataset.", "authorship": "hand-authored"},
-    {"path": "evals/retrieval/qrels.jsonl", "requirements": ["R7"], "role": "Parseable retrieval relevance judgments joined to sample queries and exact resource versions.", "authorship": "hand-authored"},
-    {"path": "evals/retrieval/queries.jsonl", "requirements": ["R7"], "role": "Parseable, sanitized resource-retrieval query sample dataset.", "authorship": "hand-authored"},
-    {"path": "evals/schemas/evaluation-records.schema.json", "requirements": ["R5", "R7"], "role": "JSON Schema definitions for all eight evaluation record types and shared references.", "authorship": "hand-authored"},
-    {"path": "evals/workflows/cases.jsonl", "requirements": ["R7"], "role": "Parseable Workflow case inputs, preconditions, and exact demo Workflow references.", "authorship": "hand-authored"},
-    {"path": "evals/workflows/expected_outputs.jsonl", "requirements": ["R7"], "role": "Parseable expected Workflow node outputs and approval-gate assertions joined to sample cases.", "authorship": "hand-authored"},
-    {"path": "infra/config.schema.json", "requirements": ["R10"], "role": "JSON Schema for safe defaults and Git, MySQL, Redis, Qdrant, model, rerank, and Docker configuration.", "authorship": "hand-authored"},
-    {"path": "infra/migrations/0001_stage0_contract.sql", "requirements": ["R8"], "role": "Reviewable MySQL 8 migration foundation for the sixteen frozen relational entities and constraints.", "authorship": "hand-authored"},
-    {"path": "resources/agents/demo-planner/README.md", "requirements": ["R4", "R5", "R6"], "role": "Non-production identity, usage boundary, and file map for the demo Agent resource.", "authorship": "hand-authored"},
-    {"path": "resources/agents/demo-planner/agent.json", "requirements": ["R4", "R6"], "role": "Readable demo Agent configuration with deterministic planning and declared tool binding.", "authorship": "hand-authored"},
-    {"path": "resources/agents/demo-planner/resource.yaml", "requirements": ["R4", "R5", "R6"], "role": "Schema-conforming manifest for the clearly labelled demo Agent resource.", "authorship": "hand-authored"},
-    {"path": "resources/agents/demo-planner/system-prompt.md", "requirements": ["R4", "R6", "R10"], "role": "Readable demo Agent system prompt treated as governed resource data.", "authorship": "hand-authored"},
-    {"path": "resources/mcp/demo-local-catalog/README.md", "requirements": ["R4", "R5", "R6", "R10"], "role": "Local-only, non-production identity and operating boundary for the demo MCP resource.", "authorship": "hand-authored"},
-    {"path": "resources/mcp/demo-local-catalog/resource.yaml", "requirements": ["R4", "R5", "R6"], "role": "Schema-conforming manifest for the clearly labelled demo MCP resource.", "authorship": "hand-authored"},
-    {"path": "resources/mcp/demo-local-catalog/server.json", "requirements": ["R4", "R6", "R10"], "role": "Readable local-only demo MCP server and capability configuration.", "authorship": "hand-authored"},
-    {"path": "resources/prompts/demo-bugfix/README.md", "requirements": ["R4", "R5", "R6"], "role": "Non-production identity, variable contract, and limitations for the demo Prompt resource.", "authorship": "hand-authored"},
-    {"path": "resources/prompts/demo-bugfix/prompt.md", "requirements": ["R4", "R6", "R10"], "role": "Readable parameterized bug-fix prompt content treated as untrusted governed data.", "authorship": "hand-authored"},
-    {"path": "resources/prompts/demo-bugfix/resource.yaml", "requirements": ["R4", "R5", "R6"], "role": "Schema-conforming manifest for the clearly labelled demo Prompt resource.", "authorship": "hand-authored"},
-    {"path": "resources/skills/demo-code-review/SKILL.md", "requirements": ["R4", "R6"], "role": "Readable, non-production code-review procedure serving as the demo Skill entrypoint.", "authorship": "hand-authored"},
-    {"path": "resources/skills/demo-code-review/resource.yaml", "requirements": ["R4", "R5", "R6"], "role": "Schema-conforming manifest for the clearly labelled demo Skill resource.", "authorship": "hand-authored"},
-    {"path": "resources/tools/demo-text-stats/README.md", "requirements": ["R4", "R5", "R6"], "role": "Non-production identity, deterministic behavior, and invocation contract for the demo Tool resource.", "authorship": "hand-authored"},
-    {"path": "resources/tools/demo-text-stats/resource.yaml", "requirements": ["R4", "R5", "R6"], "role": "Schema-conforming manifest for the clearly labelled deterministic demo Tool resource.", "authorship": "hand-authored"},
-    {"path": "resources/tools/demo-text-stats/tool.py", "requirements": ["R4", "R6"], "role": "Dependency-free deterministic text-statistics implementation and Tool entrypoint.", "authorship": "hand-authored"},
-    {"path": "resources/workflows/demo-review-flow/README.md", "requirements": ["R4", "R5", "R6", "R7"], "role": "Non-production identity, approval boundary, and execution limitations for the demo Workflow resource.", "authorship": "hand-authored"},
-    {"path": "resources/workflows/demo-review-flow/resource.yaml", "requirements": ["R4", "R5", "R6", "R7"], "role": "Schema-conforming manifest for the clearly labelled demo Workflow and its managed dependencies.", "authorship": "hand-authored"},
-    {"path": "resources/workflows/demo-review-flow/workflow.json", "requirements": ["R4", "R6", "R7"], "role": "Readable demo Workflow graph with deterministic nodes and an explicit human approval gate.", "authorship": "hand-authored"},
-    {"path": "schemas/resource.schema.json", "requirements": ["R4", "R5"], "role": "Draft 2020-12 unified resource manifest schema for six kinds, seven states, and five runtimes.", "authorship": "hand-authored"},
-    {"path": "scripts/validate_stage0.py", "requirements": ["R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"], "role": "Dependency-free Stage 0 static validator and acceptance-report generator.", "authorship": "hand-authored"},
-    {"path": "stage0-manifest.json", "requirements": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"], "role": "Authoritative managed-artifact inventory with requirement, role, and authorship metadata.", "authorship": "hand-authored"},
-    {"path": "tests/__init__.py", "requirements": ["R3"], "role": "Dependency-free test package marker for Stage 0 validator regression tests.", "authorship": "hand-authored"},
-    {"path": "tests/test_stage0_validator.py", "requirements": ["R3", "R4", "R5", "R7", "R8", "R9", "R10"], "role": "Targeted standard-library regression tests for validator acceptance and rejection behavior.", "authorship": "hand-authored"}
+    {
+      "path": ".env.example",
+      "requirements": [
+        "R10"
+      ],
+      "role": "Safe environment-variable template with external integrations disabled and secret values omitted.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/README.md",
+      "requirements": [
+        "R3",
+        "R8",
+        "R9"
+      ],
+      "role": "API control-plane package boundary and Stage 1 implementation entry contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/api/openapi.stage0.yaml",
+      "requirements": [
+        "R9"
+      ],
+      "role": "OpenAPI 3.1 machine-readable contract for resources, versions, search, agents, workflows, jobs, and evaluations.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/web/README.md",
+      "requirements": [
+        "R3",
+        "R9"
+      ],
+      "role": "Web presentation-plane package boundary and Stage 1 implementation entry contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "apps/worker/README.md",
+      "requirements": [
+        "R3",
+        "R8",
+        "R9"
+      ],
+      "role": "Worker execution-plane package boundary and Stage 1 implementation entry contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/API_CONTRACT.md",
+      "requirements": [
+        "R9"
+      ],
+      "role": "Human-readable API semantics, error, idempotency, pagination, review, and asynchronous-job contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/ARCHITECTURE_FREEZE.md",
+      "requirements": [
+        "R1",
+        "R3",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Frozen Stage 0 component boundaries, data flow, authority model, and non-implementation claims.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/DATABASE_MODEL.md",
+      "requirements": [
+        "R8"
+      ],
+      "role": "Relational model, constraints, indexes, transaction rules, and Stage 0/Stage 1 persistence boundary.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/RESOURCE_GOVERNANCE.md",
+      "requirements": [
+        "R5"
+      ],
+      "role": "Lifecycle, semantic-versioning, runtime, permission, review, publication, and dependency governance contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/RESOURCE_PROTOCOL.md",
+      "requirements": [
+        "R3",
+        "R4",
+        "R5"
+      ],
+      "role": "Repository layout and resource.yaml authoring, normalization, entrypoint, and cross-field protocol.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/SECURITY_AND_CONFIGURATION.md",
+      "requirements": [
+        "R10"
+      ],
+      "role": "Secret, trust, prompt-injection, egress, least-privilege, audit, and fail-closed security contract.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "docs/archive/STAGE0_ACCEPTANCE_REPORT.md",
+      "requirements": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Final generated Stage 0 static-validation report produced by the validator during acceptance verification.",
+      "authorship": "generated"
+    },
+    {
+      "path": "docs/archive/STAGE0_SCOPE_AND_TRACEABILITY.md",
+      "requirements": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Bidirectional traceability from formal requirements to contracts, checks, limitations, and Stage 1 entry points.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/FORMAT.md",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Evaluation JSONL field, join, provenance, privacy, and dataset-extension rules.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/duplicates/labels.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable, provenance-labelled duplicate-detection judgments for the Stage 0 sample pairs.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/duplicates/pairs.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable, sanitized duplicate-resource candidate-pair sample dataset.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/recommendations/human_labels.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable human-provenance recommendation relevance labels for sample requests.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/recommendations/requests.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable, sanitized recommendation-request sample dataset.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/retrieval/qrels.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable retrieval relevance judgments joined to sample queries and exact resource versions.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/retrieval/queries.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable, sanitized resource-retrieval query sample dataset.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/schemas/evaluation-records.schema.json",
+      "requirements": [
+        "R5",
+        "R7"
+      ],
+      "role": "JSON Schema definitions for all eight evaluation record types and shared references.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/workflows/cases.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable Workflow case inputs, preconditions, and exact demo Workflow references.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "evals/workflows/expected_outputs.jsonl",
+      "requirements": [
+        "R7"
+      ],
+      "role": "Parseable expected Workflow node outputs and approval-gate assertions joined to sample cases.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "infra/config.schema.json",
+      "requirements": [
+        "R10"
+      ],
+      "role": "JSON Schema for safe defaults and Git, MySQL, Redis, Qdrant, model, rerank, and Docker configuration.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "infra/migrations/0001_stage0_contract.sql",
+      "requirements": [
+        "R8"
+      ],
+      "role": "Reviewable MySQL 8 migration foundation for the sixteen frozen relational entities and constraints.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/agents/demo-planner/README.md",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Non-production identity, usage boundary, and file map for the demo Agent resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/agents/demo-planner/agent.json",
+      "requirements": [
+        "R4",
+        "R6"
+      ],
+      "role": "Readable demo Agent configuration with deterministic planning and declared tool binding.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/agents/demo-planner/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled demo Agent resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/agents/demo-planner/system-prompt.md",
+      "requirements": [
+        "R4",
+        "R6",
+        "R10"
+      ],
+      "role": "Readable demo Agent system prompt treated as governed resource data.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/mcp/demo-local-catalog/README.md",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6",
+        "R10"
+      ],
+      "role": "Local-only, non-production identity and operating boundary for the demo MCP resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/mcp/demo-local-catalog/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled demo MCP resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/mcp/demo-local-catalog/server.json",
+      "requirements": [
+        "R4",
+        "R6",
+        "R10"
+      ],
+      "role": "Readable local-only demo MCP server and capability configuration.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/prompts/demo-bugfix/README.md",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Non-production identity, variable contract, and limitations for the demo Prompt resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/prompts/demo-bugfix/prompt.md",
+      "requirements": [
+        "R4",
+        "R6",
+        "R10"
+      ],
+      "role": "Readable parameterized bug-fix prompt content treated as untrusted governed data.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/prompts/demo-bugfix/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled demo Prompt resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/skills/demo-code-review/SKILL.md",
+      "requirements": [
+        "R4",
+        "R6"
+      ],
+      "role": "Readable, non-production code-review procedure serving as the demo Skill entrypoint.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/skills/demo-code-review/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled demo Skill resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/tools/demo-text-stats/README.md",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Non-production identity, deterministic behavior, and invocation contract for the demo Tool resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/tools/demo-text-stats/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled deterministic demo Tool resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/tools/demo-text-stats/tool.py",
+      "requirements": [
+        "R4",
+        "R6"
+      ],
+      "role": "Dependency-free deterministic text-statistics implementation and Tool entrypoint.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/workflows/demo-review-flow/README.md",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6",
+        "R7"
+      ],
+      "role": "Non-production identity, approval boundary, and execution limitations for the demo Workflow resource.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/workflows/demo-review-flow/resource.yaml",
+      "requirements": [
+        "R4",
+        "R5",
+        "R6",
+        "R7"
+      ],
+      "role": "Schema-conforming manifest for the clearly labelled demo Workflow and its managed dependencies.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "resources/workflows/demo-review-flow/workflow.json",
+      "requirements": [
+        "R4",
+        "R6",
+        "R7"
+      ],
+      "role": "Readable demo Workflow graph with deterministic nodes and an explicit human approval gate.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "schemas/resource.schema.json",
+      "requirements": [
+        "R4",
+        "R5"
+      ],
+      "role": "Draft 2020-12 unified resource manifest schema for six kinds, seven states, and five runtimes.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "scripts/validate_stage0.py",
+      "requirements": [
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Dependency-free Stage 0 static validator and acceptance-report generator.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "stage0-manifest.json",
+      "requirements": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Authoritative managed-artifact inventory with requirement, role, and authorship metadata.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/__init__.py",
+      "requirements": [
+        "R3"
+      ],
+      "role": "Dependency-free test package marker for Stage 0 validator regression tests.",
+      "authorship": "hand-authored"
+    },
+    {
+      "path": "tests/test_stage0_validator.py",
+      "requirements": [
+        "R3",
+        "R4",
+        "R5",
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "role": "Targeted standard-library regression tests for validator acceptance and rejection behavior.",
+      "authorship": "hand-authored"
+    }
   ]
 }
