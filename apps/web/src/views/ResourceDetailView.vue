@@ -2,12 +2,16 @@
 import { onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { ResourceDetail } from "../api/types";
+import { useCapabilities } from "../composables/useCapabilities";
 
 const props = defineProps<{ id: string }>();
 const detail = ref<ResourceDetail | null>(null);
 const loading = ref(false);
 const error = ref("");
 const message = ref("");
+
+// Offer the delete action only when the caller may attempt it.
+const { can } = useCapabilities();
 
 async function load() {
   loading.value = true;
@@ -47,7 +51,7 @@ onMounted(load);
           {{ detail.selected_version?.status ?? "draft" }}
         </span>
         <span class="muted">{{ detail.kind }} · {{ detail.owner_team }}</span>
-        <button class="danger" @click="remove">撤回/删除</button>
+        <button v-if="can('resource:delete')" class="danger" @click="remove">撤回/删除</button>
       </div>
       <p class="muted">{{ message }}</p>
 

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from ..auth import AuthContext
 from ..domain import lifecycle as lifecycle_rules
+from ..domain.capabilities import is_owner, is_publisher, is_validator
 from ..domain.dependencies import parse_version_range, select_highest_stable, version_satisfies
 from ..domain.errors import (
     ConflictError,
@@ -304,13 +305,14 @@ class GovernanceService:
             if not request.reason:
                 raise ValidationError(code=ErrorCode.REVIEW_EVIDENCE_MISSING, message="retirement requires a reason")
         if lifecycle_rules.TransitionGate.DEPRECATION_REVERSAL_APPROVED in gates:
-            if "owner" not in auth.governance_roles or "publisher" not in auth.governance_roles:
+            # Uses the shared predicate so /v1/auth/me cannot disagree with this.
+            if not (is_owner(auth) and is_publisher(auth)):
                 raise PermissionDeniedError(message="deprecation reversal requires owner and publisher approval")
         if lifecycle_rules.TransitionGate.VALIDATION_PASSED in gates:
-            if "validator" not in auth.governance_roles and "reviewer" not in auth.governance_roles:
+            if not is_validator(auth):
                 raise PermissionDeniedError(message="validation completion requires a validator")
         if lifecycle_rules.TransitionGate.CANDIDATE_FREEZE in gates:
-            if "owner" not in auth.governance_roles:
+            if not is_owner(auth):
                 raise PermissionDeniedError(message="submitting validation requires owner role")
 
     def _require_approval(self, uow, version) -> None:
@@ -328,7 +330,7 @@ class GovernanceService:
             )
 
     def _require_publication_ready(self, auth, uow, version) -> None:
-        if "publisher" not in auth.governance_roles:
+        if not is_publisher(auth):
             raise PermissionDeniedError(message="publication requires publisher role")
         metadata = uow.metadata.get_snapshot(version.public_id)
         resolved = self._resolve_dependencies(uow, version, metadata)
@@ -433,7 +435,7 @@ class GovernanceService:
         return page.items[0].public_id if page.items else None
 
     def _assert_owner(self, auth, resource) -> None:
-        if "owner" not in auth.governance_roles:
+        if not is_owner(auth):
             if resource.owner_team not in auth.teams:
                 raise PermissionDeniedError(message="caller is not the resource owner")
 

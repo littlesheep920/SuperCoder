@@ -1,5 +1,6 @@
 import type {
   AuditRecord,
+  CallerIdentity,
   ErrorBody,
   Job,
   JobEvent,
@@ -122,6 +123,15 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return request<ListResponse<AuditRecord>>(`/audit${qs ? `?${qs}` : ""}`);
   },
+
+  /**
+   * Fetch the caller's identity and capabilities.
+   *
+   * The server resolves this from the bearer token alone, so it works while the
+   * database is unavailable. Callers must still treat a failure as "no
+   * capabilities": the console then renders read-only rather than guessing.
+   */
+  getCallerIdentity: () => request<CallerIdentity>("/auth/me"),
 
   /**
    * Search resources. Returns the response together with its diagnostic

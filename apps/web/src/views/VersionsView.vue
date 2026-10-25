@@ -2,10 +2,13 @@
 import { onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { ResourceVersion } from "../api/types";
+import { useCapabilities } from "../composables/useCapabilities";
 
 const props = defineProps<{ id: string }>();
 const versions = ref<ResourceVersion[]>([]);
 const loading = ref(false);
+
+const { can } = useCapabilities();
 const error = ref("");
 const baseId = ref("");
 const targetId = ref("");
@@ -69,7 +72,9 @@ onMounted(load);
           <td>{{ v.version }}</td>
           <td><span class="badge" :class="v.status">{{ v.status }}</span></td>
           <td class="muted">{{ v.artifact_hash.slice(0, 24) }}…</td>
-          <td><button @click="rollback(v.version_id, v.version)">回滚</button></td>
+          <td>
+          <button v-if="can('resource:edit')" @click="rollback(v.version_id, v.version)">回滚</button>
+        </td>
         </tr>
       </tbody>
     </table>

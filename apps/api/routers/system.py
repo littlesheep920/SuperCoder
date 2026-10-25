@@ -12,17 +12,43 @@ from ..application.job_service import JobService
 from ..auth import AuthContext
 from ..db.health import check_database
 from ..dependencies import Container, get_auth, get_container, get_context
+from ..domain.capabilities import capabilities_for
 from ..domain.errors import ErrorCode, NotFoundError, ServiceUnavailableError
 from ..domain.models import JobState
 from ..middleware.concurrency import require_if_match, validate_idempotency_key
 from ..presenters import to_job, to_job_event
 from ..repositories.contracts import JobQuery
 from ..schemas.governance import CancelRequest, Job
+from ..schemas.identity import CapabilitiesResponse
 from ..schemas.common import Page, PageInfo
 
 router = APIRouter(tags=["System", "Jobs"])
 
 _SSE_HEARTBEAT_SECONDS = 15
+
+
+@router.get("/auth/me", response_model=CapabilitiesResponse)
+def get_caller_identity(auth: AuthContext = Depends(get_auth)) -> CapabilitiesResponse:
+    """Return the caller's identity and the capabilities the UI may offer.
+
+    This does not touch the database: everything here comes from the resolved
+    bearer token, so it works even while MySQL is unavailable and the console can
+    decide what to render before any data request is attempted.
+
+    The capability list is derived by :func:`capabilities_for`, which shares its
+    role predicates with the governance service. That shared source is what lets
+    the consistency tests assert the two agree in both directions.
+    """
+
+    return CapabilitiesResponse(
+        subject_id=auth.actor.subject_id,
+        display_name=auth.actor.display_name,
+        teams=sorted(auth.teams),
+        organization_member=auth.organization_member,
+        governance_roles=sorted(auth.governance_roles),
+        # Sorted for a stable response: the console may diff this across calls.
+        capabilities=sorted(capability.value for capability in capabilities_for(auth)),
+    )
 
 
 @router.get("/health")

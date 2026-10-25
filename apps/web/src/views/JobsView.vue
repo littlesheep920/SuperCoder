@@ -2,12 +2,16 @@
 import { onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { Job, JobEvent } from "../api/types";
+import { useCapabilities } from "../composables/useCapabilities";
 
 const jobs = ref<Job[]>([]);
 const loading = ref(false);
 const error = ref("");
 const events = ref<JobEvent[]>([]);
 const selectedJob = ref<Job | null>(null);
+
+// Gating is a usability aid; the server still rejects unauthorized cancels.
+const { can } = useCapabilities();
 
 async function load() {
   loading.value = true;
@@ -62,7 +66,15 @@ onMounted(load);
           <td class="error">{{ job.error_summary ?? "" }}</td>
           <td>
             <button @click="showEvents(job)">事件</button>
-            <button @click="cancel(job)" v-if="!['succeeded','failed','cancelled','dead_letter'].includes(job.status)">取消</button>
+            <button
+              @click="cancel(job)"
+              v-if="
+                can('job:cancel') &&
+                !['succeeded', 'failed', 'cancelled', 'dead_letter'].includes(job.status)
+              "
+            >
+              取消
+            </button>
           </td>
         </tr>
       </tbody>

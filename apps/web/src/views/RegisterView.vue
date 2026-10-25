@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { api } from "../api/client";
+import { useCapabilities } from "../composables/useCapabilities";
+
+// Registering a resource is the one action that silently wastes the most typing
+// when the caller lacks the role, so gate it before the form is even filled.
+const { can, loaded } = useCapabilities();
 
 const manifest = ref("");
 const artifacts = ref("");
@@ -45,7 +50,18 @@ async function submit() {
       <label>原因</label>
       <input v-model="reason" />
       <div class="row" style="margin-top: 10px">
-        <button class="primary" :disabled="loading" @click="submit">提交登记</button>
+        <button
+          v-if="can('resource:create')"
+          class="primary"
+          :disabled="loading"
+          @click="submit"
+        >
+          提交登记
+        </button>
+        <span v-else-if="loaded" class="muted">
+          你的账号没有登记权限，需要所有者（owner）角色。
+        </span>
+        <span v-else class="muted">正在确认身份…</span>
       </div>
       <p v-if="message" class="muted">{{ message }}</p>
       <p v-if="error" class="error">{{ error }}</p>

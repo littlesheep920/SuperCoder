@@ -2,10 +2,14 @@
 import { onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { ResourceReview, ResourceVersion } from "../api/types";
+import { useCapabilities } from "../composables/useCapabilities";
 
 const props = defineProps<{ id: string }>();
 const reviews = ref<ResourceReview[]>([]);
 const version = ref<ResourceVersion | null>(null);
+
+// Review is the action most likely to be offered to the wrong person.
+const { can } = useCapabilities();
 const loading = ref(false);
 const error = ref("");
 const message = ref("");
@@ -63,7 +67,8 @@ onMounted(load);
 
     <div class="row" style="margin-bottom: 12px" v-if="version">
       <span class="muted">当前版本 {{ version.version }}（{{ version.status }}）</span>
-      <button class="primary" @click="approve">批准（approve）</button>
+      <button v-if="can('lifecycle:review')" class="primary" @click="approve">批准（approve）</button>
+      <span v-else class="muted small">需要审核角色才能批准</span>
     </div>
 
     <table v-if="reviews.length">

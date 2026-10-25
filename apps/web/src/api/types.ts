@@ -197,3 +197,35 @@ export interface SearchDiagnostics {
   degraded: string[];
   indexRevision: string;
 }
+
+/**
+ * Capability names the server reports for the signed-in caller.
+ *
+ * These are the *permission to attempt* an operation, not a guarantee it will
+ * succeed: business rules can still reject a request. The server remains the
+ * only authority; this list exists so the console does not render dead buttons.
+ */
+export type Capability =
+  | "resource:read"
+  | "resource:create"
+  | "resource:edit"
+  | "resource:delete"
+  | "search:use"
+  | "audit:read"
+  | "lifecycle:submit"
+  | "lifecycle:validate"
+  | "lifecycle:publish"
+  | "lifecycle:reverse_deprecation"
+  | "lifecycle:review"
+  | "job:cancel"
+  | "job:retry";
+
+/** Response of GET /v1/auth/me. */
+export interface CallerIdentity {
+  subject_id: string;
+  display_name: string;
+  teams: string[];
+  organization_member: boolean;
+  governance_roles: string[];
+  capabilities: Capability[];
+}

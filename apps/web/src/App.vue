@@ -1,15 +1,30 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { getToken, setToken } from "./api/client";
+import { useCapabilities } from "./composables/useCapabilities";
 
 const token = ref(getToken() ?? "");
 const saved = ref(!!getToken());
 
+const { identity, load, reset } = useCapabilities();
+
+const roleLabel = computed(() => {
+  const roles = identity.value?.governance_roles ?? [];
+  return roles.length ? roles.join(" / ") : "只读";
+});
+
 function save() {
   setToken(token.value.trim());
   saved.value = !!token.value.trim();
+  // Capabilities belong to the previous token. Clearing them before the reload
+  // guarantees a stale set can never authorize the UI for the new caller.
+  reset();
   window.location.reload();
 }
+
+onMounted(() => {
+  if (getToken()) void load();
+});
 </script>
 
 <template>
@@ -23,6 +38,9 @@ function save() {
           <button @click="save">保存</button>
           <span v-if="saved" class="muted">已保存</span>
         </div>
+        <p v-if="identity" class="muted small" style="margin-top: 6px">
+          {{ identity.display_name }} · {{ roleLabel }}
+        </p>
       </div>
       <nav>
         <router-link to="/discovery">能力发现</router-link>
