@@ -1,0 +1,78 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-csv-diff",
+  "name": "Example CSV Diff Tool",
+  "version": "1.0.0",
+  "description": "Example tool that reports added, removed, and changed rows between two CSV texts keyed by one column. Sample content for the SuperCoder protocol; deterministic and offline.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "csv",
+    "diff"
+  ],
+  "categories": [
+    "developer-tools/data"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "string"
+        },
+        "right": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "left",
+        "right",
+        "key"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 10
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-metrics-query",
+  "name": "Example Metrics Query MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server exposing read-only time-series queries for service-level indicators. Sample content for the SuperCoder protocol; it points at an illustrative endpoint only.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "metrics",
+    "observability"
+  ],
+  "categories": [
+    "operations/observability"
+  ],
+  "runtimes": [
+    "claude-code",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "sre",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://metrics.example.invalid/api",
+    "tools": [
+      {
+        "name": "query-range",
+        "description": "Fetch one metric over a time window.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "metric": {
+              "type": "string"
+            },
+            "start": {
+              "type": "string"
+            },
+            "end": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "metric",
+            "start",
+            "end"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "list-metrics",
+        "description": "List available metric names.",
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

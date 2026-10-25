@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-ticket-reader",
+  "name": "Example Ticket Reader MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads issue titles, bodies, and labels from a tracker. Sample content for the SuperCoder protocol; no tracker is contacted by this repository.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "issues",
+    "read-only"
+  ],
+  "categories": [
+    "collaboration/issues"
+  ],
+  "runtimes": [
+    "dify",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://tracker.example.invalid/api",
+    "tools": [
+      {
+        "name": "get-ticket",
+        "description": "Read one issue by id.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "ticket_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ticket_id"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "search-tickets",
+        "description": "Search issues by label or text.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "base_url": {
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

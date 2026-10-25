@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-onboarding-guide",
+  "name": "Example Onboarding Guide Agent",
+  "version": "1.0.0",
+  "description": "Example agent that answers repository setup questions from local documentation only. Sample content for the SuperCoder protocol; it does not browse the web.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "onboarding",
+    "docs"
+  ],
+  "categories": [
+    "developer-tools/documentation"
+  ],
+  "runtimes": [
+    "dify",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-doc-indexer",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "docs",
+  "agent": {
+    "role": "Answers repository onboarding questions from local documentation.",
+    "model": {
+      "provider": "openai",
+      "model_id": "gpt-4o-mini"
+    },
+    "tools": [
+      "example-doc-indexer"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-release-pipeline",
+  "name": "Example Release Pipeline Workflow",
+  "version": "1.0.0",
+  "description": "Example workflow that runs release gates and stops at each unmet gate. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "release",
+    "gates"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "release-engineering",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "gates",
+        "type": "resource",
+        "resource": {
+          "kind": "skill",
+          "slug": "example-release-readiness",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "notes",
+        "type": "resource",
+        "resource": {
+          "kind": "prompt",
+          "slug": "example-release-notes",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "gates"
+      },
+      {
+        "from": "gates",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "notes"
+      },
+      {
+        "from": "notes",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

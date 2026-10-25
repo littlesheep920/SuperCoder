@@ -1,0 +1,404 @@
+{
+  "dataset": {
+    "queries_path": "evals\\retrieval\\stage2_queries.jsonl",
+    "queries_sha256_16": "04f5801e998dfb2c",
+    "qrels_path": "evals\\retrieval\\stage2_qrels.jsonl",
+    "qrels_sha256_16": "32cd6b22611d28be",
+    "query_count": 20,
+    "judgment_count": 23
+  },
+  "config": {
+    "profile": "keyword",
+    "embedding_provider": "Qwen/Qwen3-Embedding-0.6B-d1024",
+    "rerank_provider": "BAAI/bge-reranker-v2-m3",
+    "remote_enabled": true,
+    "seed": 0,
+    "corpus_size": 6
+  },
+  "environment": {
+    "generated_at": "2026-10-24T14:11:43.161718+00:00",
+    "python": "3.12.10"
+  },
+  "metrics": {
+    "hit_at_5": 0.3,
+    "mrr_at_10": 0.3,
+    "ndcg_at_10": 0.3,
+    "zero_result_queries": 14,
+    "no_relevant_retrieved": 14,
+    "p95_latency_ms": 717
+  },
+  "honesty": {
+    "semantic_quality_claimed": true,
+    "note": "Embedding used a real semantic model."
+  },
+  "per_query": [
+    {
+      "query_id": "s2q01",
+      "query": "帮我找一个能审查代码改动的能力，要给出每个问题的证据",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/demo-code-review@1.0.0",
+        "workflow/demo-review-flow@1.0.0"
+      ],
+      "graded": {
+        "skill/demo-code-review@1.0.0": 3,
+        "workflow/demo-review-flow@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q02",
+      "query": "有没有只读的本地资源目录查询工具，不要联网",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/demo-local-catalog@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q03",
+      "query": "需要一个基于证据修复缺陷的提示词模板",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/demo-bugfix@1.0.0"
+      ],
+      "graded": {
+        "prompt/demo-bugfix@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q04",
+      "query": "能自动统计文本字数和词频的工具",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/demo-text-stats@1.0.0"
+      ],
+      "graded": {
+        "tool/demo-text-stats@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q05",
+      "query": "需要人工审批环节的代码审查流程",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "workflow/demo-review-flow@1.0.0"
+      ],
+      "graded": {
+        "workflow/demo-review-flow@1.0.0": 3,
+        "skill/demo-code-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q06",
+      "query": "有个能制定计划但不修改文件的智能体吗",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/demo-planner@1.0.0"
+      ],
+      "graded": {
+        "agent/demo-planner@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q07",
+      "query": "code review skill",
+      "profile": "keyword",
+      "ranked_ids": [
+        "skill/demo-code-review@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "prompt/demo-bugfix@1.0.0"
+      ],
+      "relevant_ids": [
+        "skill/demo-code-review@1.0.0"
+      ],
+      "graded": {
+        "skill/demo-code-review@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 800,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q08",
+      "query": "diff 审查 证据",
+      "profile": "keyword",
+      "ranked_ids": [
+        "skill/demo-code-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "skill/demo-code-review@1.0.0"
+      ],
+      "graded": {
+        "skill/demo-code-review@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q09",
+      "query": "文本分析",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/demo-text-stats@1.0.0"
+      ],
+      "graded": {
+        "tool/demo-text-stats@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q10",
+      "query": "stdio 本地 MCP 服务",
+      "profile": "keyword",
+      "ranked_ids": [
+        "mcp/demo-local-catalog@1.0.0",
+        "agent/demo-planner@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/demo-local-catalog@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 717,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q11",
+      "query": "我需要检查完代码之后让人工确认再出结论",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "workflow/demo-review-flow@1.0.0"
+      ],
+      "graded": {
+        "workflow/demo-review-flow@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q12",
+      "query": "bug fix prompt",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/demo-bugfix@1.0.0",
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/demo-bugfix@1.0.0"
+      ],
+      "graded": {
+        "prompt/demo-bugfix@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 708,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q13",
+      "query": "不联网的工具",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/demo-local-catalog@1.0.0",
+        "tool/demo-text-stats@1.0.0"
+      ],
+      "graded": {
+        "tool/demo-text-stats@1.0.0": 3,
+        "mcp/demo-local-catalog@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q14",
+      "query": "制定开发计划的助手",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/demo-planner@1.0.0"
+      ],
+      "graded": {
+        "agent/demo-planner@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q15",
+      "query": "workflow approval human",
+      "profile": "keyword",
+      "ranked_ids": [
+        "workflow/demo-review-flow@1.0.0",
+        "agent/demo-planner@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "relevant_ids": [
+        "workflow/demo-review-flow@1.0.0"
+      ],
+      "graded": {
+        "workflow/demo-review-flow@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 709,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q16",
+      "query": "检查补丁有没有安全问题",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/demo-code-review@1.0.0"
+      ],
+      "graded": {
+        "skill/demo-code-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q17",
+      "query": "确定性 字频 统计",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/demo-text-stats@1.0.0"
+      ],
+      "graded": {
+        "tool/demo-text-stats@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q18",
+      "query": "读取本地资源清单的服务",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/demo-local-catalog@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q19",
+      "query": "代码质量把关",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/demo-code-review@1.0.0"
+      ],
+      "graded": {
+        "skill/demo-code-review@1.0.0": 3
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q20",
+      "query": "read only catalog stdio no network",
+      "profile": "keyword",
+      "ranked_ids": [
+        "mcp/demo-local-catalog@1.0.0",
+        "agent/demo-planner@1.0.0",
+        "tool/demo-text-stats@1.0.0",
+        "skill/demo-code-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/demo-local-catalog@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 707,
+      "degraded": []
+    }
+  ]
+}

@@ -16,7 +16,14 @@ class GitProviderTest(unittest.TestCase):
         root = resolve_resource_root(".", ResourceKind.SKILL, "demo-code-review")
         self.assertEqual(root.parts[-2:], ("skills", "demo-code-review"))
 
-    def test_discover_six_demo_resources(self):
+    def test_discovers_the_demo_resources(self):
+        """The demo resources stay discoverable as the corpus grows.
+
+        Deliberately an ``in`` check, not a count: the corpus has expanded from
+        six to forty-two resources, and this test should not break every time an
+        example is added.
+        """
+
         git = GitProvider(".", read_only=True)
         directories = git.list_resource_directories()
         slugs = {(d.kind.value, d.slug) for d in directories}

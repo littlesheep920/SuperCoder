@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-issue-to-patch",
+  "name": "Example Issue To Patch Workflow",
+  "version": "1.0.0",
+  "description": "Example workflow that turns a triaged issue into a patch proposal requiring review. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "issue",
+    "patch"
+  ],
+  "categories": [
+    "collaboration/issues"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "triage",
+        "type": "resource",
+        "resource": {
+          "kind": "agent",
+          "slug": "example-issue-triager",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "record",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "triage"
+      },
+      {
+        "from": "triage",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "record"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

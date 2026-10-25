@@ -1,15 +1,15 @@
 """Keep the PRD truthful about what the code actually does.
 
 The PRD is what people read to decide what exists. It has drifted from reality
-twice in this project: Qdrant/Redis were described as "disabled by default" when
-no client code existed at all, and the metric table said "baseline to be
-established" long after a real baseline had been measured.
+several times in this project: Qdrant/Redis were once described as "disabled by
+default" when no client code existed, the metric table once said "baseline to be
+established" long after a real baseline was measured, and latency claims once
+outlived the optimisation that changed them.
 
-These tests assert facts, never exact prose. They check that the numbers the PRD
-quotes equal the archived baselines, that the counts it states equal the
-repository, and that unimplemented components are not described as merely
-switched off. Rewording the document freely is expected; contradicting the code
-is not.
+These tests assert facts, never exact prose. They check that numbers quoted in
+the PRD equal the archived baselines, that counts equal the repository, and that
+unimplemented components are not described as merely switched off. Rewording the
+document freely is expected; contradicting the archived data is not.
 """
 
 from __future__ import annotations
@@ -45,45 +45,37 @@ class MetricDisclosureTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.text = PRD.read_text(encoding="utf-8")
 
-    def test_hybrid_hit_at_5_is_quoted(self) -> None:
-        value = format(baseline("hybrid")["metrics"]["hit_at_5"], ".2f")
-        self.assertIn(value, self.text)
+    def test_quoted_metrics_match_the_archived_baseline(self) -> None:
+        for profile in ("hybrid", "keyword"):
+            metrics = baseline(profile)["metrics"]
+            with self.subTest(profile=profile):
+                for key, decimals in (("hit_at_5", 2), ("mrr_at_10", 2), ("ndcg_at_10", 2)):
+                    value = format(metrics[key], f".{decimals}f")
+                    # 0.9792 renders as 0.98 in the table; assert on 3 dp too.
+                    precise = format(metrics[key], ".3f").rstrip("0").rstrip(".")
+                    self.assertTrue(
+                        value in self.text or precise in self.text,
+                        f"{profile}.{key}={metrics[key]} is not quoted in the PRD",
+                    )
 
-    def test_keyword_contrast_is_quoted(self) -> None:
-        """Keyword must appear as the low baseline that justifies semantics."""
+    def test_baseline_describes_the_expanded_corpus(self) -> None:
+        """A stale baseline would make every quoted number silently wrong."""
 
-        value = format(baseline("keyword")["metrics"]["hit_at_5"], ".2f")
-        self.assertIn(value, self.text)
-        self.assertIn("关键词", self.text)
+        config = baseline("hybrid")["config"]
+        self.assertEqual(config.get("corpus_size"), 42)
 
-    def test_latency_claim_matches_the_current_measurement(self) -> None:
-        """The PRD must disclose latency honestly in whichever direction it lies.
-
-        Baseline files record the pre-optimisation run. After connection reuse
-        and startup warm-up the measured P95 is 279-428 ms, well inside the
-        1.5 s target, so the PRD now reports that number instead of an overrun.
-        Whichever state the repository is in, the PRD must agree with it and
-        must still disclose the residual caveats.
-        """
-
-        baseline_p95 = baseline("hybrid")["metrics"]["p95_latency_ms"]
-        self.assertGreater(
-            baseline_p95,
-            1500,
-            "the archived baseline is expected to hold the pre-optimisation run",
-        )
-        # The PRD must report the current, measured figure...
-        self.assertRegex(self.text, r"254\D{0,4}428\s*ms")
-        # ...and must still disclose what makes it possible and what remains.
+    def test_latency_claim_is_present_and_caveated(self) -> None:
+        self.assertRegex(self.text, r"463\s*ms")
         for caveat in ("预热", "尖峰"):
             with self.subTest(caveat=caveat):
                 self.assertIn(caveat, self.text)
 
-    def test_small_sample_caveat_accompanies_the_score(self) -> None:
-        """A 1.00 on six resources must never stand without its limits."""
+    def test_corpus_provenance_is_disclosed(self) -> None:
+        """Example content must never be presented as real enterprise data."""
 
-        self.assertIn("6 项", self.text)
-        self.assertRegex(self.text, r"不可作为能力宣传|不得作为|小样本")
+        self.assertIn("42 项", self.text)
+        self.assertRegex(self.text, r"示例|example")
+        self.assertIn("单标注者", self.text)
 
 
 class ContractCoverageTests(unittest.TestCase):
@@ -110,12 +102,6 @@ class StatusHonestyTests(unittest.TestCase):
         cls.text = PRD.read_text(encoding="utf-8")
 
     def test_qdrant_and_redis_are_marked_not_implemented(self) -> None:
-        """Both have a config flag but no client code.
-
-        Saying "disabled by default" invites the reader to assume an adapter
-        exists behind the switch. The status table must say otherwise.
-        """
-
         for component in ("Qdrant", "Redis"):
             with self.subTest(component=component):
                 row = re.search(rf"^\|\s*{component}\s*\|([^|\n]*)\|", self.text, re.MULTILINE)
@@ -130,9 +116,7 @@ class StatusHonestyTests(unittest.TestCase):
             for number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
                 if re.search(r"\b(import|from)\s+(qdrant_client|redis)\b", line):
                     offenders.append(f"{source.relative_to(ROOT)}:{number}")
-        self.assertEqual(
-            offenders, [], "a Qdrant/Redis client appeared; update the status table"
-        )
+        self.assertEqual(offenders, [], "a Qdrant/Redis client appeared; update the status table")
 
     def test_status_matrix_covers_every_maturity_level(self) -> None:
         self.assertIn("实现状态", self.text)
@@ -140,15 +124,11 @@ class StatusHonestyTests(unittest.TestCase):
             self.assertIn(level, self.text)
 
     def test_unstarted_domains_are_named(self) -> None:
-        """The big gaps must be visible, not omitted."""
-
         for domain in ("能力发现 Agent", "工作流", "平台评测"):
             with self.subTest(domain=domain):
                 self.assertIn(domain, self.text)
 
     def test_forbidden_phrases_are_listed(self) -> None:
-        """The document itself must constrain how results are described."""
-
         self.assertIn("禁止这样说", self.text)
 
 
@@ -160,8 +140,6 @@ class DocumentShapeTests(unittest.TestCase):
         cls.text = PRD.read_text(encoding="utf-8")
 
     def test_no_changelog_or_revision_summary(self) -> None:
-        """A reader meeting this document fresh should not wade through history."""
-
         for phrase in ("变更记录", "修订摘要", "V2.1", "V2.2", "取代"):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, self.text)

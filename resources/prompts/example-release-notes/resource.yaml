@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-release-notes",
+  "name": "Example Release Notes Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that turns merged change descriptions into user-facing release notes. Sample content for the SuperCoder protocol; it writes prose and touches no systems.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "release",
+    "writing"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "dify",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "release-engineering",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "changes",
+        "description": "Merged change descriptions.",
+        "required": true,
+        "type": "text"
+      },
+      {
+        "name": "audience",
+        "description": "Who reads these notes.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "gpt-4o-mini",
+      "claude-3-5-sonnet"
+    ]
+  }
+}

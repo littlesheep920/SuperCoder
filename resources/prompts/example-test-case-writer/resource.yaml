@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-test-case-writer",
+  "name": "Example Test Case Writer Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that proposes test cases for a described behaviour, separating happy paths from boundary and failure cases. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "testing",
+    "generation"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "kiro",
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "behaviour",
+        "description": "What the unit should do.",
+        "required": true,
+        "type": "text"
+      },
+      {
+        "name": "contract",
+        "description": "Inputs and expected outputs.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "gpt-4o",
+      "claude-3-5-sonnet"
+    ]
+  }
+}

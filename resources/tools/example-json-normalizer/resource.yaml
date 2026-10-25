@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-json-normalizer",
+  "name": "Example JSON Normalizer Tool",
+  "version": "1.0.0",
+  "description": "Example tool that rewrites JSON with sorted keys and stable indentation so diffs are reviewable. Sample content for the SuperCoder protocol; deterministic and offline.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "json",
+    "deterministic"
+  ],
+  "categories": [
+    "developer-tools/data"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "indent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

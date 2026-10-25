@@ -1,4 +1,4 @@
-"""Seed the six demo resources into MySQL via the control-plane services.
+"""Seed every managed resource under resources/ into MySQL via the control-plane services.
 
 Requires ``SUPERCODER_MYSQL_ENABLED=true`` and a reachable, migrated MySQL 8
 database.  The managed Git root already contains ``resources/``; this script

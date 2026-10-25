@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-repo-search",
+  "name": "Example Repository Search MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that exposes read-only symbol and text search over a checked-out repository. Sample content for the SuperCoder protocol; the referenced server is illustrative and is not distributed with this repository.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "search",
+    "repository"
+  ],
+  "categories": [
+    "developer-tools/search"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "mcp": {
+    "transport": "stdio",
+    "command": [
+      "python",
+      "-m",
+      "example_repo_search"
+    ],
+    "tools": [
+      {
+        "name": "search-symbols",
+        "description": "Find symbol definitions by name in the configured repository.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "search-text",
+        "description": "Find literal text occurrences in the configured repository.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "repository_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository_path"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

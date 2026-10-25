@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-data-steward",
+  "name": "Example Data Steward Agent",
+  "version": "1.0.0",
+  "description": "Example agent that answers questions about table ownership and lineage from catalog metadata. Sample content for the SuperCoder protocol; it never reads row data.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "data",
+    "governance"
+  ],
+  "categories": [
+    "data/governance"
+  ],
+  "runtimes": [
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-schema-catalog",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "agent": {
+    "role": "Answers data ownership and lineage questions from catalog metadata.",
+    "model": {
+      "provider": "openai",
+      "model_id": "gpt-4o"
+    },
+    "tools": [
+      "example-schema-catalog"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

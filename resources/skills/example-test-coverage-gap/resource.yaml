@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "kind": "skill",
+  "slug": "example-test-coverage-gap",
+  "name": "Example Test Coverage Gap Analysis",
+  "version": "1.0.0",
+  "description": "Example skill that maps a code change to the tests that exercise it and reports branches left uncovered. Sample content for the resource protocol; the coverage numbers it produces are illustrative, not a quality certification.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "testing",
+    "coverage",
+    "quality"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "SKILL.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "skill": {
+    "scenarios": [
+      "Show which new branches a change leaves unexercised.",
+      "Distinguish regressions in coverage from pre-existing gaps."
+    ],
+    "constraints": [
+      "Do not claim a change is correct because coverage is high.",
+      "Read-only: never edit tests as part of the analysis."
+    ]
+  }
+}

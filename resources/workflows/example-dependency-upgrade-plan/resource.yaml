@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-dependency-upgrade-plan",
+  "name": "Example Dependency Upgrade Workflow",
+  "version": "1.0.0",
+  "description": "Example workflow that plans a dependency upgrade and requires human approval before the plan is executed. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "dependency",
+    "upgrade"
+  ],
+  "categories": [
+    "software-development/maintenance"
+  ],
+  "runtimes": [
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "plan",
+        "type": "resource",
+        "resource": {
+          "kind": "skill",
+          "slug": "example-dependency-upgrade",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "record",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "plan"
+      },
+      {
+        "from": "plan",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "record"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

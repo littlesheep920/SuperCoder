@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-doc-indexer",
+  "name": "Example Documentation Indexer MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server serving a local index of markdown documentation. Sample content for the SuperCoder protocol; the index is built locally and never uploaded.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "docs",
+    "search"
+  ],
+  "categories": [
+    "developer-tools/documentation"
+  ],
+  "runtimes": [
+    "kiro",
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "docs",
+  "mcp": {
+    "transport": "stdio",
+    "command": [
+      "python",
+      "-m",
+      "example_doc_indexer"
+    ],
+    "tools": [
+      {
+        "name": "search-docs",
+        "description": "Search headings and paragraphs of local documentation.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "read-section",
+        "description": "Return one documentation section by slug.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "section": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "section"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "docs_root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "docs_root"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-data-change-review",
+  "name": "Example Data Change Review Workflow",
+  "version": "1.0.0",
+  "description": "Example workflow that reviews a schema change and requires approval from data and platform owners. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "data",
+    "review"
+  ],
+  "categories": [
+    "data/governance"
+  ],
+  "runtimes": [
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "review",
+        "type": "resource",
+        "resource": {
+          "kind": "prompt",
+          "slug": "example-migration-reviewer",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "record",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "review"
+      },
+      {
+        "from": "review",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "record"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

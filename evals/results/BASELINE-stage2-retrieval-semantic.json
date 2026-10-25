@@ -1,11 +1,11 @@
 {
   "dataset": {
     "queries_path": "evals\\retrieval\\stage2_queries.jsonl",
-    "queries_sha256_16": "04f5801e998dfb2c",
+    "queries_sha256_16": "749417a888b0a467",
     "qrels_path": "evals\\retrieval\\stage2_qrels.jsonl",
-    "qrels_sha256_16": "32cd6b22611d28be",
-    "query_count": 20,
-    "judgment_count": 23
+    "qrels_sha256_16": "88e971fee9330f3d",
+    "query_count": 48,
+    "judgment_count": 90
   },
   "config": {
     "profile": "semantic",
@@ -13,19 +13,19 @@
     "rerank_provider": "BAAI/bge-reranker-v2-m3",
     "remote_enabled": true,
     "seed": 0,
-    "corpus_size": 6
+    "corpus_size": 42
   },
   "environment": {
-    "generated_at": "2026-10-24T14:12:19.675404+00:00",
+    "generated_at": "2026-10-25T09:54:29.964976+00:00",
     "python": "3.12.10"
   },
   "metrics": {
-    "hit_at_5": 1.0,
-    "mrr_at_10": 1.0,
-    "ndcg_at_10": 0.9978,
+    "hit_at_5": 0.9792,
+    "mrr_at_10": 0.908,
+    "ndcg_at_10": 0.8748,
     "zero_result_queries": 0,
-    "no_relevant_retrieved": 0,
-    "p95_latency_ms": 3837
+    "no_relevant_retrieved": 1,
+    "p95_latency_ms": 590
   },
   "honesty": {
     "semantic_quality_claimed": true,
@@ -38,11 +38,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "skill/demo-code-review@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "skill/example-release-readiness@1.0.0",
         "prompt/demo-bugfix@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
         "workflow/demo-review-flow@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0"
       ],
       "relevant_ids": [
         "skill/demo-code-review@1.0.0",
@@ -54,8 +58,8 @@
       },
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
-      "ndcg_at_10": 0.955831,
-      "took_ms": 2314,
+      "ndcg_at_10": 0.899605,
+      "took_ms": 1236,
       "degraded": []
     },
     {
@@ -65,10 +69,14 @@
       "ranked_ids": [
         "mcp/demo-local-catalog@1.0.0",
         "agent/demo-planner@1.0.0",
+        "mcp/example-repo-search@1.0.0",
         "tool/demo-text-stats@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "agent/example-data-steward@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0"
@@ -79,7 +87,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1447,
+      "took_ms": 387,
       "degraded": []
     },
     {
@@ -89,10 +97,14 @@
       "ranked_ids": [
         "prompt/demo-bugfix@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "workflow/demo-review-flow@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "prompt/example-test-case-writer@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0"
       ],
       "relevant_ids": [
         "prompt/demo-bugfix@1.0.0"
@@ -103,7 +115,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1419,
+      "took_ms": 369,
       "degraded": []
     },
     {
@@ -112,11 +124,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "tool/demo-text-stats@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "tool/example-semver-compare@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "mcp/example-repo-search@1.0.0"
       ],
       "relevant_ids": [
         "tool/demo-text-stats@1.0.0"
@@ -127,7 +143,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 2963,
+      "took_ms": 341,
       "degraded": []
     },
     {
@@ -136,11 +152,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "workflow/demo-review-flow@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "workflow/example-dependency-upgrade-plan@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "agent/example-issue-triager@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
+        "agent/demo-planner@1.0.0"
       ],
       "relevant_ids": [
         "workflow/demo-review-flow@1.0.0"
@@ -151,8 +171,8 @@
       },
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 3859,
+      "ndcg_at_10": 0.961001,
+      "took_ms": 348,
       "degraded": []
     },
     {
@@ -162,9 +182,13 @@
       "ranked_ids": [
         "agent/demo-planner@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "tool/example-csv-diff@1.0.0",
         "workflow/demo-review-flow@1.0.0",
-        "tool/demo-text-stats@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "agent/example-incident-commander@1.0.0",
         "prompt/demo-bugfix@1.0.0"
       ],
       "relevant_ids": [
@@ -176,7 +200,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 3837,
+      "took_ms": 340,
       "degraded": []
     },
     {
@@ -185,11 +209,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "skill/demo-code-review@1.0.0",
+        "agent/example-review-assistant@1.0.0",
         "workflow/demo-review-flow@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "prompt/example-security-checklist@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "prompt/demo-bugfix@1.0.0"
       ],
       "relevant_ids": [
         "skill/demo-code-review@1.0.0"
@@ -200,7 +228,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1428,
+      "took_ms": 348,
       "degraded": []
     },
     {
@@ -209,11 +237,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "skill/demo-code-review@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
         "prompt/demo-bugfix@1.0.0",
-        "agent/demo-planner@1.0.0",
+        "tool/example-csv-diff@1.0.0",
         "workflow/demo-review-flow@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "prompt/example-migration-reviewer@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "tool/example-semver-compare@1.0.0"
       ],
       "relevant_ids": [
         "skill/demo-code-review@1.0.0"
@@ -224,7 +256,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1428,
+      "took_ms": 350,
       "degraded": []
     },
     {
@@ -234,10 +266,14 @@
       "ranked_ids": [
         "tool/demo-text-stats@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0",
-        "agent/demo-planner@1.0.0"
+        "tool/example-csv-diff@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "prompt/example-test-case-writer@1.0.0",
+        "tool/example-semver-compare@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "mcp/example-repo-search@1.0.0"
       ],
       "relevant_ids": [
         "tool/demo-text-stats@1.0.0"
@@ -248,7 +284,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1448,
+      "took_ms": 377,
       "degraded": []
     },
     {
@@ -256,12 +292,16 @@
       "query": "stdio 本地 MCP 服务",
       "profile": "semantic",
       "ranked_ids": [
+        "mcp/example-doc-indexer@1.0.0",
         "mcp/demo-local-catalog@1.0.0",
-        "agent/demo-planner@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "tool/demo-text-stats@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "agent/example-release-conductor@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0"
@@ -269,10 +309,10 @@
       "graded": {
         "mcp/demo-local-catalog@1.0.0": 3
       },
-      "first_relevant_rank": 1,
-      "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 1464,
+      "first_relevant_rank": 2,
+      "reciprocal_rank": 0.5,
+      "ndcg_at_10": 0.63093,
+      "took_ms": 362,
       "degraded": []
     },
     {
@@ -280,12 +320,16 @@
       "query": "我需要检查完代码之后让人工确认再出结论",
       "profile": "semantic",
       "ranked_ids": [
+        "workflow/example-patch-approval-flow@1.0.0",
         "workflow/demo-review-flow@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "workflow/example-dependency-upgrade-plan@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
         "skill/demo-code-review@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
         "prompt/demo-bugfix@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "skill/example-release-readiness@1.0.0"
       ],
       "relevant_ids": [
         "workflow/demo-review-flow@1.0.0"
@@ -293,10 +337,10 @@
       "graded": {
         "workflow/demo-review-flow@1.0.0": 3
       },
-      "first_relevant_rank": 1,
-      "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 1401,
+      "first_relevant_rank": 2,
+      "reciprocal_rank": 0.5,
+      "ndcg_at_10": 0.63093,
+      "took_ms": 348,
       "degraded": []
     },
     {
@@ -306,10 +350,14 @@
       "ranked_ids": [
         "prompt/demo-bugfix@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "workflow/demo-review-flow@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "prompt/example-security-checklist@1.0.0",
+        "prompt/example-test-case-writer@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "agent/example-issue-triager@1.0.0"
       ],
       "relevant_ids": [
         "prompt/demo-bugfix@1.0.0"
@@ -320,7 +368,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1422,
+      "took_ms": 390,
       "degraded": []
     },
     {
@@ -328,12 +376,16 @@
       "query": "不联网的工具",
       "profile": "semantic",
       "ranked_ids": [
-        "tool/demo-text-stats@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "skill/demo-code-review@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "tool/example-log-redactor@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "tool/example-semver-compare@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-repo-search@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0",
@@ -343,10 +395,10 @@
         "tool/demo-text-stats@1.0.0": 3,
         "mcp/demo-local-catalog@1.0.0": 2
       },
-      "first_relevant_rank": 1,
-      "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 1429,
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 333,
       "degraded": []
     },
     {
@@ -355,11 +407,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "agent/demo-planner@1.0.0",
+        "agent/example-review-assistant@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "tool/demo-text-stats@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "agent/example-onboarding-guide@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "prompt/example-test-case-writer@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "workflow/example-release-pipeline@1.0.0"
       ],
       "relevant_ids": [
         "agent/demo-planner@1.0.0"
@@ -370,7 +426,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1448,
+      "took_ms": 338,
       "degraded": []
     },
     {
@@ -378,12 +434,16 @@
       "query": "workflow approval human",
       "profile": "semantic",
       "ranked_ids": [
+        "workflow/example-patch-approval-flow@1.0.0",
+        "workflow/example-dependency-upgrade-plan@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
         "workflow/demo-review-flow@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-release-pipeline@1.0.0",
         "agent/demo-planner@1.0.0",
-        "skill/demo-code-review@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "workflow/example-issue-to-patch@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "agent/example-issue-triager@1.0.0"
       ],
       "relevant_ids": [
         "workflow/demo-review-flow@1.0.0"
@@ -391,10 +451,10 @@
       "graded": {
         "workflow/demo-review-flow@1.0.0": 3
       },
-      "first_relevant_rank": 1,
-      "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 1394,
+      "first_relevant_rank": 4,
+      "reciprocal_rank": 0.25,
+      "ndcg_at_10": 0.430677,
+      "took_ms": 365,
       "degraded": []
     },
     {
@@ -403,11 +463,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "skill/demo-code-review@1.0.0",
-        "workflow/demo-review-flow@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
         "prompt/demo-bugfix@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "agent/demo-planner@1.0.0",
-        "tool/demo-text-stats@1.0.0"
+        "workflow/example-patch-approval-flow@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "agent/example-release-conductor@1.0.0"
       ],
       "relevant_ids": [
         "skill/demo-code-review@1.0.0"
@@ -418,7 +482,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1412,
+      "took_ms": 379,
       "degraded": []
     },
     {
@@ -427,11 +491,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "tool/demo-text-stats@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "tool/example-semver-compare@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "workflow/demo-review-flow@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "agent/demo-planner@1.0.0"
+        "mcp/example-metrics-query@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "prompt/example-test-case-writer@1.0.0"
       ],
       "relevant_ids": [
         "tool/demo-text-stats@1.0.0"
@@ -442,7 +510,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1435,
+      "took_ms": 343,
       "degraded": []
     },
     {
@@ -452,10 +520,14 @@
       "ranked_ids": [
         "mcp/demo-local-catalog@1.0.0",
         "agent/demo-planner@1.0.0",
-        "skill/demo-code-review@1.0.0",
-        "tool/demo-text-stats@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "mcp/example-doc-indexer@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "skill/demo-code-review@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0"
@@ -466,7 +538,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1486,
+      "took_ms": 349,
       "degraded": []
     },
     {
@@ -474,12 +546,16 @@
       "query": "代码质量把关",
       "profile": "semantic",
       "ranked_ids": [
+        "prompt/example-security-checklist@1.0.0",
         "skill/demo-code-review@1.0.0",
         "workflow/demo-review-flow@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
         "prompt/demo-bugfix@1.0.0",
-        "tool/demo-text-stats@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
-        "agent/demo-planner@1.0.0"
+        "agent/example-release-conductor@1.0.0",
+        "mcp/example-repo-search@1.0.0"
       ],
       "relevant_ids": [
         "skill/demo-code-review@1.0.0"
@@ -487,10 +563,10 @@
       "graded": {
         "skill/demo-code-review@1.0.0": 3
       },
-      "first_relevant_rank": 1,
-      "reciprocal_rank": 1.0,
-      "ndcg_at_10": 1.0,
-      "took_ms": 1442,
+      "first_relevant_rank": 2,
+      "reciprocal_rank": 0.5,
+      "ndcg_at_10": 0.63093,
+      "took_ms": 409,
       "degraded": []
     },
     {
@@ -499,11 +575,15 @@
       "profile": "semantic",
       "ranked_ids": [
         "mcp/demo-local-catalog@1.0.0",
+        "mcp/example-repo-search@1.0.0",
         "agent/demo-planner@1.0.0",
-        "tool/demo-text-stats@1.0.0",
-        "skill/demo-code-review@1.0.0",
-        "prompt/demo-bugfix@1.0.0",
-        "workflow/demo-review-flow@1.0.0"
+        "mcp/example-doc-indexer@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "tool/example-sql-formatter@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0"
@@ -514,7 +594,863 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 1431,
+      "took_ms": 417,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q21",
+      "query": "我需要检查接口改动会不会破坏现有调用方",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-api-contract-review@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "prompt/example-test-case-writer@1.0.0",
+        "mcp/example-feature-flags@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-review-assistant@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0"
+      ],
+      "graded": {
+        "skill/example-api-contract-review@1.0.0": 3,
+        "workflow/example-patch-approval-flow@1.0.0": 2,
+        "agent/example-review-assistant@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.764607,
+      "took_ms": 420,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q22",
+      "query": "改数据库表结构之前想先确认锁表风险和数据能否回滚",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-database-migration-safety@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "tool/example-sql-formatter@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-migration-reviewer@1.0.0",
+        "skill/example-database-migration-safety@1.0.0",
+        "workflow/example-data-change-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-database-migration-safety@1.0.0": 3,
+        "prompt/example-migration-reviewer@1.0.0": 3,
+        "workflow/example-data-change-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.881526,
+      "took_ms": 692,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q23",
+      "query": "线上出故障了，帮我整理一份现场记录并提示下一步做什么",
+      "profile": "semantic",
+      "ranked_ids": [
+        "prompt/demo-bugfix@1.0.0",
+        "skill/example-incident-triage@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "prompt/example-test-case-writer@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
+        "agent/example-release-conductor@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-incident-commander@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "skill/example-incident-triage@1.0.0"
+      ],
+      "graded": {
+        "skill/example-incident-triage@1.0.0": 3,
+        "agent/example-incident-commander@1.0.0": 2,
+        "prompt/example-incident-summary@1.0.0": 2
+      },
+      "first_relevant_rank": 2,
+      "reciprocal_rank": 0.5,
+      "ndcg_at_10": 0.69361,
+      "took_ms": 395,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q24",
+      "query": "发版前想逐项核对检查项是不是都过了",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "workflow/example-release-pipeline@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "prompt/example-security-checklist@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-release-conductor@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-release-pipeline@1.0.0"
+      ],
+      "graded": {
+        "skill/example-release-readiness@1.0.0": 3,
+        "agent/example-release-conductor@1.0.0": 2,
+        "workflow/example-release-pipeline@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.900687,
+      "took_ms": 590,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q25",
+      "query": "想找一个能读本地代码仓库、只读不写的检索服务",
+      "profile": "semantic",
+      "ranked_ids": [
+        "mcp/example-repo-search@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "agent/demo-planner@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "skill/example-api-contract-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/example-doc-indexer@1.0.0",
+        "mcp/example-repo-search@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-repo-search@1.0.0": 3,
+        "mcp/example-doc-indexer@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.955831,
+      "took_ms": 376,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q26",
+      "query": "有个现成的 MCP 能查监控指标吗，只能读不能改",
+      "profile": "semantic",
+      "ranked_ids": [
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "prompt/example-security-checklist@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/example-metrics-query@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-metrics-query@1.0.0": 3,
+        "mcp/example-feature-flags@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.968015,
+      "took_ms": 482,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q27",
+      "query": "想知道某张表是谁负责的、上游数据从哪来",
+      "profile": "semantic",
+      "ranked_ids": [
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "skill/demo-code-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-schema-catalog@1.0.0"
+      ],
+      "graded": {
+        "agent/example-data-steward@1.0.0": 3,
+        "mcp/example-schema-catalog@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 339,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q28",
+      "query": "把提交说明改写成用户能看懂的更新日志",
+      "profile": "semantic",
+      "ranked_ids": [
+        "prompt/example-release-notes@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-release-notes@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-release-notes@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 345,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q29",
+      "query": "帮我为一段新行为想全测试用例，边界和异常都要覆盖",
+      "profile": "semantic",
+      "ranked_ids": [
+        "prompt/example-test-case-writer@1.0.0",
+        "skill/example-test-coverage-gap@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "agent/example-issue-triager@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "workflow/example-release-pipeline@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-test-case-writer@1.0.0",
+        "skill/example-test-coverage-gap@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-test-case-writer@1.0.0": 3,
+        "skill/example-test-coverage-gap@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 347,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q30",
+      "query": "安全评审时想按清单过一遍这次改动",
+      "profile": "semantic",
+      "ranked_ids": [
+        "prompt/example-security-checklist@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-security-checklist@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-security-checklist@1.0.0": 3,
+        "tool/example-log-redactor@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.917319,
+      "took_ms": 339,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q31",
+      "query": "两个 CSV 文件差异太大，想快速比对增删改的行",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-csv-diff@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-semver-compare@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "mcp/demo-local-catalog@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-csv-diff@1.0.0"
+      ],
+      "graded": {
+        "tool/example-csv-diff@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 378,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q32",
+      "query": "把 JSON 整理成固定格式好让评审时 diff 更清楚",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-json-normalizer@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "prompt/example-incident-summary@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-json-normalizer@1.0.0"
+      ],
+      "graded": {
+        "tool/example-json-normalizer@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 347,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q33",
+      "query": "把 SQL 关键字统一大小写，方便看",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-sql-formatter@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "skill/example-database-migration-safety@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "prompt/example-test-case-writer@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-sql-formatter@1.0.0"
+      ],
+      "graded": {
+        "tool/example-sql-formatter@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 351,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q34",
+      "query": "比较两个版本号谁更新一点",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-semver-compare@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "mcp/example-ticket-reader@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-semver-compare@1.0.0"
+      ],
+      "graded": {
+        "tool/example-semver-compare@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 340,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q35",
+      "query": "文档太多，想自动生成目录",
+      "profile": "semantic",
+      "ranked_ids": [
+        "mcp/demo-local-catalog@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "tool/demo-text-stats@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-markdown-toc@1.0.0"
+      ],
+      "graded": {
+        "tool/example-markdown-toc@1.0.0": 3,
+        "mcp/example-doc-indexer@1.0.0": 1
+      },
+      "first_relevant_rank": 3,
+      "reciprocal_rank": 0.333333,
+      "ndcg_at_10": 0.515098,
+      "took_ms": 348,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q36",
+      "query": "分享日志之前想把里面的密钥和密码遮掉",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-log-redactor@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "agent/example-onboarding-guide@1.0.0"
+      ],
+      "relevant_ids": [
+        "tool/example-log-redactor@1.0.0"
+      ],
+      "graded": {
+        "tool/example-log-redactor@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 1.0,
+      "took_ms": 369,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q37",
+      "query": "新同事问怎么搭开发环境，希望能基于仓库文档回答",
+      "profile": "semantic",
+      "ranked_ids": [
+        "agent/example-onboarding-guide@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "workflow/example-release-pipeline@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "mcp/example-feature-flags@1.0.0",
+        "agent/example-release-conductor@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-doc-indexer@1.0.0"
+      ],
+      "graded": {
+        "agent/example-onboarding-guide@1.0.0": 3,
+        "mcp/example-doc-indexer@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.787155,
+      "took_ms": 381,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q38",
+      "query": "来了一堆 issue，想先自动分个类和指派负责人",
+      "profile": "semantic",
+      "ranked_ids": [
+        "agent/example-issue-triager@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "skill/example-incident-triage@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "prompt/example-code-explainer@1.0.0",
+        "prompt/example-test-case-writer@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-issue-triager@1.0.0",
+        "mcp/example-ticket-reader@1.0.0"
+      ],
+      "graded": {
+        "agent/example-issue-triager@1.0.0": 3,
+        "mcp/example-ticket-reader@1.0.0": 2,
+        "workflow/example-issue-to-patch@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.94998,
+      "took_ms": 401,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q39",
+      "query": "想把一次事故整理成复盘文档，需要人审过才能发",
+      "profile": "semantic",
+      "ranked_ids": [
+        "workflow/example-incident-postmortem@1.0.0",
+        "skill/example-incident-triage@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "skill/example-release-readiness@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-incident-summary@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "graded": {
+        "workflow/example-incident-postmortem@1.0.0": 3,
+        "prompt/example-incident-summary@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.955831,
+      "took_ms": 380,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q40",
+      "query": "升级依赖之前，想知道变更日志里有哪些破坏性改动",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-dependency-upgrade@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "prompt/example-incident-summary@1.0.0"
+      ],
+      "relevant_ids": [
+        "skill/example-dependency-upgrade@1.0.0",
+        "workflow/example-dependency-upgrade-plan@1.0.0"
+      ],
+      "graded": {
+        "skill/example-dependency-upgrade@1.0.0": 3,
+        "workflow/example-dependency-upgrade-plan@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.787155,
+      "took_ms": 424,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q41",
+      "query": "想找能帮我评审代码改动的东西，最好是能直接给出结论的",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/demo-code-review@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "prompt/demo-bugfix@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-review-assistant@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0"
+      ],
+      "graded": {
+        "skill/example-api-contract-review@1.0.0": 3,
+        "skill/demo-code-review@1.0.0": 3,
+        "workflow/example-patch-approval-flow@1.0.0": 2,
+        "agent/example-review-assistant@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.856504,
+      "took_ms": 350,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q42",
+      "query": "发布之前想确认检查项、变更说明、发布流程都齐了",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-release-readiness@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0",
+        "agent/example-release-conductor@1.0.0",
+        "workflow/example-release-pipeline@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "skill/example-api-contract-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-release-conductor@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-release-pipeline@1.0.0"
+      ],
+      "graded": {
+        "skill/example-release-readiness@1.0.0": 3,
+        "prompt/example-release-notes@1.0.0": 2,
+        "workflow/example-release-pipeline@1.0.0": 3,
+        "agent/example-release-conductor@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.907397,
+      "took_ms": 341,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q43",
+      "query": "想查资料：仓库代码、文档、监控指标，都要只读的",
+      "profile": "semantic",
+      "ranked_ids": [
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "agent/example-onboarding-guide@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-doc-indexer@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/example-doc-indexer@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-repo-search@1.0.0",
+        "mcp/example-schema-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-repo-search@1.0.0": 3,
+        "mcp/example-doc-indexer@1.0.0": 3,
+        "mcp/example-metrics-query@1.0.0": 3,
+        "mcp/example-schema-catalog@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.890886,
+      "took_ms": 369,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q44",
+      "query": "处理数据：比对、格式化、字段说明，有什么能用的",
+      "profile": "semantic",
+      "ranked_ids": [
+        "tool/example-sql-formatter@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "agent/example-data-steward@1.0.0",
+        "tool/example-markdown-toc@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "agent/example-review-assistant@1.0.0"
+      ],
+      "relevant_ids": [
+        "mcp/example-schema-catalog@1.0.0",
+        "tool/example-csv-diff@1.0.0",
+        "tool/example-json-normalizer@1.0.0",
+        "tool/example-sql-formatter@1.0.0"
+      ],
+      "graded": {
+        "tool/example-csv-diff@1.0.0": 3,
+        "tool/example-sql-formatter@1.0.0": 2,
+        "mcp/example-schema-catalog@1.0.0": 2,
+        "tool/example-json-normalizer@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.795552,
+      "took_ms": 395,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q45",
+      "query": "安全相关：评审改动、清理日志里的敏感信息",
+      "profile": "semantic",
+      "ranked_ids": [
+        "prompt/example-security-checklist@1.0.0",
+        "skill/example-dependency-upgrade@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "agent/example-review-assistant@1.0.0",
+        "tool/example-log-redactor@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "prompt/example-release-notes@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-security-checklist@1.0.0",
+        "tool/example-log-redactor@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-security-checklist@1.0.0": 3,
+        "tool/example-log-redactor@1.0.0": 3
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.81753,
+      "took_ms": 340,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q46",
+      "query": "故障之后要做的事：现场记录、复盘文档",
+      "profile": "semantic",
+      "ranked_ids": [
+        "workflow/example-incident-postmortem@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "skill/example-incident-triage@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "agent/example-incident-commander@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-issue-to-patch@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "agent/example-issue-triager@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-incident-commander@1.0.0",
+        "prompt/example-incident-summary@1.0.0",
+        "skill/example-incident-triage@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "graded": {
+        "skill/example-incident-triage@1.0.0": 3,
+        "workflow/example-incident-postmortem@1.0.0": 3,
+        "prompt/example-incident-summary@1.0.0": 2,
+        "agent/example-incident-commander@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.885619,
+      "took_ms": 344,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q47",
+      "query": "测试和验证：用例设计、覆盖缺口、变更后的检查",
+      "profile": "semantic",
+      "ranked_ids": [
+        "skill/example-test-coverage-gap@1.0.0",
+        "skill/example-release-readiness@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "workflow/example-data-change-review@1.0.0",
+        "workflow/example-patch-approval-flow@1.0.0",
+        "workflow/demo-review-flow@1.0.0",
+        "prompt/example-security-checklist@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "agent/example-review-assistant@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-test-case-writer@1.0.0",
+        "skill/example-test-coverage-gap@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-test-case-writer@1.0.0": 3,
+        "skill/example-test-coverage-gap@1.0.0": 3,
+        "workflow/example-patch-approval-flow@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.619884,
+      "took_ms": 346,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q48",
+      "query": "想知道数据表的结构和归属，不要读具体数据",
+      "profile": "semantic",
+      "ranked_ids": [
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-schema-catalog@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0",
+        "skill/example-database-migration-safety@1.0.0",
+        "skill/demo-code-review@1.0.0",
+        "mcp/example-metrics-query@1.0.0",
+        "mcp/example-doc-indexer@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "tool/example-json-normalizer@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-schema-catalog@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-schema-catalog@1.0.0": 3,
+        "agent/example-data-steward@1.0.0": 3,
+        "workflow/example-data-change-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.958041,
+      "took_ms": 363,
       "degraded": []
     }
   ]

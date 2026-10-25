@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-incident-commander",
+  "name": "Example Incident Commander Agent",
+  "version": "1.0.0",
+  "description": "Example agent that keeps an incident timeline and prompts for the next owned action. Sample content for the SuperCoder protocol; it takes no remediation action itself.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "incident",
+    "coordination"
+  ],
+  "categories": [
+    "operations/incident"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-metrics-query",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "sre",
+  "agent": {
+    "role": "Coordinates incident record keeping and next-action tracking.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-metrics-query"
+    ],
+    "context_strategy": "bounded-session"
+  }
+}

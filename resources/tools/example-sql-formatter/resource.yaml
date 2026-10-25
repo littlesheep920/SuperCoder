@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-sql-formatter",
+  "name": "Example SQL Formatter Tool",
+  "version": "1.0.0",
+  "description": "Example tool that uppercases SQL keywords and normalises whitespace for review readability. Sample content for the SuperCoder protocol; it does not parse or validate SQL.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "sql",
+    "formatting"
+  ],
+  "categories": [
+    "developer-tools/data"
+  ],
+  "runtimes": [
+    "cursor",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

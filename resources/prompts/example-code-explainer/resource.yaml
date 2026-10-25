@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-code-explainer",
+  "name": "Example Code Explainer Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that explains an unfamiliar function in plain language with its assumptions. Sample content for the SuperCoder protocol, not a tuned production prompt.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "explanation"
+  ],
+  "categories": [
+    "software-development/explanation"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "code",
+        "description": "The function to explain.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "gpt-4o-mini",
+      "claude-3-5-sonnet"
+    ]
+  }
+}

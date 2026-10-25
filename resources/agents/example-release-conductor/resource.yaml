@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-release-conductor",
+  "name": "Example Release Conductor Agent",
+  "version": "1.0.0",
+  "description": "Example agent that walks a release checklist and reports gate status, escalating any waiver to a human. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "release",
+    "coordination"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "claude-code",
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-feature-flags",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "release-engineering",
+  "agent": {
+    "role": "Tracks release gate status and escalates waivers to a human.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-feature-flags"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

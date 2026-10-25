@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-security-checklist",
+  "name": "Example Security Checklist Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that walks a security checklist over a code diff. Sample content for the SuperCoder protocol, not a substitute for a professional security review.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "security",
+    "checklist"
+  ],
+  "categories": [
+    "software-development/security"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "security",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "diff",
+        "description": "The change to review.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

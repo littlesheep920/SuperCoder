@@ -1,0 +1,64 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-incident-summary",
+  "name": "Example Incident Summary Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that condenses an incident timeline into a short status note. Sample content for the SuperCoder protocol; it produces prose only and takes no action.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "incident",
+    "summary"
+  ],
+  "categories": [
+    "operations/incident"
+  ],
+  "runtimes": [
+    "claude-code",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "sre",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "timeline",
+        "description": "Chronological incident events.",
+        "required": true,
+        "type": "text"
+      },
+      {
+        "name": "impact",
+        "description": "Known user impact.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

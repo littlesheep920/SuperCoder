@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-review-assistant",
+  "name": "Example Review Assistant Agent",
+  "version": "1.0.0",
+  "description": "Example agent that coordinates a code review: gathers the diff, retrieves the relevant review skill, and drafts findings for a human to confirm. Sample content for the SuperCoder protocol; it does not approve changes.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "review",
+    "assist"
+  ],
+  "categories": [
+    "software-development/review"
+  ],
+  "runtimes": [
+    "claude-code",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-repo-search",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "agent": {
+    "role": "Review assistant that prepares findings for a human reviewer.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-repo-search"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

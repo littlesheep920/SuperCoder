@@ -115,12 +115,16 @@ jobs:
           curl --fail --silent -H "Authorization: Bearer $TOKEN" \
             http://localhost:8000/v1/resources | tee resources.json
           python - <<'PY'
-          import json, sys
+          import json, pathlib, sys
           payload = json.load(open("resources.json"))
           count = len(payload["items"])
-          if count < 6:
-              sys.exit(f"expected at least 6 seeded resources, got {count}")
-          print("seeded resources:", count)
+          # Compare against the repository rather than a fixed number, so the
+          # assertion keeps meaning as the corpus grows.
+          manifests = list(pathlib.Path("resources").glob("*/*/resource.yaml"))
+          expected = len(manifests)
+          if count < expected:
+              sys.exit(f"seeded {count} resources but the repository declares {expected}")
+          print(f"seeded resources: {count} (repository declares {expected})")
           PY
 
       - name: Dump logs on failure

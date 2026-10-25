@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-issue-triager",
+  "name": "Example Issue Triage Agent",
+  "version": "1.0.0",
+  "description": "Example agent that suggests a label and owner for an incoming issue. Sample content for the SuperCoder protocol; suggestions require human confirmation.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "triage",
+    "issues"
+  ],
+  "categories": [
+    "collaboration/issues"
+  ],
+  "runtimes": [
+    "dify",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-ticket-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "agent": {
+    "role": "Suggests labels and owners for incoming issues.",
+    "model": {
+      "provider": "openai",
+      "model_id": "gpt-4o-mini"
+    },
+    "tools": [
+      "example-ticket-reader"
+    ],
+    "context_strategy": "stateless"
+  }
+}

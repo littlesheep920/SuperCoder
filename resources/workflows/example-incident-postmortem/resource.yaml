@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-incident-postmortem",
+  "name": "Example Incident Postmortem Workflow",
+  "version": "1.0.0",
+  "description": "Example workflow that turns an incident timeline into a draft postmortem requiring human review before publication. Sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "incident",
+    "postmortem"
+  ],
+  "categories": [
+    "operations/incident"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "sre",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "draft",
+        "type": "resource",
+        "resource": {
+          "kind": "prompt",
+          "slug": "example-incident-summary",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "publish",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "draft"
+      },
+      {
+        "from": "draft",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "publish"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

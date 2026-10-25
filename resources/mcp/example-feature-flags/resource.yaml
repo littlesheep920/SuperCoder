@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-feature-flags",
+  "name": "Example Feature Flag MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reports current feature-flag state for a service. Sample content for the SuperCoder protocol. Toggling is intentionally not exposed.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "feature-flag",
+    "read-only"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "claude-code",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "release-engineering",
+  "mcp": {
+    "transport": "sse",
+    "url": "https://flags.example.invalid/api",
+    "tools": [
+      {
+        "name": "get-flag",
+        "description": "Read the current state of one feature flag.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "flag": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "flag"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "list-flags",
+        "description": "List feature flags for a service.",
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "base_url": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url",
+        "service"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
