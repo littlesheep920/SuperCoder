@@ -162,6 +162,28 @@ class SearchServiceFactory:
     def document_cache_stats(self) -> dict[str, float | int]:
         return self._document_cache.stats() if self._document_cache is not None else {}
 
+    def warm_connections(self) -> dict[str, bool]:
+        """Open provider connections before the first query arrives.
+
+        Without this, the first search of a process absorbs both TLS handshakes
+        and measured 1664 ms while every subsequent search took ~230 ms. This is
+        a warm-up, never a gate: failures are reported back but do not raise, so
+        a provider outage degrades search instead of preventing the API from
+        serving.
+        """
+
+        results: dict[str, bool] = {}
+        for name, provider in (("embedding", self._embedding), ("rerank", self._rerank)):
+            warmer = getattr(provider, "warm_connection", None)
+            if warmer is None:
+                results[name] = False
+                continue
+            try:
+                results[name] = bool(warmer())
+            except Exception:  # noqa: BLE001 - warm-up must never break startup
+                results[name] = False
+        return results
+
     def _documents_for(self, visible: list[ResourceWithVersion]) -> list[IndexDocument]:
         """Project each visible row, reusing cached projections when unchanged."""
 

@@ -202,6 +202,12 @@ def run(profile: RankingProfile, out_dir: Path, *, no_cache: bool = False) -> in
         )
         if settings.search.document_cache_size > 0:
             document_vectors = DocumentVectorCache(settings.search.document_cache_size)
+        # The API warms provider connections at startup; do the same here so the
+        # reported latency reflects a running service rather than a cold process.
+        for provider in (embedding, rerank):
+            warmer = getattr(provider, "warm_connection", None)
+            if warmer is not None:
+                warmer()
     service = SearchService(
         documents,
         embedding=embedding,

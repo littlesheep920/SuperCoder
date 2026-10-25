@@ -133,6 +133,16 @@ class CachingEmbeddingProvider:
     def cache_stats(self) -> dict[str, float | int]:
         return self._cache.stats()
 
+    def warm_connection(self) -> bool:
+        """Pass through to the wrapped provider, if it supports warming.
+
+        Without this the wrapper would hide the warm-up and the first query
+        would silently pay the handshake again.
+        """
+
+        warmer = getattr(self._inner, "warm_connection", None)
+        return bool(warmer()) if warmer is not None else False
+
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
         if len(texts) != 1:
             return self._inner.embed(texts)
@@ -173,6 +183,10 @@ class CachingRerankProvider:
     @property
     def cache_stats(self) -> dict[str, float | int]:
         return self._cache.stats()
+
+    def warm_connection(self) -> bool:
+        warmer = getattr(self._inner, "warm_connection", None)
+        return bool(warmer()) if warmer is not None else False
 
     def rerank(
         self, query: str, documents: Sequence[str], *, top_n: int | None = None
