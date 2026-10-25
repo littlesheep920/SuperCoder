@@ -42,4 +42,5 @@ Thumbs.db
 # Editor / agent scratch
 .idea/
 .vscode/
-.kiro/settings/*.lock
+# Kiro stores per-developer tool settings here; it is not part of the project.
+.kiro/

@@ -1,6 +1,6 @@
 # SuperCoder Stage 1 验收报告
 
-> 当前验收补充：Python 3.12.10，Node v24.20.0，npm 11.19.0，git 2.55.0；验收目录 `D:\cc\paiwork\2`。历史源目录记录保留用于追溯，当前目录证据以文末第 7 节为准。
+> 当前验收补充：Python 3.12.10，Node v24.20.0，npm 11.19.0，git 2.55.0；验收目录 `<repository-root>`。历史源目录记录保留用于追溯，当前目录证据以文末第 7 节为准。
 > 生成命令：`python scripts/validate_stage1.py`；测试：`python -m unittest discover -s tests -p "test_stage1_*.py"`。
 > 报告区分四类结论：**PASS**（已实现且已运行验证）、**FAIL**（已验证未通过）、**NOT RUN**（未运行）、**HOLD**（环境缺失，无法验证，不伪报）。
 
@@ -8,7 +8,7 @@
 
 | 结论 | 说明 |
 |---|---|
-| **当前目录代码与轻量验证：PASS** | Stage 1 代码已嵌入 `D:\cc\paiwork\2`；当前 validator 已运行 53 个测试并全部通过，前端当前目录 typecheck/build 通过。 |
+| **当前目录代码与轻量验证：PASS** | Stage 1 代码已嵌入 `<repository-root>`；当前 validator 已运行 53 个测试并全部通过，前端当前目录 typecheck/build 通过。 |
 | **真实 MySQL 闭环：PASS（隔离证据）** | 全新数据库按 0001+0002 迁移、6 资源 seed、Worker 成功、租约恢复和 stale CAS 无副作用均已实跑。完整并发矩阵仍待补充。 |
 | **Docker/浏览器 E2E：HOLD** | Docker Engine/WSL 不可用；Browser 面板未配置，因此 Compose 启动和浏览器交互/可访问性尚未验证。 |
 
@@ -65,7 +65,7 @@
 
 ## 7. Current-directory evidence addendum — 2026-10-22
 
-This section supersedes stale environment statements in the historical report above for the active project directory `D:\cc\paiwork\2`.
+This section supersedes stale environment statements in the historical report above for the active project directory `<repository-root>`.
 
 ### 7.1 Code and automated verification
 

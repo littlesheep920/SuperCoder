@@ -17,18 +17,18 @@ Authority is split as follows:
 
 | Source | Contract captured |
 |---|---|
-| `D:/cc/paiwork/2/SUPERCODER_IMPLEMENTATION_PLAN.md` | Product scope, complete-stage rule, source-of-truth split, Stage 1 control-plane intent, and prohibition on model-owned governance decisions. |
-| `D:/cc/paiwork/2/docs/ARCHITECTURE_FREEZE.md` | Component boundaries, allowed call direction, durable-intent workflow, fixed historical resolution, fail-closed behavior, and external-service defaults. |
-| `D:/cc/paiwork/2/docs/RESOURCE_PROTOCOL.md` | Repository layout, JSON-compatible YAML, common fields, typed kind sections, path rules, dependency/runtime rules, and normalization requirements. |
-| `D:/cc/paiwork/2/docs/RESOURCE_GOVERNANCE.md` | Lifecycle matrix, SemVer, immutable artifacts, permission intersection, review independence, publication, deprecation, retirement, and failure semantics. |
-| `D:/cc/paiwork/2/docs/DATABASE_MODEL.md` | MySQL 8 relational entities, keys, checks, indexes, referential policy, transaction boundaries, job semantics, and append-only history. |
-| `D:/cc/paiwork/2/docs/API_CONTRACT.md` | HTTP semantics, authentication, visibility filtering, idempotency, optimistic concurrency, pagination, errors, SSE, and asynchronous work. |
-| `D:/cc/paiwork/2/docs/SECURITY_AND_CONFIGURATION.md` | Default deny, secret injection, least privilege, egress controls, managed Git containment, untrusted-content handling, audit, and fail-closed rules. |
-| `D:/cc/paiwork/2/schemas/resource.schema.json` | Draft 2020-12 unified resource manifest structure and machine-readable constraints. |
-| `D:/cc/paiwork/2/apps/api/openapi.stage0.yaml` | OpenAPI 3.1 server, bearer authentication, 23 paths, 29 operationIds, parameters, responses, and component schemas. |
-| `D:/cc/paiwork/2/stage0-manifest.json` | Stage 0 managed-file set, authorship/role metadata, and validator/test ownership. |
+| `SUPERCODER_IMPLEMENTATION_PLAN.md` | Product scope, complete-stage rule, source-of-truth split, Stage 1 control-plane intent, and prohibition on model-owned governance decisions. |
+| `docs/ARCHITECTURE_FREEZE.md` | Component boundaries, allowed call direction, durable-intent workflow, fixed historical resolution, fail-closed behavior, and external-service defaults. |
+| `docs/RESOURCE_PROTOCOL.md` | Repository layout, JSON-compatible YAML, common fields, typed kind sections, path rules, dependency/runtime rules, and normalization requirements. |
+| `docs/RESOURCE_GOVERNANCE.md` | Lifecycle matrix, SemVer, immutable artifacts, permission intersection, review independence, publication, deprecation, retirement, and failure semantics. |
+| `docs/DATABASE_MODEL.md` | MySQL 8 relational entities, keys, checks, indexes, referential policy, transaction boundaries, job semantics, and append-only history. |
+| `docs/API_CONTRACT.md` | HTTP semantics, authentication, visibility filtering, idempotency, optimistic concurrency, pagination, errors, SSE, and asynchronous work. |
+| `docs/SECURITY_AND_CONFIGURATION.md` | Default deny, secret injection, least privilege, egress controls, managed Git containment, untrusted-content handling, audit, and fail-closed rules. |
+| `schemas/resource.schema.json` | Draft 2020-12 unified resource manifest structure and machine-readable constraints. |
+| `apps/api/openapi.stage0.yaml` | OpenAPI 3.1 server, bearer authentication, 23 paths, 29 operationIds, parameters, responses, and component schemas. |
+| `stage0-manifest.json` | Stage 0 managed-file set, authorship/role metadata, and validator/test ownership. |
 
-The task baseline at `C:/Users/24657/workplace/kirocrew-workspace/taskrunner_main/TASK_4427b3b4` contained only `.kiro/` task-runner metadata before this file was created. No copied Stage 0 OpenAPI, resource Schema, migration, validator, manifest, or contract document was present to compare byte-for-byte. Therefore the files under `D:/cc/paiwork/2` remain the only observed frozen baseline.
+The task baseline at `<task-workspace>` contained only tool-runner metadata (editor settings) before this file was created. No copied Stage 0 OpenAPI, resource Schema, migration, validator, manifest, or contract document was present to compare byte-for-byte. Therefore the files in this repository remain the only observed frozen baseline.
 
 ## 3. OpenAPI operation inventory
 
@@ -253,7 +253,7 @@ These are not permissions to relax Stage 0. Until a reviewed contract change res
 
 | ID | Discrepancy | Required Stage 1 disposition |
 |---|---|---|
-| D1 | The task-runner mirror initially contained the inventory while the required formal copy under `D:/cc/paiwork/2/docs/` was absent, creating a real risk of divergent Stage 1 records. | The formal project root is authoritative. Keep any task-runner copy only as a comparison mirror, write the formal inventory directly under `D:/cc/paiwork/2/docs/`, and verify both copies are identical whenever the mirror is retained. |
+| D1 | The task-runner mirror initially contained the inventory while the required formal copy under `docs/` was absent, creating a real risk of divergent Stage 1 records. | The formal project root is authoritative. Keep any task-runner copy only as a comparison mirror, write the formal inventory directly under `docs/`, and verify both copies are identical whenever the mirror is retained. |
 | D2 | The Stage 1 task prose abbreviates layout as `resources/<kind>/<slug>/`; Stage 0 requires pluralized directory mapping (`skills`, `mcp`, `prompts`, `agents`, `workflows`, `tools`). | Validators/providers must implement the Stage 0 mapping. Update later Stage 1 prose/tests or record an approved contract amendment; do not accept singular `skill`, `prompt`, `agent`, `workflow`, or `tool` directories. |
 | D3 | Task 14 names job state `retry_waiting` and omits `leased`; Stage 0 database contract defines `queued`, `leased`, `running`, `retry_scheduled`, `succeeded`, `failed`, `cancelled`, `dead_letter`. | Preserve Stage 0 database/API vocabulary unless a coordinated migration updates database contract, OpenAPI, schemas, worker, UI, and tests. Task implementation must not invent an unsynchronized alias. |
 | D4 | Later Stage 1 tests name `member`, `maintainer`, and `administrator`; frozen governance names `owner`, `validator`, `reviewer`, and `publisher`, with additional security/governance review for sensitive cases. | Define an explicit identity-role-to-governance-capability mapping before implementing authorization. Do not treat the Stage 1 names as automatic replacements or let UI role labels grant governance authority. |

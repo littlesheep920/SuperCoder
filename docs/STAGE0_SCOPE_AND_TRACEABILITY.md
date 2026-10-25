@@ -4,7 +4,7 @@
 
 本文把“完整阶段 0：协议、数据集和架构冻结”的每一项正式要求映射到仓库内的合同制品、示例、静态校验项、验证命令和 Stage 1 实现入口。它是范围索引，不替代被引用的 Schema、OpenAPI、DDL 或安全文档。
 
-本阶段遵守 `D:\cc\paiwork\2\SUPERCODER_IMPLEMENTATION_PLAN.md` 第 2.3 节的完整建设原则：阶段只是依赖和验收边界，不代表最终产品缩水。Stage 0 冻结最终系统必须实现的合同；它本身不把静态合同、demo、Mock、`202 Accepted`、metadata-only 结果或少量样例表述为运行能力。
+本阶段遵守 `SUPERCODER_IMPLEMENTATION_PLAN.md` 第 2.3 节的完整建设原则：阶段只是依赖和验收边界，不代表最终产品缩水。Stage 0 冻结最终系统必须实现的合同；它本身不把静态合同、demo、Mock、`202 Accepted`、metadata-only 结果或少量样例表述为运行能力。
 
 状态用语：
 

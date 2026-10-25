@@ -4,7 +4,7 @@
 
 This document defines the implementation boundaries for Stage 1 of the SuperCoder AI capability asset center. It translates the frozen Stage 0 contracts into a modular FastAPI control plane, a separate deterministic worker, a Git-backed content provider, MySQL-backed governance repositories, and a Vue 3 web client.
 
-This document is subordinate to the frozen Stage 0 sources under `D:/cc/paiwork/2`. It does not amend their schemas, lifecycle, authorization, versioning, audit, or fail-closed rules. If implementation prose, generated code, or framework behavior conflicts with a frozen source, the implementation must stop and follow the stricter rule until a reviewed contract change resolves the conflict.
+This document is subordinate to the frozen Stage 0 sources under `<repository-root>`. It does not amend their schemas, lifecycle, authorization, versioning, audit, or fail-closed rules. If implementation prose, generated code, or framework behavior conflicts with a frozen source, the implementation must stop and follow the stricter rule until a reviewed contract change resolves the conflict.
 
 The implementation may be deployed as a modular monolith plus a separate worker process. Logical boundaries remain mandatory even when modules share a repository or Python environment.
 
@@ -546,7 +546,7 @@ The following tree is the intended ownership map for tasks in this Stage 1 execu
     └── test_stage1_jobs.py
 ```
 
-Frozen Stage 0 schemas, OpenAPI, migrations, manifests, validators, examples, and contracts remain owned by the formal baseline under `D:/cc/paiwork/2`. They must be reconciled into the eventual formal Stage 1 root without semantic edits before running Stage 0 regression or final acceptance. Their absence from this task directory is not permission to recreate or weaken them.
+Frozen Stage 0 schemas, OpenAPI, migrations, manifests, validators, examples, and contracts remain owned by the formal baseline under `<repository-root>`. They must be reconciled into the eventual formal Stage 1 root without semantic edits before running Stage 0 regression or final acceptance. Their absence from this task directory is not permission to recreate or weaken them.
 
 ## 11. Validation ownership
 
