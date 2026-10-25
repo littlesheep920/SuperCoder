@@ -104,7 +104,7 @@ jobs:
           print("mysql ok:", mysql["version"])
           PY
 
-      - name: Six demo resources are seeded
+      - name: Every declared resource is seeded
         run: |
           # dev_tokens.json is git-ignored, so a CI checkout only has the
           # template. DevTokenAuth falls back to it at runtime; the test below
@@ -112,19 +112,36 @@ jobs:
           TOKENS=scripts/dev_tokens.json
           [ -f "$TOKENS" ] || TOKENS=scripts/dev_tokens.example.json
           TOKEN=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['tokens'][0]['token'])" "$TOKENS")
-          curl --fail --silent -H "Authorization: Bearer $TOKEN" \
-            http://localhost:8000/v1/resources | tee resources.json
-          python - <<'PY'
-          import json, pathlib, sys
-          payload = json.load(open("resources.json"))
-          count = len(payload["items"])
-          # Compare against the repository rather than a fixed number, so the
-          # assertion keeps meaning as the corpus grows.
-          manifests = list(pathlib.Path("resources").glob("*/*/resource.yaml"))
-          expected = len(manifests)
-          if count < expected:
-              sys.exit(f"seeded {count} resources but the repository declares {expected}")
-          print(f"seeded resources: {count} (repository declares {expected})")
+          python - "$TOKEN" <<'PY'
+          import json, pathlib, sys, urllib.parse, urllib.request
+
+          token = sys.argv[1]
+          expected = len(list(pathlib.Path("resources").glob("*/*/resource.yaml")))
+
+          # The list endpoint paginates (default 25). Counting only the first
+          # page under-counted the corpus and failed once it grew past one page,
+          # so follow the cursor until it is exhausted.
+          seen: list[str] = []
+          cursor = None
+          while True:
+              query = "" if cursor is None else "?" + urllib.parse.urlencode({"cursor": cursor})
+              request = urllib.request.Request(
+                  f"http://localhost:8000/v1/resources{query}",
+                  headers={"Authorization": f"Bearer {token}"},
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.load(response)
+              seen.extend(item["resource_id"] for item in payload["items"])
+              if not payload["page"]["has_more"]:
+                  break
+              cursor = payload["page"]["next_cursor"]
+              if cursor is None:
+                  break
+
+          unique = len(set(seen))
+          if unique < expected:
+              sys.exit(f"seeded {unique} distinct resources but the repository declares {expected}")
+          print(f"seeded resources: {unique} (repository declares {expected})")
           PY
 
       - name: Dump logs on failure

@@ -558,6 +558,44 @@ def _walk_dicts(value: Any) -> Iterable[dict[str, Any]]:
             yield from _walk_dicts(child)
 
 
+def _looks_like_code_expression(value: str) -> bool:
+    """Return True when the right-hand side is an expression, not a literal.
+
+    The scanner looks for ``name = value`` shapes. In a workflow script,
+    ``token = sys.argv[1]`` reads a value passed in by the CI runner; the
+    credential is never written into the file, so flagging it is a false
+    positive that trains people to weaken the check.
+
+    Detected expressions:
+
+    * subscript or attribute access of a known container/namespace
+      (``sys.argv[1]``, ``os.environ["X"]``, ``args.token``),
+    * a call (``read()``, ``os.getenv("X")``),
+    * a shell or Python variable reference (``$TOKEN``, ``${TOKEN}``).
+
+    A plain quoted string, a bare word, or a prefix such as ``sk-...`` is still
+    treated as a literal credential.
+    """
+
+    candidate = value.strip()
+    if not candidate:
+        return False
+    # Shell / template variable indirection.
+    if candidate.startswith("$"):
+        return True
+    # Function or method call.
+    if re.fullmatch(r"[\w.\[\]\"'\-]+\s*\(.*\)", candidate):
+        return True
+    # Namespaced access such as sys.argv[1] or os.environ["X"].
+    if re.fullmatch(r"[A-Za-z_][\w.]*\[[^\]]*\]", candidate):
+        return True
+    # Bare dotted attribute chain referencing another variable, but never a
+    # literal that merely contains dots (sk-abc.def would have a dash prefix).
+    if re.fullmatch(r"[A-Za-z_][\w]*\.[A-Za-z_][\w.]*", candidate):
+        return True
+    return False
+
+
 def _is_placeholder(value: str) -> bool:
     normalized = value.strip().strip("\"'").lower()
     if not normalized:
@@ -1147,7 +1185,7 @@ def check_plaintext_secrets(root: Path) -> list[str]:
     allowed_suffixes = {".json", ".yaml", ".yml", ".md", ".py", ".sql", ".env", ".example", ".txt"}
     # The scanner's own regression tests contain deliberate fake credentials as
     # fixtures; scanning them would always report the fixtures themselves.
-    excluded_names = {"test_stage0_validator.py"}
+    excluded_names = {"test_stage0_validator.py", "test_secret_scanner_rules.py"}
     for path in sorted(root.rglob("*")):
         if not path.is_file() or ".git" in path.parts or "__pycache__" in path.parts:
             continue
@@ -1172,6 +1210,10 @@ def check_plaintext_secrets(root: Path) -> list[str]:
             if match.group("quote") is None and path.suffix.lower() in {".py", ".sql"}:
                 continue
             if _is_placeholder(value):
+                continue
+            # An expression such as ``sys.argv[1]`` or ``$TOKEN`` reads the value
+            # from elsewhere; no credential is written into the file.
+            if match.group("quote") is None and _looks_like_code_expression(value):
                 continue
             if _is_development_fixture_secret(match.group(1), value):
                 continue

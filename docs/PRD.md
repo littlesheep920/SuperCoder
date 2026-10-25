@@ -613,7 +613,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 | 检查 | 命令 | 结果 |
 |---|---|---|
 | 契约校验 | `python scripts/validate_stage0.py --root .` | PASS |
-| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 366 项通过 |
+| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 384 项通过 |
 | 前端类型 | `cd apps/web && npx vue-tsc --noEmit` | 通过 |
 | 容器冒烟 | CI `compose` job | 通过 |
 | 检索评测 | `python scripts/run_retrieval_eval.py --profile hybrid` | 可复现 |
