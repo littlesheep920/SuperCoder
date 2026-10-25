@@ -1,12 +1,15 @@
-"""Keep the PRD honest about what the code actually does.
+"""Keep the PRD truthful about what the code actually does.
 
-The PRD is the document people read to decide what exists. Twice during this
-project it drifted from the code: Qdrant/Redis were described as "disabled by
-default" when no client code existed at all, and metric tables said "baseline to
-be established" long after a real baseline was measured.
+The PRD is what people read to decide what exists. It has drifted from reality
+twice in this project: Qdrant/Redis were described as "disabled by default" when
+no client code existed at all, and the metric table said "baseline to be
+established" long after a real baseline had been measured.
 
-These tests fail when a specific, checkable claim in the PRD no longer matches
-the repository, so drift is caught at commit time instead of during a review.
+These tests assert facts, never exact prose. They check that the numbers the PRD
+quotes equal the archived baselines, that the counts it states equal the
+repository, and that unimplemented components are not described as merely
+switched off. Rewording the document freely is expected; contradicting the code
+is not.
 """
 
 from __future__ import annotations
@@ -21,112 +24,144 @@ PRD = ROOT / "docs" / "PRD.md"
 OPENAPI = ROOT / "apps" / "api" / "openapi.stage0.yaml"
 
 
-class PrdMetricTests(unittest.TestCase):
-    """§7.2 quotes measured numbers; they must equal the archived baselines."""
+def baseline(profile: str) -> dict:
+    path = ROOT / "evals" / "results" / f"BASELINE-stage2-retrieval-{profile}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def route_count() -> int:
+    total = 0
+    for source in (ROOT / "apps" / "api" / "routers").glob("*.py"):
+        total += len(
+            re.findall(r"@router\.(?:get|post|patch|put|delete)\(", source.read_text(encoding="utf-8"))
+        )
+    return total
+
+
+class MetricDisclosureTests(unittest.TestCase):
+    """§7 quotes measured numbers together with their limits."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.text = PRD.read_text(encoding="utf-8")
 
-    def _baseline(self, profile: str) -> dict:
-        path = ROOT / "evals" / "results" / f"BASELINE-stage2-retrieval-{profile}.json"
-        self.assertTrue(path.is_file(), f"missing baseline file: {path.name}")
-        return json.loads(path.read_text(encoding="utf-8"))
+    def test_hybrid_hit_at_5_is_quoted(self) -> None:
+        value = format(baseline("hybrid")["metrics"]["hit_at_5"], ".2f")
+        self.assertIn(value, self.text)
 
-    def test_hybrid_hit_at_5_matches_baseline(self) -> None:
-        baseline = self._baseline("hybrid")
-        hit = baseline["metrics"]["hit_at_5"]
-        formatted = format(hit, ".2f")
-        # The table emphasises the current value with bold: `| **1.00** |`.
-        self.assertIn("检索 Hit@5（hybrid）", self.text)
-        self.assertRegex(self.text, rf"\|\s*\*?\*?{re.escape(formatted)}\*?\*?\s*\|")
+    def test_keyword_contrast_is_quoted(self) -> None:
+        """Keyword must appear as the low baseline that justifies semantics."""
 
-    def test_keyword_contrast_is_recorded(self) -> None:
-        """The keyword baseline is the evidence that semantics matter."""
-
-        keyword = self._baseline("keyword")["metrics"]["hit_at_5"]
-        self.assertIn("关键词 Hit@5", self.text)
-        self.assertIn(format(keyword, ".2f"), self.text)
+        value = format(baseline("keyword")["metrics"]["hit_at_5"], ".2f")
+        self.assertIn(value, self.text)
+        self.assertIn("关键词", self.text)
 
     def test_latency_overrun_is_disclosed(self) -> None:
-        """P95 exceeds the 1.5 s target, and the PRD must say so, not hide it."""
+        """While P95 exceeds the target, the PRD must say it is not met."""
 
-        hybrid = self._baseline("hybrid")["metrics"]["p95_latency_ms"]
-        self.assertGreater(hybrid, 1500, "if latency is now within target, update the PRD")
-        self.assertIn("未达", self.text)
+        hybrid = baseline("hybrid")["metrics"]["p95_latency_ms"]
+        self.assertGreater(hybrid, 1500, "latency is now within target: update the PRD")
+        self.assertRegex(self.text, r"未达|超出|超过")
 
-    def test_small_sample_caveat_is_present(self) -> None:
-        """A 1.00 score on 6 resources must never appear without its limits."""
+    def test_small_sample_caveat_accompanies_the_score(self) -> None:
+        """A 1.00 on six resources must never stand without its limits."""
 
-        self.assertIn("不得作为能力声明", self.text)
         self.assertIn("6 项", self.text)
+        self.assertRegex(self.text, r"不可作为能力宣传|不得作为|小样本")
 
 
-class PrdContractTests(unittest.TestCase):
-    """§5 states contract coverage; the numbers must match the repository."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.text = PRD.read_text(encoding="utf-8")
-        cls.frozen_operations = len(re.findall(r'"operationId"\s*:', OPENAPI.read_text(encoding="utf-8")))
-        cls.routes = 0
-        for source in (ROOT / "apps" / "api" / "routers").glob("*.py"):
-            cls.routes += len(
-                re.findall(r"@router\.(?:get|post|patch|put|delete)\(", source.read_text(encoding="utf-8"))
-            )
-
-    def test_frozen_operation_count_is_stated_correctly(self) -> None:
-        self.assertIn(f"**{self.frozen_operations} 个操作**", self.text)
-
-    def test_implemented_route_count_is_stated_correctly(self) -> None:
-        self.assertIn(f"**{self.routes} 个路由**", self.text)
-
-
-class PrdHonestyTests(unittest.TestCase):
-    """Guards against the specific drift modes found during review."""
+class ContractCoverageTests(unittest.TestCase):
+    """§11 states coverage; the numbers must match the repository."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.text = PRD.read_text(encoding="utf-8")
+        cls.frozen = len(re.findall(r'"operationId"\s*:', OPENAPI.read_text(encoding="utf-8")))
+        cls.routes = route_count()
 
-    def test_unimplemented_infrastructure_is_labelled_unimplemented(self) -> None:
-        """Qdrant/Redis have configuration flags but no client code.
+    def test_frozen_operation_count_is_stated(self) -> None:
+        self.assertRegex(self.text, rf"{self.frozen}\s*个操作")
 
-        Describing them as "disabled by default" invites the reader to assume a
-        working adapter sits behind the flag. The PRD must say "not implemented".
+    def test_implemented_route_count_is_stated(self) -> None:
+        self.assertRegex(self.text, rf"{self.routes}\s*个路由")
+
+
+class StatusHonestyTests(unittest.TestCase):
+    """Guards against the specific drift modes found in review."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = PRD.read_text(encoding="utf-8")
+
+    def test_qdrant_and_redis_are_marked_not_implemented(self) -> None:
+        """Both have a config flag but no client code.
+
+        Saying "disabled by default" invites the reader to assume an adapter
+        exists behind the switch. The status table must say otherwise.
         """
 
-        for name in ("Qdrant", "Redis"):
-            with self.subTest(component=name):
-                self.assertRegex(
-                    self.text,
-                    rf"\*\*{name}\*\* \| ❌ \*\*完全未实现\*\*",
-                    f"{name} must be explicitly labelled as not implemented",
-                )
+        for component in ("Qdrant", "Redis"):
+            with self.subTest(component=component):
+                row = re.search(rf"^\|\s*{component}\s*\|([^|\n]*)\|", self.text, re.MULTILINE)
+                self.assertIsNotNone(row, f"no status row found for {component}")
+                self.assertIn("未实现", row.group(1))
 
-    def test_no_client_code_pretends_to_use_qdrant_or_redis(self) -> None:
-        offenders: list[str] = []
+    def test_no_client_library_is_imported(self) -> None:
+        offenders = []
         for source in (ROOT / "apps").rglob("*.py"):
             if "__pycache__" in source.parts:
                 continue
             for number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
-                stripped = line.strip()
-                if stripped.startswith("#") or stripped.startswith('"'):
-                    continue
-                if re.search(r"\b(import|from)\s+(qdrant_client|redis)\b", stripped):
+                if re.search(r"\b(import|from)\s+(qdrant_client|redis)\b", line):
                     offenders.append(f"{source.relative_to(ROOT)}:{number}")
         self.assertEqual(
-            offenders,
-            [],
-            "Qdrant/Redis client code appeared; the PRD's status table must be updated",
+            offenders, [], "a Qdrant/Redis client appeared; update the status table"
         )
 
-    def test_implementation_status_matrix_exists(self) -> None:
-        self.assertIn("## 12. 实现状态矩阵", self.text)
-        self.assertIn("仅配置/骨架", self.text)
+    def test_status_matrix_covers_every_maturity_level(self) -> None:
+        self.assertIn("实现状态", self.text)
+        for level in ("已实现并验证", "未开始"):
+            self.assertIn(level, self.text)
 
-    def test_version_is_current(self) -> None:
-        self.assertIn("V2.2（重置版）", self.text)
+    def test_unstarted_domains_are_named(self) -> None:
+        """The big gaps must be visible, not omitted."""
+
+        for domain in ("能力发现 Agent", "工作流", "平台评测"):
+            with self.subTest(domain=domain):
+                self.assertIn(domain, self.text)
+
+    def test_forbidden_phrases_are_listed(self) -> None:
+        """The document itself must constrain how results are described."""
+
+        self.assertIn("禁止这样说", self.text)
+
+
+class DocumentShapeTests(unittest.TestCase):
+    """The PRD is a specification, not a changelog."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = PRD.read_text(encoding="utf-8")
+
+    def test_no_changelog_or_revision_summary(self) -> None:
+        """A reader meeting this document fresh should not wade through history."""
+
+        for phrase in ("变更记录", "修订摘要", "V2.1", "V2.2", "取代"):
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, self.text)
+
+    def test_core_sections_exist(self) -> None:
+        for heading in (
+            "## 1. 产品定义",
+            "## 2. 核心设计原则",
+            "## 4. 领域模型",
+            "## 5. 功能范围",
+            "## 7. 质量指标",
+            "## 9. 安全要求",
+            "## 11. 实现状态",
+        ):
+            with self.subTest(heading=heading):
+                self.assertIn(heading, self.text)
 
 
 if __name__ == "__main__":
