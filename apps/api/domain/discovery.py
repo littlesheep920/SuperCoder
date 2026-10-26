@@ -48,6 +48,10 @@ MAX_CANDIDATES = 8
 class CandidateView:
     """One retrieved candidate, reduced to what the model may see.
 
+    ``resource_id`` is the resource's public id (a ULID), the same identifier every
+    other endpoint returns, so a client can link a recommendation straight to
+    ``GET /v1/resources/{resource_id}``.
+
     Deliberately excludes the artifact body: the model judges relevance from the
     governed summary, not from the full text, and this keeps prompt injection
     surface small.

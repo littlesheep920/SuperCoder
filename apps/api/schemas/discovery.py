@@ -25,6 +25,7 @@ class DiscoveryRequest(BaseModel):
 class DiscoveryRecommendation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    # The resource's public id (ULID), as returned by every other endpoint.
     resource_id: str
     kind: str
     version: str

@@ -325,6 +325,7 @@ SUPERCODER_SEARCH_DOCUMENT_CACHE_SIZE=2000
 - 端点 `POST /v1/discovery/recommend`
 - 候选由服务端按可见性与生命周期过滤后给出，模型只在其中判断相关性
 - 推荐的 `resource_id` / `version` / `artifact_hash` 一律由服务端回填，模型给出列表外的 id 会被丢弃
+- `resource_id` 是资源的公开 ID（ULID），与其他接口一致，可直接用于 `GET /v1/resources/{resource_id}`
 - 拒答返回 `refusal_reason` 与 `considered`（全部候选 id），可核查
 - 问题过于模糊时返回追问
 
@@ -422,9 +423,23 @@ SUPERCODER_SEARCH_DOCUMENT_CACHE_SIZE=2000
 | 服务端英文错误直接暴露 | 未按状态码转换 | 按 503/422/403 给出中文说明并附原始 detail |
 | Vite 反复崩溃 | 编辑器临时目录被 chokidar 锁定 | `server.watch.ignored` 排除临时目录（根治） |
 
-#### 4.7.10 未验证项
+#### 4.7.10 端到端验证（MySQL 实测）
 
-1. **发现通道的端到端未验证**：本环境 MySQL 与 Docker 均不可用，检索端点返回 503（这是正确的 fail-closed 行为）。已验证的是"服务端候选 + 真实模型判断"这一段，检索到候选这一段由既有测试覆盖。
+Docker 可用后补齐了此前缺失的验证。脚本：`python scripts/check_discovery_e2e.py`
+
+| 检查项 | 结果 |
+|---|---|
+| MySQL 容器就绪 | ✅ healthy |
+| 检索返回候选 | ✅ 3 条 |
+| 可回答问题被回答 | ✅ 3 条推荐 |
+| 无关问题被拒答 | ✅ 理由点名 3 个候选都不相关 |
+| `resource_id` 是公开 ID | ✅ 与其他接口一致 |
+
+**修正的一处文档错误**：早期注释把 `resource_id` 描述为 `kind/slug@version` 形式，实际是 ULID 公开 ID。若不修正，客户端会按错误的形状拼路由。
+
+#### 4.7.11 仍未验证
+
+1. **成功提交一次资源**：本环境 MySQL 虽已可用，但 `commit` 需要 Git 可写；实测返回 503 为正确行为，成功路径由带假对象的单元测试覆盖。
 2. **提示词稳定性基于少量样本**：登记通道的"0 错误"在 2 个描述上成立，样本不足以给出错误率。
 3. **前端无组件级测试**：仍靠浏览器驱动验证。
 
