@@ -55,8 +55,20 @@ services:
       SUPERCODER_MYSQL_USER: supercoder_local
       SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
       SUPERCODER_GIT_REPOSITORY_ROOT: /app
-      SUPERCODER_GIT_READ_ONLY: "true"
+      # Read-only by default: the image runs unprivileged and the checkout is
+      # bind-mounted, so an unexpected write would land in the operator's working
+      # tree. Override only to exercise the registration commit path deliberately.
+      SUPERCODER_GIT_READ_ONLY: ${SUPERCODER_GIT_READ_ONLY:-true}
       SUPERCODER_DEV_AUTH_TOKENS_FILE: /app/scripts/dev_tokens.json
+      # Capability discovery and manifest drafting. Disabled unless the operator
+      # exports the variables; the key is interpolated at run time and never
+      # written into this file or the image.
+      SUPERCODER_EXTERNAL_LLM_ENABLED: ${SUPERCODER_EXTERNAL_LLM_ENABLED:-false}
+      SUPERCODER_EXTERNAL_LLM_PROVIDER: ${SUPERCODER_EXTERNAL_LLM_PROVIDER:-disabled}
+      SUPERCODER_EXTERNAL_LLM_BASE_URL: ${SUPERCODER_EXTERNAL_LLM_BASE_URL:-}
+      SUPERCODER_EXTERNAL_LLM_MODEL: ${SUPERCODER_EXTERNAL_LLM_MODEL:-}
+      SUPERCODER_EXTERNAL_LLM_MAX_OUTPUT_TOKENS: ${SUPERCODER_EXTERNAL_LLM_MAX_OUTPUT_TOKENS:-2048}
+      SUPERCODER_LLM_API_KEY: ${SUPERCODER_LLM_API_KEY:-}
       # Search pipeline. Providers stay off unless the operator exports the
       # matching variables; the key is never written into this file, only
       # interpolated from the host environment at run time.
