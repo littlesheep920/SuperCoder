@@ -20,6 +20,7 @@ from .application.snapshots import SnapshotService
 from .application.versions import VersionQueryService
 from .config import Settings, get_settings
 from .domain.discovery import build_decider
+from .domain.registration import build_drafter
 from .domain.errors import AuthenticationRequiredError, ServiceUnavailableError
 from .middleware.context import RequestContext
 from .providers.git_repository import GitProvider
@@ -82,6 +83,9 @@ class Container:
     # Capability discovery. Optional so tests can build a container without it;
     # the endpoint fails closed when it is absent.
     discovery: DiscoveryService | None = None
+    # Registration drafting. Optional for the same reason as discovery; the
+    # endpoint reports unavailability rather than emitting a template draft.
+    drafter: object | None = None
     mysql_engine: object = None
 
 
@@ -147,7 +151,12 @@ def build_container(settings: Settings | None = None) -> Container:
     # disabled the heuristic answers and every response says so in ``degraded``.
     llm = build_llm_client(settings.external_llm)
     decider = build_decider(llm)
-    return replace(container, discovery=DiscoveryService(container.search, decider))
+    drafter = build_drafter(llm)
+    return replace(
+        container,
+        discovery=DiscoveryService(container.search, decider),
+        drafter=drafter,
+    )
 
 
 def _engine_from_factory(factory) -> object:
