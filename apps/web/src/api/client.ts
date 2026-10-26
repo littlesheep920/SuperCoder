@@ -3,6 +3,10 @@ import type {
   CallerIdentity,
   DiscoveryRequest,
   DiscoveryResponse,
+  DraftCommitRequest,
+  DraftCommitResponse,
+  DraftPreviewRequest,
+  DraftPreviewResponse,
   ErrorBody,
   Job,
   JobEvent,
@@ -193,6 +197,26 @@ export const api = {
    */
   draftManifest: (body: ManifestDraftRequest) =>
     request<ManifestDraftResponse>("/registration/draft", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  /**
+   * Ask what committing this draft would change. Writes nothing, so it is safe to
+   * call from the review screen on every render.
+   */
+  previewDraft: (body: DraftPreviewRequest) =>
+    request<DraftPreviewResponse>("/registration/preview", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  /**
+   * Commit a reviewed draft. This is the only call in this client that creates a
+   * resource, and it requires `confirmed: true` — the server refuses otherwise.
+   */
+  commitDraft: (body: DraftCommitRequest) =>
+    request<DraftCommitResponse>("/registration/commit", {
       method: "POST",
       body: JSON.stringify(body),
     }),

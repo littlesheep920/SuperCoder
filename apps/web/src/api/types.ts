@@ -290,3 +290,42 @@ export interface ManifestDraftResponse {
   model: string | null;
   next_step: string;
 }
+
+/** Request body for POST /v1/registration/preview. */
+export interface DraftPreviewRequest {
+  manifest: Record<string, unknown>;
+}
+
+/** Response of POST /v1/registration/preview. Reports, never writes. */
+export interface DraftPreviewResponse {
+  validation_valid: boolean;
+  validation_errors: string[];
+  base_present: boolean;
+  existing_resource_id: string | null;
+  existing_version: string | null;
+  unified_diff: string;
+  changed_paths: string[];
+  added_paths: string[];
+  removed_paths: string[];
+  identical: boolean;
+  will_write: boolean;
+}
+
+/** Request body for POST /v1/registration/commit. */
+export interface DraftCommitRequest {
+  manifest: Record<string, unknown>;
+  reason: string;
+  confirmed: boolean;
+}
+
+/** Response of POST /v1/registration/commit. The only call that writes. */
+export interface DraftCommitResponse {
+  resource_id: string;
+  version_id: string;
+  version: string;
+  artifact_hash: string;
+  slug: string;
+  kind: string;
+  created_status: string;
+  next_step: string;
+}

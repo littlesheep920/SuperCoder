@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = [
+    "DraftDiffModel",
     "DraftValidationModel",
     "ManifestDraftRequest",
     "ManifestDraftResponse",
@@ -28,6 +29,26 @@ class DraftValidationModel(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class DraftDiffModel(BaseModel):
+    """Difference between the draft and an existing resource of the same slug.
+
+    ``base_present`` false means no visible resource has this slug, so the draft
+    would create something new. That is materially different from replacing an
+    existing capability and a reviewer needs to see which it is.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    base_present: bool
+    existing_resource_id: str | None = None
+    existing_version: str | None = None
+    unified_diff: str = ""
+    changed_paths: list[str] = Field(default_factory=list)
+    added_paths: list[str] = Field(default_factory=list)
+    removed_paths: list[str] = Field(default_factory=list)
+    identical: bool = False
+
+
 class ManifestDraftResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -35,6 +56,8 @@ class ManifestDraftResponse(BaseModel):
     manifest: dict[str, Any] | None = None
     validation: DraftValidationModel
     warnings: list[str] = Field(default_factory=list)
+    # Present whenever a manifest was produced. Explains what would change.
+    diff: DraftDiffModel | None = None
     # Fields the model could not infer. Not an error: a human must supply them.
     needs_input: list[str] = Field(default_factory=list)
     degraded: list[str] = Field(default_factory=list)

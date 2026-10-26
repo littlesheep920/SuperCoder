@@ -17,7 +17,12 @@ from fastapi import APIRouter, Depends
 from ..auth import AuthContext
 from ..dependencies import Container, get_auth, get_container
 from ..domain.errors import ServiceUnavailableError
-from ..schemas.registration import DraftValidationModel, ManifestDraftRequest, ManifestDraftResponse
+from ..schemas.registration import (
+    DraftDiffModel,
+    DraftValidationModel,
+    ManifestDraftRequest,
+    ManifestDraftResponse,
+)
 
 router = APIRouter(tags=["Registration"])
 
@@ -32,6 +37,10 @@ def draft_manifest(
 
     Never registers, publishes, or approves anything. The response states that
     explicitly so a client cannot mistake a draft for a completed registration.
+
+    When a resource with the same slug already exists and is visible to the caller,
+    the response includes a diff so the reviewer can see what would change. A draft
+    that would replace something must not look like a new one.
     """
 
     drafter = getattr(container, "drafter", None)
@@ -42,6 +51,21 @@ def draft_manifest(
 
     outcome = drafter.draft(description=body.description, kind_hint=body.kind_hint)
 
+    diff_model: DraftDiffModel | None = None
+    comparer = getattr(container, "draft_comparer", None)
+    if outcome.manifest is not None and comparer is not None:
+        comparison = comparer.compare(draft=outcome.manifest, scope=auth.visibility_scope())
+        diff_model = DraftDiffModel(
+            base_present=comparison.diff.base_present,
+            existing_resource_id=comparison.existing_resource_id,
+            existing_version=comparison.existing_version,
+            unified_diff=comparison.diff.unified_diff,
+            changed_paths=list(comparison.diff.changed_paths),
+            added_paths=list(comparison.diff.added_paths),
+            removed_paths=list(comparison.diff.removed_paths),
+            identical=comparison.diff.identical,
+        )
+
     return ManifestDraftResponse(
         manifest=outcome.manifest,
         validation=DraftValidationModel(
@@ -50,6 +74,7 @@ def draft_manifest(
             warnings=list(outcome.validation.warnings),
         ),
         warnings=list(outcome.warnings),
+        diff=diff_model,
         needs_input=list(outcome.needs_input),
         degraded=list(outcome.degraded),
         model=outcome.model,

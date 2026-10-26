@@ -9,6 +9,8 @@ from fastapi import Depends, Request
 from .auth import AuthContext, DevTokenAuth
 from .application.catalog import CatalogService
 from .application.discovery_service import DiscoveryService
+from .application.draft_commit import DraftCommitService
+from .application.draft_comparer import DraftComparer
 from .application.diffs import DiffService
 from .application.governance import GovernanceService
 from .application.job_service import JobService
@@ -86,6 +88,11 @@ class Container:
     # Registration drafting. Optional for the same reason as discovery; the
     # endpoint reports unavailability rather than emitting a template draft.
     drafter: object | None = None
+    # Compares a draft against an existing resource of the same slug.
+    draft_comparer: DraftComparer | None = None
+    # Commits a confirmed draft. Absent when the Git provider is read-only, so
+    # the endpoint fails closed rather than pretending to write.
+    draft_commit: DraftCommitService | None = None
     mysql_engine: object = None
 
 
@@ -156,6 +163,16 @@ def build_container(settings: Settings | None = None) -> Container:
         container,
         discovery=DiscoveryService(container.search, decider),
         drafter=drafter,
+        draft_comparer=DraftComparer(uow_factory),
+        draft_commit=(
+            None
+            if settings.git.read_only or not settings.mysql.enabled
+            else DraftCommitService(
+                git,
+                ResourceCommandService(uow_factory, snapshots),
+                settings.git.repository_root,
+            )
+        ),
     )
 
 
