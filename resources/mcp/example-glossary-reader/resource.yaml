@@ -1,0 +1,77 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-glossary-reader",
+  "name": "Example Glossary Reader MCP",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example MCP server that reads the approved glossary terms. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "docs",
+    "glossary"
+  ],
+  "categories": [
+    "documentation/localization"
+  ],
+  "runtimes": [
+    "dify",
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "docs",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://glossary-reader-endpoint.example.invalid/api",
+    "tools": [
+      {
+        "name": "glossary-reader-get",
+        "description": "Read glossary reader.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "glossary-reader-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "glossary-reader-endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

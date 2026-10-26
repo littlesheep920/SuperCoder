@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-policy-advisor",
+  "name": "Example Policy Advisor Agent",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example agent that answers which policy applies to a proposed change. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "governance",
+    "advisory"
+  ],
+  "categories": [
+    "governance/policy"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-policy-registry",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "agent": {
+    "role": "Example agent that answers which policy applies to a proposed change.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-policy-registry"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

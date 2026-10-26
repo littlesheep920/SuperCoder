@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-directory-reader",
+  "name": "Example Directory Reader MCP",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example MCP server that reads team membership from the directory. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "iam",
+    "directory"
+  ],
+  "categories": [
+    "security/iam"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "security",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://directory-reader-endpoint.example.invalid/api",
+    "tools": [
+      {
+        "name": "directory-reader-get",
+        "description": "Read directory reader.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "directory-reader-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "directory-reader-endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

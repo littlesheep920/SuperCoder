@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-pipeline-doctor",
+  "name": "Example Pipeline Doctor Agent",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example agent that investigates a failed pipeline run and reports the root stage. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "pipeline",
+    "diagnosis"
+  ],
+  "categories": [
+    "data/pipeline"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-pipeline-run-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "agent": {
+    "role": "Example agent that investigates a failed pipeline run and reports the root stage.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-pipeline-run-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

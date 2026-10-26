@@ -38,6 +38,18 @@ def route_count() -> int:
     return total
 
 
+def eval_size() -> tuple[int, int]:
+    """Return (query count, judgment count) from the evaluation dataset."""
+
+    retrieval = ROOT / "evals" / "retrieval"
+
+    def count(name: str) -> int:
+        text = (retrieval / name).read_text(encoding="utf-8")
+        return sum(1 for line in text.splitlines() if line.strip())
+
+    return count("stage2_queries.jsonl"), count("stage2_qrels.jsonl")
+
+
 class MetricDisclosureTests(unittest.TestCase):
     """§7 quotes measured numbers together with their limits."""
 
@@ -46,16 +58,19 @@ class MetricDisclosureTests(unittest.TestCase):
         cls.text = PRD.read_text(encoding="utf-8")
 
     def test_quoted_metrics_match_the_archived_baseline(self) -> None:
+        """Every quoted metric must round to the archived value at some precision."""
+
         for profile in ("hybrid", "keyword"):
             metrics = baseline(profile)["metrics"]
             with self.subTest(profile=profile):
-                for key, decimals in (("hit_at_5", 2), ("mrr_at_10", 2), ("ndcg_at_10", 2)):
-                    value = format(metrics[key], f".{decimals}f")
-                    # 0.9792 renders as 0.98 in the table; assert on 3 dp too.
-                    precise = format(metrics[key], ".3f").rstrip("0").rstrip(".")
+                for key in ("hit_at_5", "mrr_at_10", "ndcg_at_10"):
+                    # The table may quote 2 or 3 decimals; either is acceptable
+                    # as long as it agrees with the archived value.
+                    candidates = {format(metrics[key], f".{d}f") for d in (2, 3)}
                     self.assertTrue(
-                        value in self.text or precise in self.text,
-                        f"{profile}.{key}={metrics[key]} is not quoted in the PRD",
+                        any(value in self.text for value in candidates),
+                        f"{profile}.{key}={metrics[key]} not quoted "
+                        f"(looked for {sorted(candidates)})",
                     )
 
     def test_baseline_describes_the_current_corpus(self) -> None:
@@ -81,10 +96,14 @@ class MetricDisclosureTests(unittest.TestCase):
         self.assertRegex(self.text, r"示例|example")
         self.assertIn("单标注者", self.text)
 
-    def test_unreached_query_target_is_disclosed(self) -> None:
-        """The 300-query goal was not met; the PRD must say so, not omit it."""
+    def test_query_gap_is_disclosed_when_present(self) -> None:
+        """If single-answer queries remain, the PRD must disclose the share."""
 
-        self.assertRegex(self.text, r"未完全达成|未达|未达到")
+        queries, qrels = eval_size()
+        if queries < 300:
+            self.assertRegex(self.text, r"未完全达成|未达|未达到")
+        # Regardless of total size, the single-answer share must be stated.
+        self.assertRegex(self.text, r"只有 1 个相关资源|单答案")
 
 
 class ContractCoverageTests(unittest.TestCase):

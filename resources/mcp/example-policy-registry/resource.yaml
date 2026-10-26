@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-policy-registry",
+  "name": "Example Policy Registry MCP",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example MCP server that reads active platform policies and their owners. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "governance",
+    "registry"
+  ],
+  "categories": [
+    "governance/policy"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "platform-ai",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://policy-registry-endpoint.example.invalid/api",
+    "tools": [
+      {
+        "name": "policy-registry-get",
+        "description": "Read policy registry.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "policy-registry-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy-registry-endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

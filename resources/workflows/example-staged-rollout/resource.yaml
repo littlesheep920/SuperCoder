@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-staged-rollout",
+  "name": "Example Staged Rollout Flow",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol.  Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "mobile",
+    "rollout"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "work",
+        "type": "condition"
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "work"
+      },
+      {
+        "from": "work",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

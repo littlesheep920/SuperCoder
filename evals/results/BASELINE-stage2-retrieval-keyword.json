@@ -1,11 +1,11 @@
 {
   "dataset": {
     "queries_path": "evals\\retrieval\\stage2_queries.jsonl",
-    "queries_sha256_16": "a293318a89e2873f",
+    "queries_sha256_16": "c7d11b9493bf746e",
     "qrels_path": "evals\\retrieval\\stage2_qrels.jsonl",
-    "qrels_sha256_16": "8719fdcbf92a7ebf",
-    "query_count": 185,
-    "judgment_count": 511
+    "qrels_sha256_16": "70b3b1adb7d24cf3",
+    "query_count": 301,
+    "judgment_count": 852
   },
   "config": {
     "profile": "keyword",
@@ -13,19 +13,19 @@
     "rerank_provider": "BAAI/bge-reranker-v2-m3",
     "remote_enabled": true,
     "seed": 0,
-    "corpus_size": 187
+    "corpus_size": 290
   },
   "environment": {
-    "generated_at": "2026-10-26T13:53:11.415492+00:00",
+    "generated_at": "2026-10-26T14:03:05.789453+00:00",
     "python": "3.12.10"
   },
   "metrics": {
-    "hit_at_5": 0.1243,
-    "mrr_at_10": 0.1216,
-    "ndcg_at_10": 0.0988,
-    "zero_result_queries": 158,
-    "no_relevant_retrieved": 162,
-    "p95_latency_ms": 189
+    "hit_at_5": 0.0997,
+    "mrr_at_10": 0.098,
+    "ndcg_at_10": 0.0765,
+    "zero_result_queries": 267,
+    "no_relevant_retrieved": 271,
+    "p95_latency_ms": 121
   },
   "honesty": {
     "semantic_quality_claimed": true,
@@ -158,12 +158,12 @@
         "agent/example-review-assistant@1.0.0",
         "workflow/demo-review-flow@1.0.0",
         "skill/example-api-contract-review@1.0.0",
-        "skill/example-cli-ux-review@1.0.0",
         "prompt/example-security-checklist@1.0.0",
-        "skill/example-component-api-review@1.0.0",
-        "skill/example-cache-invalidation-review@1.0.0",
+        "skill/example-idempotency-review@1.0.0",
         "workflow/example-skill-release-approval@1.0.0",
-        "prompt/example-code-reading-plan@1.0.0"
+        "skill/example-query-review@1.0.0",
+        "prompt/example-code-reading-plan@1.0.0",
+        "skill/example-alert-quality-review@1.0.0"
       ],
       "relevant_ids": [
         "mcp/example-repo-search@1.0.0",
@@ -176,7 +176,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.787155,
-      "took_ms": 286,
+      "took_ms": 309,
       "degraded": []
     },
     {
@@ -186,12 +186,12 @@
       "ranked_ids": [
         "skill/demo-code-review@1.0.0",
         "prompt/example-security-checklist@1.0.0",
-        "tool/example-assertion-diff@1.0.0",
         "agent/example-review-assistant@1.0.0",
+        "tool/example-assertion-diff@1.0.0",
         "skill/example-api-contract-review@1.0.0",
+        "tool/example-permission-diff@1.0.0",
         "prompt/example-commit-message@1.0.0",
         "tool/example-http-header-diff@1.0.0",
-        "skill/example-app-size-review@1.0.0",
         "tool/example-diff-stat@1.0.0",
         "skill/example-bundle-size-review@1.0.0"
       ],
@@ -207,7 +207,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.745253,
-      "took_ms": 189,
+      "took_ms": 190,
       "degraded": []
     },
     {
@@ -242,8 +242,8 @@
         "mcp/example-test-report-reader@1.0.0",
         "mcp/example-package-registry@1.0.0",
         "mcp/example-accessibility-report@1.0.0",
-        "mcp/example-secret-scanner-report@1.0.0",
-        "mcp/example-design-token-reader@1.0.0"
+        "mcp/example-design-token-reader@1.0.0",
+        "mcp/example-secret-scanner-report@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0",
@@ -257,7 +257,7 @@
       "first_relevant_rank": 2,
       "reciprocal_rank": 0.5,
       "ndcg_at_10": 0.470202,
-      "took_ms": 281,
+      "took_ms": 294,
       "degraded": []
     },
     {
@@ -286,14 +286,14 @@
       "ranked_ids": [
         "prompt/demo-bugfix@1.0.0",
         "prompt/example-bug-report-normalizer@1.0.0",
-        "prompt/example-security-checklist@1.0.0",
-        "prompt/example-support-macro@1.0.0",
         "prompt/example-deprecation-notice@1.0.0",
-        "skill/example-prompt-regression-suite@1.0.0",
-        "prompt/example-incident-summary@1.0.0",
         "prompt/example-integration-checklist@1.0.0",
         "prompt/example-cost-optimisation@1.0.0",
-        "prompt/example-acceptance-criteria@1.0.0"
+        "prompt/example-query-analysis@1.0.0",
+        "prompt/example-acceptance-criteria@1.0.0",
+        "prompt/example-commit-message@1.0.0",
+        "skill/example-prompt-regression-suite@1.0.0",
+        "prompt/example-code-explainer@1.0.0"
       ],
       "relevant_ids": [
         "prompt/demo-bugfix@1.0.0",
@@ -307,7 +307,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.745253,
-      "took_ms": 332,
+      "took_ms": 274,
       "degraded": []
     },
     {
@@ -361,9 +361,9 @@
         "workflow/example-dependency-upgrade-approval@1.0.0",
         "workflow/example-incident-communication@1.0.0",
         "workflow/example-support-escalation@1.0.0",
-        "workflow/example-data-contract-change@1.0.0",
         "workflow/example-mobile-store-release@1.0.0",
-        "workflow/example-test-quarantine@1.0.0"
+        "workflow/example-test-quarantine@1.0.0",
+        "workflow/example-docs-localization@1.0.0"
       ],
       "relevant_ids": [
         "prompt/example-acceptance-criteria@1.0.0",
@@ -376,7 +376,7 @@
       "first_relevant_rank": 1000000,
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
-      "took_ms": 299,
+      "took_ms": 367,
       "degraded": []
     },
     {
@@ -466,11 +466,11 @@
         "mcp/example-ci-build-status@1.0.0",
         "agent/demo-planner@1.0.0",
         "tool/demo-text-stats@1.0.0",
-        "mcp/example-accessibility-report@1.0.0",
-        "prompt/example-migration-reviewer@1.0.0",
+        "mcp/example-data-catalog-reader@1.0.0",
         "mcp/example-schema-catalog@1.0.0",
         "mcp/example-metrics-query@1.0.0",
-        "agent/example-data-steward@1.0.0"
+        "agent/example-data-steward@1.0.0",
+        "skill/example-service-catalog-entry@1.0.0"
       ],
       "relevant_ids": [
         "mcp/demo-local-catalog@1.0.0",
@@ -483,7 +483,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.787155,
-      "took_ms": 285,
+      "took_ms": 283,
       "degraded": []
     },
     {
@@ -595,15 +595,15 @@
       "profile": "keyword",
       "ranked_ids": [
         "mcp/example-metrics-query@1.0.0",
-        "mcp/example-api-usage-metrics@1.0.0",
         "mcp/example-repo-search@1.0.0",
         "mcp/example-experiment-tracker@1.0.0",
-        "mcp/demo-local-catalog@1.0.0",
         "mcp/example-data-quality-dashboard@1.0.0",
+        "mcp/demo-local-catalog@1.0.0",
+        "mcp/example-advisory-reader@1.0.0",
         "mcp/example-ticket-reader@1.0.0",
+        "mcp/example-policy-registry@1.0.0",
         "mcp/example-accessibility-report@1.0.0",
-        "mcp/example-contract-registry@1.0.0",
-        "mcp/example-error-tracker@1.0.0"
+        "mcp/example-contract-registry@1.0.0"
       ],
       "relevant_ids": [
         "mcp/example-feature-flags@1.0.0",
@@ -616,7 +616,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.787155,
-      "took_ms": 281,
+      "took_ms": 366,
       "degraded": []
     },
     {
@@ -716,7 +716,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.955831,
-      "took_ms": 110,
+      "took_ms": 105,
       "degraded": []
     },
     {
@@ -726,12 +726,12 @@
       "ranked_ids": [
         "tool/example-json-normalizer@1.0.0",
         "skill/demo-code-review@1.0.0",
-        "tool/example-diff-stat@1.0.0",
         "prompt/example-security-checklist@1.0.0",
+        "tool/example-json-schema-subset@1.0.0",
         "agent/example-review-assistant@1.0.0",
+        "tool/example-diff-stat@1.0.0",
         "skill/example-api-contract-review@1.0.0",
         "prompt/example-commit-message@1.0.0",
-        "tool/example-json-schema-subset@1.0.0",
         "tool/example-csv-diff@1.0.0",
         "skill/example-app-size-review@1.0.0"
       ],
@@ -746,7 +746,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.787155,
-      "took_ms": 211,
+      "took_ms": 314,
       "degraded": []
     },
     {
@@ -756,6 +756,7 @@
       "ranked_ids": [
         "tool/example-sql-formatter@1.0.0",
         "prompt/example-sql-explanation@1.0.0",
+        "skill/example-query-review@1.0.0",
         "prompt/example-migration-reviewer@1.0.0"
       ],
       "relevant_ids": [
@@ -857,11 +858,12 @@
       "ranked_ids": [
         "agent/example-issue-triager@1.0.0",
         "workflow/example-issue-to-patch@1.0.0",
-        "tool/example-issue-label-stats@1.0.0",
         "skill/demo-code-review@1.0.0",
+        "tool/example-issue-label-stats@1.0.0",
         "mcp/example-ticket-reader@1.0.0",
         "prompt/demo-bugfix@1.0.0",
-        "skill/example-accessibility-audit@1.0.0"
+        "skill/example-accessibility-audit@1.0.0",
+        "skill/example-app-review-rejection@1.0.0"
       ],
       "relevant_ids": [
         "agent/example-issue-triager@1.0.0",
@@ -875,7 +877,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.935983,
-      "took_ms": 151,
+      "took_ms": 162,
       "degraded": []
     },
     {
@@ -1220,7 +1222,10 @@
       "query": "手机 App 提审前要检查什么",
       "profile": "keyword",
       "ranked_ids": [
-        "skill/example-app-size-review@1.0.0"
+        "prompt/example-permission-rationale@1.0.0",
+        "skill/example-app-review-rejection@1.0.0",
+        "skill/example-app-size-review@1.0.0",
+        "prompt/example-in-app-message@1.0.0"
       ],
       "relevant_ids": [
         "skill/example-mobile-release-checklist@1.0.0",
@@ -1234,7 +1239,7 @@
       "first_relevant_rank": 1000000,
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
-      "took_ms": 0,
+      "took_ms": 145,
       "degraded": []
     },
     {
@@ -1739,6 +1744,7 @@
       "profile": "keyword",
       "ranked_ids": [
         "prompt/example-bug-report-normalizer@1.0.0",
+        "skill/example-bug-severity-classification@1.0.0",
         "prompt/demo-bugfix@1.0.0"
       ],
       "relevant_ids": [
@@ -1753,7 +1759,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.745253,
-      "took_ms": 294,
+      "took_ms": 107,
       "degraded": []
     },
     {
@@ -1808,8 +1814,8 @@
         "skill/example-api-contract-review@1.0.0",
         "tool/example-http-header-diff@1.0.0",
         "agent/example-review-assistant@1.0.0",
-        "tool/example-assertion-diff@1.0.0",
-        "skill/example-app-size-review@1.0.0"
+        "tool/example-permission-diff@1.0.0",
+        "tool/example-assertion-diff@1.0.0"
       ],
       "relevant_ids": [
         "tool/example-json-normalizer@1.0.0",
@@ -1824,7 +1830,7 @@
       "first_relevant_rank": 1000000,
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
-      "took_ms": 203,
+      "took_ms": 224,
       "degraded": []
     },
     {
@@ -1884,7 +1890,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 1.0,
-      "took_ms": 117,
+      "took_ms": 108,
       "degraded": []
     },
     {
@@ -2049,7 +2055,7 @@
       "first_relevant_rank": 1000000,
       "reciprocal_rank": 0.0,
       "ndcg_at_10": 0.0,
-      "took_ms": 105,
+      "took_ms": 109,
       "degraded": []
     },
     {
@@ -2375,7 +2381,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.745253,
-      "took_ms": 113,
+      "took_ms": 100,
       "degraded": []
     },
     {
@@ -2664,7 +2670,10 @@
       "profile": "keyword",
       "ranked_ids": [
         "skill/example-sdk-compatibility-matrix@1.0.0",
-        "mcp/example-compatibility-matrix-reader@1.0.0"
+        "mcp/example-compatibility-matrix-reader@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "prompt/example-sdk-migration-guide@1.0.0",
+        "tool/example-public-api-surface@1.0.0"
       ],
       "relevant_ids": [
         "mcp/example-compatibility-matrix-reader@1.0.0",
@@ -2679,7 +2688,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.855669,
-      "took_ms": 110,
+      "took_ms": 123,
       "degraded": []
     },
     {
@@ -2972,7 +2981,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.90495,
-      "took_ms": 109,
+      "took_ms": 112,
       "degraded": []
     },
     {
@@ -3357,7 +3366,10 @@
       "profile": "keyword",
       "ranked_ids": [
         "skill/example-sdk-compatibility-matrix@1.0.0",
-        "mcp/example-compatibility-matrix-reader@1.0.0"
+        "mcp/example-compatibility-matrix-reader@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "prompt/example-sdk-migration-guide@1.0.0",
+        "tool/example-public-api-surface@1.0.0"
       ],
       "relevant_ids": [
         "mcp/example-compatibility-matrix-reader@1.0.0",
@@ -3372,7 +3384,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.855669,
-      "took_ms": 94,
+      "took_ms": 121,
       "degraded": []
     },
     {
@@ -3729,7 +3741,9 @@
       "query": "组件的 props 设计得不太好用，想改",
       "profile": "keyword",
       "ranked_ids": [
-        "skill/example-component-api-review@1.0.0"
+        "skill/example-component-api-review@1.0.0",
+        "tool/example-props-surface@1.0.0",
+        "prompt/example-component-doc-writer@1.0.0"
       ],
       "relevant_ids": [
         "agent/example-ui-consistency-agent@1.0.0",
@@ -3743,7 +3757,7 @@
       "first_relevant_rank": 1,
       "reciprocal_rank": 1.0,
       "ndcg_at_10": 0.745253,
-      "took_ms": 0,
+      "took_ms": 110,
       "degraded": []
     },
     {
@@ -3921,6 +3935,2428 @@
       "graded": {
         "mcp/example-contract-registry@1.0.0": 3,
         "skill/example-contract-test-design@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q186",
+      "query": "想查一下某个角色是不是权限给大了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-rbac-matrix@1.0.0",
+        "skill/example-authz-policy-review@1.0.0",
+        "tool/example-permission-diff@1.0.0"
+      ],
+      "graded": {
+        "skill/example-authz-policy-review@1.0.0": 3,
+        "tool/example-permission-diff@1.0.0": 2,
+        "prompt/example-rbac-matrix@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q187",
+      "query": "想把这些角色的权限整理成一张表",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-rbac-matrix@1.0.0",
+        "skill/example-authz-policy-review@1.0.0",
+        "tool/example-permission-diff@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-rbac-matrix@1.0.0": 3,
+        "tool/example-permission-diff@1.0.0": 2,
+        "skill/example-authz-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q188",
+      "query": "想知道这次改动到底加了哪些权限",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-authz-policy-review@1.0.0",
+        "tool/example-permission-diff@1.0.0"
+      ],
+      "graded": {
+        "tool/example-permission-diff@1.0.0": 3,
+        "skill/example-authz-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q189",
+      "query": "季度到了，想确认还有哪些人的权限该收回了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-access-reviewer@1.0.0",
+        "mcp/example-directory-reader@1.0.0",
+        "workflow/example-access-approval@1.0.0"
+      ],
+      "graded": {
+        "agent/example-access-reviewer@1.0.0": 3,
+        "mcp/example-directory-reader@1.0.0": 2,
+        "workflow/example-access-approval@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q190",
+      "query": "想查一下这个人还在不在这个团队里",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-access-reviewer@1.0.0",
+        "mcp/example-directory-reader@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-directory-reader@1.0.0": 3,
+        "agent/example-access-reviewer@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q191",
+      "query": "开通权限要走审批，想有个固定流程",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-access-reviewer@1.0.0",
+        "skill/example-authz-policy-review@1.0.0",
+        "workflow/example-access-approval@1.0.0"
+      ],
+      "graded": {
+        "workflow/example-access-approval@1.0.0": 3,
+        "agent/example-access-reviewer@1.0.0": 2,
+        "skill/example-authz-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q192",
+      "query": "要把域名切到新的服务上，怎么避免中断",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-dns-record-reader@1.0.0",
+        "skill/example-dns-cutover-plan@1.0.0"
+      ],
+      "graded": {
+        "skill/example-dns-cutover-plan@1.0.0": 3,
+        "mcp/example-dns-record-reader@1.0.0": 2,
+        "prompt/example-firewall-rule-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q193",
+      "query": "防火墙规则越来越多，想看看有没有开太宽的",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-firewall-rule-review@1.0.0",
+        "tool/example-cidr-overlap@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-firewall-rule-review@1.0.0": 3,
+        "tool/example-cidr-overlap@1.0.0": 2,
+        "tool/example-ip-range-check@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q194",
+      "query": "想确认两个网段有没有重叠",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/example-cidr-overlap@1.0.0",
+        "tool/example-ip-range-check@1.0.0"
+      ],
+      "graded": {
+        "tool/example-cidr-overlap@1.0.0": 3,
+        "tool/example-ip-range-check@1.0.0": 2,
+        "prompt/example-firewall-rule-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q195",
+      "query": "想查一下这个域名现在解析到哪",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-dns-record-reader@1.0.0",
+        "skill/example-dns-cutover-plan@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-dns-record-reader@1.0.0": 3,
+        "skill/example-dns-cutover-plan@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q196",
+      "query": "想演练一次恢复，确认真的能恢复回来",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-backup-status-reader@1.0.0",
+        "skill/example-backup-restore-drill@1.0.0",
+        "tool/example-mttr-calculator@1.0.0"
+      ],
+      "graded": {
+        "skill/example-backup-restore-drill@1.0.0": 3,
+        "mcp/example-backup-status-reader@1.0.0": 2,
+        "tool/example-mttr-calculator@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q197",
+      "query": "数据要留多久、什么时候能删，想写清楚",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-retention-policy@1.0.0",
+        "tool/example-storage-growth@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-retention-policy@1.0.0": 3,
+        "tool/example-storage-growth@1.0.0": 2,
+        "workflow/example-data-contract-change@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q198",
+      "query": "照现在这个增速，存储多久会满",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-retention-policy@1.0.0",
+        "tool/example-storage-growth@1.0.0"
+      ],
+      "graded": {
+        "tool/example-storage-growth@1.0.0": 3,
+        "prompt/example-retention-policy@1.0.0": 2,
+        "prompt/example-db-index-advice@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q199",
+      "query": "想知道昨天备份到底有没有成功",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-backup-status-reader@1.0.0",
+        "skill/example-backup-restore-drill@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-backup-status-reader@1.0.0": 3,
+        "skill/example-backup-restore-drill@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q200",
+      "query": "新服务要登记到内部平台，需要写什么",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-service-onboarding-agent@1.0.0",
+        "skill/example-service-catalog-entry@1.0.0",
+        "tool/example-ownership-resolver@1.0.0"
+      ],
+      "graded": {
+        "skill/example-service-catalog-entry@1.0.0": 3,
+        "agent/example-service-onboarding-agent@1.0.0": 2,
+        "tool/example-ownership-resolver@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q201",
+      "query": "想把一次事故的处理过程写成操作手册",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-runbook-writer@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-runbook-writer@1.0.0": 3,
+        "workflow/example-incident-postmortem@1.0.0": 2,
+        "prompt/example-incident-summary@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q202",
+      "query": "想从代码路径找到负责的团队",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-directory-reader@1.0.0",
+        "tool/example-ownership-resolver@1.0.0"
+      ],
+      "graded": {
+        "tool/example-ownership-resolver@1.0.0": 3,
+        "mcp/example-directory-reader@1.0.0": 2,
+        "skill/example-codebase-orientation@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q203",
+      "query": "刚接手的服务要补齐登记信息",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-service-onboarding-agent@1.0.0",
+        "skill/example-service-catalog-entry@1.0.0",
+        "tool/example-ownership-resolver@1.0.0"
+      ],
+      "graded": {
+        "agent/example-service-onboarding-agent@1.0.0": 3,
+        "skill/example-service-catalog-entry@1.0.0": 2,
+        "tool/example-ownership-resolver@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q204",
+      "query": "要改消息格式，怕下游消费方解析不了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-contract-registry@1.0.0",
+        "skill/example-contract-test-design@1.0.0",
+        "skill/example-message-contract-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-message-contract-review@1.0.0": 3,
+        "skill/example-contract-test-design@1.0.0": 2,
+        "mcp/example-contract-registry@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q205",
+      "query": "死信队列堆了一堆消息，想先归类",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-queue-depth-reader@1.0.0",
+        "prompt/example-dead-letter-triage@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-dead-letter-triage@1.0.0": 3,
+        "mcp/example-queue-depth-reader@1.0.0": 2,
+        "agent/example-error-triage-bot@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q206",
+      "query": "想算一下重试要退避多久比较合理",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-api-rate-limit-design@1.0.0",
+        "tool/example-retry-schedule@1.0.0"
+      ],
+      "graded": {
+        "tool/example-retry-schedule@1.0.0": 3,
+        "skill/example-api-rate-limit-design@1.0.0": 2,
+        "prompt/example-dead-letter-triage@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q207",
+      "query": "想看看队列积压到什么程度了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-queue-depth-reader@1.0.0",
+        "prompt/example-dead-letter-triage@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-queue-depth-reader@1.0.0": 3,
+        "prompt/example-dead-letter-triage@1.0.0": 2,
+        "mcp/example-error-tracker@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q208",
+      "query": "文档写作规范不统一，想系统性检查一遍",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-content-review-style@1.0.0",
+        "skill/example-translation-consistency@1.0.0",
+        "tool/example-readability-score@1.0.0"
+      ],
+      "graded": {
+        "skill/example-content-review-style@1.0.0": 3,
+        "skill/example-translation-consistency@1.0.0": 2,
+        "tool/example-readability-score@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q209",
+      "query": "想看看这段文案读起来累不累",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-content-review-style@1.0.0",
+        "tool/example-readability-score@1.0.0"
+      ],
+      "graded": {
+        "tool/example-readability-score@1.0.0": 3,
+        "skill/example-content-review-style@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q210",
+      "query": "翻译时必须用统一的术语表",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-glossary-reader@1.0.0",
+        "skill/example-translation-consistency@1.0.0",
+        "workflow/example-docs-localization@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-glossary-reader@1.0.0": 3,
+        "skill/example-translation-consistency@1.0.0": 2,
+        "workflow/example-docs-localization@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q211",
+      "query": "应用被商店拒了，想搞清楚每条问题怎么改",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-app-review-rejection@1.0.0",
+        "skill/example-mobile-release-checklist@1.0.0",
+        "workflow/example-mobile-store-release@1.0.0"
+      ],
+      "graded": {
+        "skill/example-app-review-rejection@1.0.0": 3,
+        "skill/example-mobile-release-checklist@1.0.0": 2,
+        "workflow/example-mobile-store-release@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q212",
+      "query": "版本号该怎么往上走，有规矩吗",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/example-semver-compare@1.0.0",
+        "tool/example-version-code-bump@1.0.0"
+      ],
+      "graded": {
+        "tool/example-version-code-bump@1.0.0": 3,
+        "tool/example-semver-compare@1.0.0": 2,
+        "skill/example-mobile-release-checklist@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q213",
+      "query": "想分批放量发版，出问题能及时停下来",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-release-readiness@1.0.0",
+        "workflow/example-mobile-store-release@1.0.0",
+        "workflow/example-staged-rollout@1.0.0"
+      ],
+      "graded": {
+        "workflow/example-staged-rollout@1.0.0": 3,
+        "workflow/example-mobile-store-release@1.0.0": 2,
+        "skill/example-release-readiness@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q214",
+      "query": "复盘完了，想确认每条改进项都有人负责",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-postmortem-action-agent@1.0.0",
+        "skill/example-postmortem-action-tracking@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "graded": {
+        "skill/example-postmortem-action-tracking@1.0.0": 3,
+        "agent/example-postmortem-action-agent@1.0.0": 2,
+        "workflow/example-incident-postmortem@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q215",
+      "query": "想算一下这次故障一共恢复了多久",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-backup-restore-drill@1.0.0",
+        "tool/example-mttr-calculator@1.0.0"
+      ],
+      "graded": {
+        "tool/example-mttr-calculator@1.0.0": 3,
+        "skill/example-backup-restore-drill@1.0.0": 2,
+        "skill/example-incident-triage@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q216",
+      "query": "上次定的改进项拖了好久了，想看看还有哪些没做",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-postmortem-action-agent@1.0.0",
+        "skill/example-postmortem-action-tracking@1.0.0"
+      ],
+      "graded": {
+        "agent/example-postmortem-action-agent@1.0.0": 3,
+        "skill/example-postmortem-action-tracking@1.0.0": 2,
+        "workflow/example-support-escalation@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q217",
+      "query": "想把这个服务拆成两个，不确定边界划得对不对",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-architecture-reviewer@1.0.0",
+        "skill/example-service-boundary-review@1.0.0",
+        "tool/example-import-graph@1.0.0"
+      ],
+      "graded": {
+        "skill/example-service-boundary-review@1.0.0": 3,
+        "agent/example-architecture-reviewer@1.0.0": 2,
+        "tool/example-import-graph@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q218",
+      "query": "做了个技术决定，想把取舍记录下来",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-architecture-reviewer@1.0.0",
+        "prompt/example-adr-writer@1.0.0",
+        "skill/example-service-boundary-review@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-adr-writer@1.0.0": 3,
+        "skill/example-service-boundary-review@1.0.0": 2,
+        "agent/example-architecture-reviewer@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q219",
+      "query": "想确认设计方案没有违反既定的架构约束",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-architecture-reviewer@1.0.0",
+        "skill/example-service-boundary-review@1.0.0"
+      ],
+      "graded": {
+        "agent/example-architecture-reviewer@1.0.0": 3,
+        "skill/example-service-boundary-review@1.0.0": 2,
+        "prompt/example-adr-writer@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q220",
+      "query": "每天的数据任务失败了，想知道卡在哪一步",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-pipeline-doctor@1.0.0",
+        "mcp/example-pipeline-run-reader@1.0.0",
+        "skill/example-pipeline-failure-triage@1.0.0"
+      ],
+      "graded": {
+        "skill/example-pipeline-failure-triage@1.0.0": 3,
+        "agent/example-pipeline-doctor@1.0.0": 3,
+        "mcp/example-pipeline-run-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q221",
+      "query": "想给数据任务定新鲜度和完整性目标",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-pipeline-run-reader@1.0.0",
+        "prompt/example-pipeline-sla@1.0.0",
+        "skill/example-slo-definition@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-pipeline-sla@1.0.0": 3,
+        "skill/example-slo-definition@1.0.0": 2,
+        "mcp/example-pipeline-run-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q222",
+      "query": "今天的数据量比昨天少了一半，想确认是不是正常的",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-data-quality-rules@1.0.0",
+        "skill/example-pipeline-failure-triage@1.0.0",
+        "tool/example-row-count-drift@1.0.0"
+      ],
+      "graded": {
+        "tool/example-row-count-drift@1.0.0": 3,
+        "skill/example-pipeline-failure-triage@1.0.0": 2,
+        "skill/example-data-quality-rules@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q223",
+      "query": "想查一下最近几次任务的耗时变化",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-pipeline-doctor@1.0.0",
+        "mcp/example-pipeline-run-reader@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-pipeline-run-reader@1.0.0": 3,
+        "agent/example-pipeline-doctor@1.0.0": 2,
+        "tool/example-mttr-calculator@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q224",
+      "query": "数据任务老是失败，想让工具自己查原因",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-pipeline-doctor@1.0.0",
+        "mcp/example-pipeline-run-reader@1.0.0",
+        "skill/example-pipeline-failure-triage@1.0.0"
+      ],
+      "graded": {
+        "agent/example-pipeline-doctor@1.0.0": 3,
+        "skill/example-pipeline-failure-triage@1.0.0": 2,
+        "mcp/example-pipeline-run-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q225",
+      "query": "用户报了个问题，不知道算 P0 还是 P2",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-defect-tracker-reader@1.0.0",
+        "skill/example-bug-severity-classification@1.0.0",
+        "workflow/example-defect-triage-flow@1.0.0"
+      ],
+      "graded": {
+        "skill/example-bug-severity-classification@1.0.0": 3,
+        "mcp/example-defect-tracker-reader@1.0.0": 2,
+        "workflow/example-defect-triage-flow@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q226",
+      "query": "这个 bug 描述太含糊，想整理成能复现的步骤",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/example-bug-report-normalizer@1.0.0",
+        "prompt/demo-bugfix@1.0.0",
+        "skill/example-bug-severity-classification@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-bug-report-normalizer@1.0.0",
+        "prompt/example-reproduction-steps@1.0.0",
+        "skill/example-bug-severity-classification@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-reproduction-steps@1.0.0": 3,
+        "prompt/example-bug-report-normalizer@1.0.0": 2,
+        "skill/example-bug-severity-classification@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.432993,
+      "took_ms": 105,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q227",
+      "query": "想知道全量测试跑完要多久",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-test-report-reader@1.0.0",
+        "skill/example-regression-scope@1.0.0",
+        "tool/example-test-runtime-estimate@1.0.0"
+      ],
+      "graded": {
+        "tool/example-test-runtime-estimate@1.0.0": 3,
+        "skill/example-regression-scope@1.0.0": 2,
+        "mcp/example-test-report-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q228",
+      "query": "想看看现在还有哪些严重的缺陷没修",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-defect-tracker-reader@1.0.0",
+        "skill/example-bug-severity-classification@1.0.0",
+        "workflow/example-defect-triage-flow@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-defect-tracker-reader@1.0.0": 3,
+        "skill/example-bug-severity-classification@1.0.0": 2,
+        "workflow/example-defect-triage-flow@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q229",
+      "query": "缺陷进来之后想有个固定的分诊流程",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-bug-severity-classification@1.0.0",
+        "workflow/example-defect-triage-flow@1.0.0"
+      ],
+      "graded": {
+        "workflow/example-defect-triage-flow@1.0.0": 3,
+        "skill/example-bug-severity-classification@1.0.0": 2,
+        "agent/example-issue-triager@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q230",
+      "query": "想加一条平台规范，怕和现有规定打架",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-policy-registry@1.0.0",
+        "skill/example-platform-policy-review@1.0.0",
+        "tool/example-policy-conflict-check@1.0.0"
+      ],
+      "graded": {
+        "tool/example-policy-conflict-check@1.0.0": 3,
+        "mcp/example-policy-registry@1.0.0": 2,
+        "skill/example-platform-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q231",
+      "query": "想为某个项目申请一次规范豁免",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-policy-registry@1.0.0",
+        "prompt/example-exception-request@1.0.0",
+        "skill/example-platform-policy-review@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-exception-request@1.0.0": 3,
+        "mcp/example-policy-registry@1.0.0": 2,
+        "skill/example-platform-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q232",
+      "query": "想查一下现在生效的平台规定都有哪些",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-policy-advisor@1.0.0",
+        "mcp/example-policy-registry@1.0.0",
+        "tool/example-policy-conflict-check@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-policy-registry@1.0.0": 3,
+        "tool/example-policy-conflict-check@1.0.0": 2,
+        "agent/example-policy-advisor@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q233",
+      "query": "不确定新方案该遵守哪条规范",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-policy-advisor@1.0.0",
+        "mcp/example-policy-registry@1.0.0",
+        "skill/example-platform-policy-review@1.0.0"
+      ],
+      "graded": {
+        "agent/example-policy-advisor@1.0.0": 3,
+        "mcp/example-policy-registry@1.0.0": 2,
+        "skill/example-platform-policy-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q234",
+      "query": "规范本身写得好不好，想评审一下",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-platform-policy-review@1.0.0",
+        "tool/example-policy-conflict-check@1.0.0"
+      ],
+      "graded": {
+        "skill/example-platform-policy-review@1.0.0": 3,
+        "tool/example-policy-conflict-check@1.0.0": 2,
+        "prompt/example-control-mapping@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q235",
+      "query": "索引里好像有些内容更新了但检索还是老的",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-search-log-reader@1.0.0",
+        "skill/example-index-quality-review@1.0.0",
+        "skill/example-request-tracing@1.0.0"
+      ],
+      "graded": {
+        "skill/example-index-quality-review@1.0.0": 3,
+        "skill/example-request-tracing@1.0.0": 2,
+        "mcp/example-search-log-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q236",
+      "query": "很多搜索都没结果，想知道用户都在搜什么",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-search-log-reader@1.0.0",
+        "prompt/example-query-analysis@1.0.0",
+        "tool/example-vocabulary-coverage@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-query-analysis@1.0.0": 3,
+        "mcp/example-search-log-reader@1.0.0": 2,
+        "tool/example-vocabulary-coverage@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q237",
+      "query": "想知道我们语料里的词能覆盖多少查询用词",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-query-analysis@1.0.0",
+        "tool/example-vocabulary-coverage@1.0.0"
+      ],
+      "graded": {
+        "tool/example-vocabulary-coverage@1.0.0": 3,
+        "prompt/example-query-analysis@1.0.0": 2,
+        "skill/example-index-quality-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q238",
+      "query": "想查一下哪些查询一直搜不到东西",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-search-log-reader@1.0.0",
+        "prompt/example-query-analysis@1.0.0",
+        "skill/example-index-quality-review@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-search-log-reader@1.0.0": 3,
+        "prompt/example-query-analysis@1.0.0": 2,
+        "skill/example-index-quality-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q239",
+      "query": "有好几个改动都想赶上这次发布，得排个队",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-release-readiness@1.0.0",
+        "skill/example-release-train-coordination@1.0.0",
+        "tool/example-change-window-check@1.0.0"
+      ],
+      "graded": {
+        "skill/example-release-train-coordination@1.0.0": 3,
+        "skill/example-release-readiness@1.0.0": 2,
+        "tool/example-change-window-check@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q240",
+      "query": "上线后指标不对，想知道该不该回滚",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-deployment-history@1.0.0",
+        "prompt/example-rollback-decision@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-rollback-decision@1.0.0": 3,
+        "mcp/example-deployment-history@1.0.0": 2,
+        "skill/example-release-readiness@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q241",
+      "query": "想查一下这个服务最近部署了哪些版本",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-deployment-history@1.0.0",
+        "mcp/example-release-note-index@1.0.0",
+        "prompt/example-rollback-decision@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-deployment-history@1.0.0": 3,
+        "prompt/example-rollback-decision@1.0.0": 2,
+        "mcp/example-release-note-index@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q242",
+      "query": "照现在的增速，多久之后要扩容",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-capacity-planning@1.0.0",
+        "tool/example-storage-growth@1.0.0",
+        "tool/example-utilisation-summary@1.0.0"
+      ],
+      "graded": {
+        "skill/example-capacity-planning@1.0.0": 3,
+        "tool/example-utilisation-summary@1.0.0": 2,
+        "tool/example-storage-growth@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q243",
+      "query": "想定一个自动扩缩容的规则",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-scaling-policy@1.0.0",
+        "skill/example-capacity-planning@1.0.0",
+        "skill/example-slo-definition@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-scaling-policy@1.0.0": 3,
+        "skill/example-capacity-planning@1.0.0": 2,
+        "skill/example-slo-definition@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q244",
+      "query": "想知道现在还有多少余量",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-metrics-query@1.0.0",
+        "skill/example-capacity-planning@1.0.0",
+        "tool/example-utilisation-summary@1.0.0"
+      ],
+      "graded": {
+        "tool/example-utilisation-summary@1.0.0": 3,
+        "skill/example-capacity-planning@1.0.0": 2,
+        "mcp/example-metrics-query@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q245",
+      "query": "同一个状态在好几个地方都存了一份，很乱",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-component-api-review@1.0.0",
+        "skill/example-state-management-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-state-management-review@1.0.0": 3,
+        "skill/example-component-api-review@1.0.0": 2,
+        "agent/example-ui-consistency-agent@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q246",
+      "query": "组件没有文档，别人不知道该怎么用",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-component-doc-writer@1.0.0",
+        "skill/example-component-api-review@1.0.0",
+        "tool/example-props-surface@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-component-doc-writer@1.0.0": 3,
+        "tool/example-props-surface@1.0.0": 2,
+        "skill/example-component-api-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q247",
+      "query": "组件的布尔属性太多了，想梳理一下",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-component-api-review@1.0.0",
+        "tool/example-props-surface@1.0.0"
+      ],
+      "graded": {
+        "tool/example-props-surface@1.0.0": 3,
+        "skill/example-component-api-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q248",
+      "query": "离线功能同步时经常冲突，想看看设计有没有问题",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-offline-sync-review@1.0.0",
+        "skill/example-state-management-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-offline-sync-review@1.0.0": 3,
+        "skill/example-state-management-review@1.0.0": 2,
+        "mcp/example-mobile-crash-reader@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q249",
+      "query": "要申请相机权限，想知道弹框前该说什么",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-permission-rationale@1.0.0",
+        "tool/example-permission-audit@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-permission-rationale@1.0.0": 3,
+        "tool/example-permission-audit@1.0.0": 2,
+        "skill/example-app-review-rejection@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q250",
+      "query": "App 里声明了一堆权限，想确认都用得上",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/example-permission-rationale@1.0.0",
+        "skill/example-app-review-rejection@1.0.0",
+        "prompt/example-in-app-message@1.0.0",
+        "skill/example-app-size-review@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-permission-rationale@1.0.0",
+        "tool/example-permission-audit@1.0.0"
+      ],
+      "graded": {
+        "tool/example-permission-audit@1.0.0": 3,
+        "prompt/example-permission-rationale@1.0.0": 2,
+        "skill/example-mobile-release-checklist@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.319394,
+      "took_ms": 117,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q251",
+      "query": "怀疑评估数据混进训练集了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-eval-set-design@1.0.0",
+        "skill/example-training-data-leakage@1.0.0"
+      ],
+      "graded": {
+        "skill/example-training-data-leakage@1.0.0": 3,
+        "prompt/example-eval-set-design@1.0.0": 2,
+        "skill/example-model-regression-check@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q252",
+      "query": "想从头设计一套评估集",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-eval-set-design@1.0.0",
+        "prompt/example-model-eval-rubric@1.0.0",
+        "skill/example-training-data-leakage@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-eval-set-design@1.0.0": 3,
+        "prompt/example-model-eval-rubric@1.0.0": 2,
+        "skill/example-training-data-leakage@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q253",
+      "query": "想看训练数据的类别是不是很不均衡",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-dataset-card@1.0.0",
+        "tool/example-class-balance@1.0.0"
+      ],
+      "graded": {
+        "tool/example-class-balance@1.0.0": 3,
+        "prompt/example-dataset-card@1.0.0": 2,
+        "prompt/example-eval-set-design@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q254",
+      "query": "这个写接口重试安全吗，会不会重复下单",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-api-contract-review@1.0.0",
+        "skill/example-idempotency-review@1.0.0",
+        "tool/example-retry-schedule@1.0.0"
+      ],
+      "graded": {
+        "skill/example-idempotency-review@1.0.0": 3,
+        "skill/example-api-contract-review@1.0.0": 2,
+        "tool/example-retry-schedule@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q255",
+      "query": "想把状态流转规则画成状态机",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-state-machine-design@1.0.0",
+        "tool/example-transition-matrix@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-state-machine-design@1.0.0": 3,
+        "tool/example-transition-matrix@1.0.0": 2,
+        "skill/example-api-contract-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q256",
+      "query": "这个时间点做变更合不合适",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-release-train-coordination@1.0.0",
+        "tool/example-change-window-check@1.0.0"
+      ],
+      "graded": {
+        "tool/example-change-window-check@1.0.0": 3,
+        "skill/example-release-train-coordination@1.0.0": 2,
+        "skill/example-release-readiness@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q257",
+      "query": "想检查状态流转表有没有死路",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-state-machine-design@1.0.0",
+        "tool/example-transition-matrix@1.0.0"
+      ],
+      "graded": {
+        "tool/example-transition-matrix@1.0.0": 3,
+        "prompt/example-state-machine-design@1.0.0": 2,
+        "skill/example-pipeline-failure-triage@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q258",
+      "query": "告警天天响但没人处理，想看看规则是不是有问题",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-alert-rule-reader@1.0.0",
+        "skill/example-alert-quality-review@1.0.0",
+        "tool/example-alert-noise-score@1.0.0"
+      ],
+      "graded": {
+        "skill/example-alert-quality-review@1.0.0": 3,
+        "tool/example-alert-noise-score@1.0.0": 2,
+        "mcp/example-alert-rule-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q259",
+      "query": "告警内容太模糊，收到也不知道该做什么",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-alert-message@1.0.0",
+        "skill/example-alert-quality-review@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-alert-message@1.0.0": 3,
+        "skill/example-alert-quality-review@1.0.0": 2,
+        "prompt/example-error-message-rewrite@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q260",
+      "query": "想知道哪些告警最吵",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-alert-rule-reader@1.0.0",
+        "skill/example-alert-quality-review@1.0.0",
+        "tool/example-alert-noise-score@1.0.0"
+      ],
+      "graded": {
+        "tool/example-alert-noise-score@1.0.0": 3,
+        "mcp/example-alert-rule-reader@1.0.0": 2,
+        "skill/example-alert-quality-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q261",
+      "query": "想查一下这条告警规则最近触发过几次",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-alert-rule-reader@1.0.0",
+        "tool/example-alert-noise-score@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-alert-rule-reader@1.0.0": 3,
+        "tool/example-alert-noise-score@1.0.0": 2,
+        "mcp/example-metrics-query@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q262",
+      "query": "SDK 要升大版本，怕把用户代码弄坏",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/example-sdk-migration-guide@1.0.0",
+        "skill/example-sdk-compatibility-matrix@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "mcp/example-compatibility-matrix-reader@1.0.0",
+        "tool/example-public-api-surface@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-sdk-migration-guide@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "tool/example-public-api-surface@1.0.0"
+      ],
+      "graded": {
+        "skill/example-sdk-breaking-change@1.0.0": 3,
+        "tool/example-public-api-surface@1.0.0": 2,
+        "prompt/example-sdk-migration-guide@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.737103,
+      "took_ms": 128,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q263",
+      "query": "想给用户写一份从旧版升到新版的迁移指南",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-deprecation-notice@1.0.0",
+        "prompt/example-sdk-migration-guide@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-sdk-migration-guide@1.0.0": 3,
+        "skill/example-sdk-breaking-change@1.0.0": 2,
+        "prompt/example-deprecation-notice@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q264",
+      "query": "想知道这次改动删掉了哪些公开符号",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-api-contract-review@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "tool/example-public-api-surface@1.0.0"
+      ],
+      "graded": {
+        "tool/example-public-api-surface@1.0.0": 3,
+        "skill/example-sdk-breaking-change@1.0.0": 2,
+        "skill/example-api-contract-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q265",
+      "query": "想把一个数据集做成正式的数据产品",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-data-catalog-reader@1.0.0",
+        "prompt/example-pipeline-sla@1.0.0",
+        "skill/example-data-product-spec@1.0.0"
+      ],
+      "graded": {
+        "skill/example-data-product-spec@1.0.0": 3,
+        "mcp/example-data-catalog-reader@1.0.0": 2,
+        "prompt/example-pipeline-sla@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q266",
+      "query": "同一个指标在两个报表里算得不一样",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-metric-definition@1.0.0",
+        "tool/example-metric-consistency@1.0.0"
+      ],
+      "graded": {
+        "tool/example-metric-consistency@1.0.0": 3,
+        "prompt/example-metric-definition@1.0.0": 2,
+        "prompt/example-data-quality-report@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q267",
+      "query": "业务说的这个指标到底怎么算，想定义清楚",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-metric-definition@1.0.0",
+        "skill/example-data-product-spec@1.0.0",
+        "tool/example-metric-consistency@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-metric-definition@1.0.0": 3,
+        "tool/example-metric-consistency@1.0.0": 2,
+        "skill/example-data-product-spec@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q268",
+      "query": "想查一下有哪些数据产品，各自归谁负责",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-data-steward@1.0.0",
+        "mcp/example-data-catalog-reader@1.0.0",
+        "skill/example-data-product-spec@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-data-catalog-reader@1.0.0": 3,
+        "skill/example-data-product-spec@1.0.0": 2,
+        "agent/example-data-steward@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q269",
+      "query": "新团队接入平台时总是卡在某几步",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-onboarding-guide@1.0.0",
+        "agent/example-service-onboarding-agent@1.0.0",
+        "skill/example-platform-onboarding-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-platform-onboarding-review@1.0.0": 3,
+        "agent/example-service-onboarding-agent@1.0.0": 2,
+        "agent/example-onboarding-guide@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q270",
+      "query": "同样的问题被问了很多次，想整理成 FAQ",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/example-faq-from-issues@1.0.0"
+      ],
+      "relevant_ids": [
+        "agent/example-docs-answerer@1.0.0",
+        "mcp/example-ticket-reader@1.0.0",
+        "prompt/example-faq-from-issues@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-faq-from-issues@1.0.0": 3,
+        "mcp/example-ticket-reader@1.0.0": 2,
+        "agent/example-docs-answerer@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.673544,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q271",
+      "query": "想知道哪些命令还没有文档",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-faq-from-issues@1.0.0",
+        "tool/example-doc-coverage@1.0.0"
+      ],
+      "graded": {
+        "tool/example-doc-coverage@1.0.0": 3,
+        "prompt/example-faq-from-issues@1.0.0": 2,
+        "tool/example-markdown-link-check@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q272",
+      "query": "要做多语言，担心界面文字写死了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-i18n-readiness@1.0.0",
+        "skill/example-translation-consistency@1.0.0",
+        "tool/example-string-extraction@1.0.0"
+      ],
+      "graded": {
+        "skill/example-i18n-readiness@1.0.0": 3,
+        "tool/example-string-extraction@1.0.0": 2,
+        "skill/example-translation-consistency@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q273",
+      "query": "想把界面上的文案都抽出来去翻译",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-glossary-reader@1.0.0",
+        "skill/example-i18n-readiness@1.0.0",
+        "tool/example-string-extraction@1.0.0"
+      ],
+      "graded": {
+        "tool/example-string-extraction@1.0.0": 3,
+        "skill/example-i18n-readiness@1.0.0": 2,
+        "mcp/example-glossary-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q274",
+      "query": "收到一个漏洞报告，想按流程处理",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-advisory-reader@1.0.0",
+        "skill/example-vulnerability-response@1.0.0",
+        "tool/example-severity-score@1.0.0"
+      ],
+      "graded": {
+        "skill/example-vulnerability-response@1.0.0": 3,
+        "tool/example-severity-score@1.0.0": 2,
+        "mcp/example-advisory-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q275",
+      "query": "漏洞修完后要对外披露，想写清楚",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-incident-disclosure@1.0.0",
+        "prompt/example-status-page-update@1.0.0",
+        "skill/example-vulnerability-response@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-incident-disclosure@1.0.0": 3,
+        "skill/example-vulnerability-response@1.0.0": 2,
+        "prompt/example-status-page-update@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q276",
+      "query": "想知道这个问题到底有多严重",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-vulnerability-response@1.0.0",
+        "tool/example-severity-score@1.0.0"
+      ],
+      "graded": {
+        "tool/example-severity-score@1.0.0": 3,
+        "skill/example-vulnerability-response@1.0.0": 2,
+        "skill/example-bug-severity-classification@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q277",
+      "query": "想查一下这个依赖有没有安全公告",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-dependency-auditor@1.0.0",
+        "mcp/example-advisory-reader@1.0.0",
+        "mcp/example-package-registry@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-advisory-reader@1.0.0": 3,
+        "mcp/example-package-registry@1.0.0": 2,
+        "agent/example-dependency-auditor@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q278",
+      "query": "这条 SQL 会不会全表扫描",
+      "profile": "keyword",
+      "ranked_ids": [
+        "skill/example-query-review@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "prompt/example-sql-explanation@1.0.0",
+        "prompt/example-migration-reviewer@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-db-index-advice@1.0.0",
+        "prompt/example-explain-plan@1.0.0",
+        "skill/example-query-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-query-review@1.0.0": 3,
+        "prompt/example-explain-plan@1.0.0": 2,
+        "prompt/example-db-index-advice@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.673544,
+      "took_ms": 121,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q279",
+      "query": "看不懂这个执行计划在说什么",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-db-index-advice@1.0.0",
+        "prompt/example-explain-plan@1.0.0",
+        "skill/example-query-review@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-explain-plan@1.0.0": 3,
+        "skill/example-query-review@1.0.0": 2,
+        "prompt/example-db-index-advice@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q280",
+      "query": "日志里同一句 SQL 反复出现，像是 N+1 了",
+      "profile": "keyword",
+      "ranked_ids": [
+        "tool/example-n-plus-one-detect@1.0.0",
+        "skill/example-query-review@1.0.0",
+        "skill/example-pagination-api-review@1.0.0",
+        "skill/example-request-tracing@1.0.0",
+        "tool/example-sql-formatter@1.0.0",
+        "skill/example-cache-invalidation-review@1.0.0",
+        "prompt/example-sql-explanation@1.0.0",
+        "skill/example-cli-ux-review@1.0.0",
+        "skill/example-feature-request-triage@1.0.0",
+        "skill/example-prompt-regression-suite@1.0.0"
+      ],
+      "relevant_ids": [
+        "skill/example-query-review@1.0.0",
+        "skill/example-request-tracing@1.0.0",
+        "tool/example-n-plus-one-detect@1.0.0"
+      ],
+      "graded": {
+        "tool/example-n-plus-one-detect@1.0.0": 3,
+        "skill/example-query-review@1.0.0": 2,
+        "skill/example-request-tracing@1.0.0": 2
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.979989,
+      "took_ms": 306,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q281",
+      "query": "付费墙的价格说明不清楚，想看看有没有问题",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-app-review-rejection@1.0.0",
+        "skill/example-paywall-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-paywall-review@1.0.0": 3,
+        "skill/example-app-review-rejection@1.0.0": 2,
+        "prompt/example-permission-rationale@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q282",
+      "query": "想在 App 里弹个提示，字数不能太多",
+      "profile": "keyword",
+      "ranked_ids": [
+        "prompt/example-in-app-message@1.0.0",
+        "prompt/example-permission-rationale@1.0.0",
+        "skill/example-app-size-review@1.0.0",
+        "skill/example-app-review-rejection@1.0.0"
+      ],
+      "relevant_ids": [
+        "prompt/example-in-app-message@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-in-app-message@1.0.0": 3,
+        "skill/example-paywall-review@1.0.0": 1
+      },
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0,
+      "ndcg_at_10": 0.917319,
+      "took_ms": 121,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q283",
+      "query": "线上特征分布和训练时不一样了",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-experiment-tracker@1.0.0",
+        "skill/example-feature-drift@1.0.0",
+        "skill/example-model-regression-check@1.0.0"
+      ],
+      "graded": {
+        "skill/example-feature-drift@1.0.0": 3,
+        "skill/example-model-regression-check@1.0.0": 2,
+        "mcp/example-experiment-tracker@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q284",
+      "query": "模型上线后效果变差，想知道要不要回滚",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-model-rollback@1.0.0",
+        "skill/example-feature-drift@1.0.0",
+        "workflow/example-model-promotion@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-model-rollback@1.0.0": 3,
+        "workflow/example-model-promotion@1.0.0": 2,
+        "skill/example-feature-drift@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q285",
+      "query": "想看看模型预测结果的分布是否正常",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-feature-drift@1.0.0",
+        "tool/example-prediction-audit@1.0.0"
+      ],
+      "graded": {
+        "tool/example-prediction-audit@1.0.0": 3,
+        "skill/example-feature-drift@1.0.0": 2,
+        "prompt/example-model-eval-rubric@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q286",
+      "query": "这次改动会影响哪些客户，想知道范围",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-incident-disclosure@1.0.0",
+        "skill/example-customer-impact-assessment@1.0.0"
+      ],
+      "graded": {
+        "skill/example-customer-impact-assessment@1.0.0": 3,
+        "prompt/example-incident-disclosure@1.0.0": 2,
+        "workflow/example-support-escalation@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q287",
+      "query": "故障期间要更新状态页，不知道怎么写",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-incident-summary@1.0.0",
+        "prompt/example-status-page-update@1.0.0",
+        "workflow/example-incident-communication@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-status-page-update@1.0.0": 3,
+        "prompt/example-incident-summary@1.0.0": 2,
+        "workflow/example-incident-communication@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q288",
+      "query": "想按严重程度自动决定通知到哪个渠道",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "tool/example-channel-router@1.0.0",
+        "tool/example-severity-score@1.0.0"
+      ],
+      "graded": {
+        "tool/example-channel-router@1.0.0": 3,
+        "tool/example-severity-score@1.0.0": 2,
+        "prompt/example-alert-message@1.0.0": 1
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q289",
+      "query": "想把接口的错误码整理成一份对照表",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-api-error-message@1.0.0",
+        "skill/example-api-contract-review@1.0.0",
+        "tool/example-spec-lint@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-api-error-message@1.0.0": 3,
+        "tool/example-spec-lint@1.0.0": 2,
+        "skill/example-api-contract-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q290",
+      "query": "想知道某个改动会不会让老客户端解析失败",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-api-contract-review@1.0.0",
+        "skill/example-sdk-breaking-change@1.0.0",
+        "tool/example-json-schema-subset@1.0.0"
+      ],
+      "graded": {
+        "skill/example-api-contract-review@1.0.0": 3,
+        "skill/example-sdk-breaking-change@1.0.0": 2,
+        "tool/example-json-schema-subset@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q291",
+      "query": "想给内部工具做一次可用性走查",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-accessibility-audit@1.0.0",
+        "skill/example-cli-ux-review@1.0.0",
+        "skill/example-component-api-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-cli-ux-review@1.0.0": 3,
+        "skill/example-accessibility-audit@1.0.0": 2,
+        "skill/example-component-api-review@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q292",
+      "query": "测试环境的数据想和线上保持一致形状",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-schema-catalog@1.0.0",
+        "skill/example-test-data-generation@1.0.0",
+        "tool/example-fixture-generator@1.0.0"
+      ],
+      "graded": {
+        "tool/example-fixture-generator@1.0.0": 3,
+        "skill/example-test-data-generation@1.0.0": 2,
+        "mcp/example-schema-catalog@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q293",
+      "query": "想知道这次发布影响了哪些下游",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-contract-registry@1.0.0",
+        "mcp/example-deployment-history@1.0.0",
+        "skill/example-customer-impact-assessment@1.0.0"
+      ],
+      "graded": {
+        "skill/example-customer-impact-assessment@1.0.0": 3,
+        "mcp/example-contract-registry@1.0.0": 2,
+        "mcp/example-deployment-history@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q294",
+      "query": "想在合并前确认没引入新的依赖漏洞",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-dependency-auditor@1.0.0",
+        "mcp/example-advisory-reader@1.0.0",
+        "mcp/example-package-registry@1.0.0"
+      ],
+      "graded": {
+        "mcp/example-package-registry@1.0.0": 3,
+        "agent/example-dependency-auditor@1.0.0": 2,
+        "mcp/example-advisory-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q295",
+      "query": "团队之间对同一份数据的口径不一致",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "mcp/example-data-catalog-reader@1.0.0",
+        "prompt/example-metric-definition@1.0.0",
+        "tool/example-metric-consistency@1.0.0"
+      ],
+      "graded": {
+        "tool/example-metric-consistency@1.0.0": 3,
+        "prompt/example-metric-definition@1.0.0": 3,
+        "mcp/example-data-catalog-reader@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q296",
+      "query": "想把线上问题的排查过程沉淀下来",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-runbook-writer@1.0.0",
+        "skill/example-postmortem-action-tracking@1.0.0",
+        "workflow/example-incident-postmortem@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-runbook-writer@1.0.0": 3,
+        "skill/example-postmortem-action-tracking@1.0.0": 2,
+        "workflow/example-incident-postmortem@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q297",
+      "query": "想确认新服务符合平台接入要求",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-policy-advisor@1.0.0",
+        "skill/example-platform-onboarding-review@1.0.0",
+        "skill/example-service-catalog-entry@1.0.0"
+      ],
+      "graded": {
+        "skill/example-platform-onboarding-review@1.0.0": 3,
+        "skill/example-service-catalog-entry@1.0.0": 2,
+        "agent/example-policy-advisor@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q298",
+      "query": "前端状态同步到后端总是不一致",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "skill/example-offline-sync-review@1.0.0",
+        "skill/example-request-tracing@1.0.0",
+        "skill/example-state-management-review@1.0.0"
+      ],
+      "graded": {
+        "skill/example-state-management-review@1.0.0": 3,
+        "skill/example-offline-sync-review@1.0.0": 2,
+        "skill/example-request-tracing@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q299",
+      "query": "想知道模型和提示词哪个改坏了效果",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "agent/example-experiment-reviewer@1.0.0",
+        "skill/example-model-regression-check@1.0.0",
+        "skill/example-prompt-regression-suite@1.0.0"
+      ],
+      "graded": {
+        "skill/example-prompt-regression-suite@1.0.0": 3,
+        "skill/example-model-regression-check@1.0.0": 3,
+        "agent/example-experiment-reviewer@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q300",
+      "query": "想给一批服务统一定错误预算告警",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-error-budget-policy@1.0.0",
+        "skill/example-alert-quality-review@1.0.0",
+        "skill/example-slo-definition@1.0.0"
+      ],
+      "graded": {
+        "prompt/example-error-budget-policy@1.0.0": 3,
+        "skill/example-alert-quality-review@1.0.0": 2,
+        "skill/example-slo-definition@1.0.0": 2
+      },
+      "first_relevant_rank": 1000000,
+      "reciprocal_rank": 0.0,
+      "ndcg_at_10": 0.0,
+      "took_ms": 0,
+      "degraded": []
+    },
+    {
+      "query_id": "s2q301",
+      "query": "移动端和网页端的文案不一致",
+      "profile": "keyword",
+      "ranked_ids": [],
+      "relevant_ids": [
+        "prompt/example-in-app-message@1.0.0",
+        "skill/example-content-review-style@1.0.0",
+        "skill/example-translation-consistency@1.0.0"
+      ],
+      "graded": {
+        "skill/example-translation-consistency@1.0.0": 3,
+        "skill/example-content-review-style@1.0.0": 2,
+        "prompt/example-in-app-message@1.0.0": 2
       },
       "first_relevant_rank": 1000000,
       "reciprocal_rank": 0.0,

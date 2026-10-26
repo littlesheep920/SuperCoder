@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-architecture-reviewer",
+  "name": "Example Architecture Reviewer Agent",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example agent that reviews a design against recorded architectural constraints. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "architecture",
+    "review"
+  ],
+  "categories": [
+    "software-development/architecture"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-repo-search",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "backend-api",
+  "agent": {
+    "role": "Example agent that reviews a design against recorded architectural constraints.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-repo-search"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

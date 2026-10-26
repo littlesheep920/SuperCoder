@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-public-api-surface",
+  "name": "Example Public API Surface",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Lists exported symbols from a supplied declaration list and flags removals. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "sdk",
+    "analysis"
+  ],
+  "categories": [
+    "developer-tools/sdk"
+  ],
+  "runtimes": [
+    "cursor",
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "integration-team",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-ownership-resolver",
+  "name": "Example Ownership Resolver",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Resolves an owning team from a repository path using supplied rules. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "portal",
+    "ownership"
+  ],
+  "categories": [
+    "developer-tools/portal"
+  ],
+  "runtimes": [
+    "cursor",
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "developer-experience",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

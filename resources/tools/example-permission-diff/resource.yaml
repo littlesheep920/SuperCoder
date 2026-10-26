@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-permission-diff",
+  "name": "Example Permission Diff",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Compares two permission sets and reports additions and removals. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "iam",
+    "comparison"
+  ],
+  "categories": [
+    "security/iam"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "security",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

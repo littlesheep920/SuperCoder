@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-permission-rationale",
+  "name": "Example Mobile Permission Rationale Prompt",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Example prompt that writes the in-app rationale shown before a permission prompt. Illustrative sample content, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "mobile",
+    "ux"
+  ],
+  "categories": [
+    "software-development/mobile"
+  ],
+  "runtimes": [
+    "dify",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}
