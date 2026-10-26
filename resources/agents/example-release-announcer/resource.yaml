@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-release-announcer",
+  "name": "Example Release Announcer Agent",
+  "version": "1.0.0",
+  "description": "Example agent that drafts the internal announcement for a completed release. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "release",
+    "communication"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "dify",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-ci-build-status",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "agent": {
+    "role": "Example agent that drafts the internal announcement for a completed release.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-ci-build-status"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

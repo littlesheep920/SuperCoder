@@ -1,0 +1,97 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-test-report-reader",
+  "name": "Example Test Report Reader MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads stored test reports and returns failures with their assertions. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "testing",
+    "reports"
+  ],
+  "categories": [
+    "developer-tools/testing"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "qa-automation",
+  "mcp": {
+    "transport": "stdio",
+    "tools": [
+      {
+        "name": "test-report-reader-query",
+        "description": "Read test report reader query from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "test-report-reader-list",
+        "description": "Read test report reader list from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "test-report-reader-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "test-report-reader-endpoint"
+      ],
+      "additionalProperties": false
+    },
+    "command": [
+      "python",
+      "-m",
+      "example_test-report-reader-endpoint"
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-contract-registry",
+  "name": "Example Contract Registry MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads verified consumer contracts and their providers. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "testing",
+    "contract"
+  ],
+  "categories": [
+    "developer-tools/testing"
+  ],
+  "runtimes": [
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "qa-automation",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://contract-registry-endpoint.example.invalid/api",
+    "tools": [
+      {
+        "name": "contract-registry-get",
+        "description": "Read contract registry.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "contract-registry-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract-registry-endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

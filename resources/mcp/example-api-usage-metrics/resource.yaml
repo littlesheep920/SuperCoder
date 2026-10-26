@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-api-usage-metrics",
+  "name": "Example API Usage Metrics MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads per-endpoint usage counts and error rates. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "api",
+    "metrics"
+  ],
+  "categories": [
+    "developer-tools/api"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "backend-api",
+  "mcp": {
+    "transport": "streamable-http",
+    "url": "https://api-usage-metrics-endpoint.example.invalid/api",
+    "tools": [
+      {
+        "name": "api-usage-metrics-get",
+        "description": "Read api usage metrics.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "api-usage-metrics-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "api-usage-metrics-endpoint"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

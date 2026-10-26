@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-error-message-rewrite",
+  "name": "Example Error Message Rewrite Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that rewrites a stack trace into a message naming the likely cause and next step. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "ux",
+    "writing"
+  ],
+  "categories": [
+    "developer-tools/ux"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "developer-experience",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

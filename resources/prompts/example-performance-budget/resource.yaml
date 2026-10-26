@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-performance-budget",
+  "name": "Example Performance Budget Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that turns a page's measured timings into a concrete performance budget proposal. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "performance",
+    "frontend"
+  ],
+  "categories": [
+    "software-development/performance"
+  ],
+  "runtimes": [
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "frontend",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

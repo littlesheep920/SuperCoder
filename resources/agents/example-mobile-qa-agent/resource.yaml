@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-mobile-qa-agent",
+  "name": "Example Mobile QA Agent",
+  "version": "1.0.0",
+  "description": "Example agent that summarises a mobile test run and names the devices that failed. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "mobile",
+    "qa"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-test-report-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "agent": {
+    "role": "Example agent that summarises a mobile test run and names the devices that failed.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-test-report-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

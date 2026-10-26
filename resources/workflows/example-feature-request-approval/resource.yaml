@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-feature-request-approval",
+  "name": "Example Feature Request Approval",
+  "version": "1.0.0",
+  "description": "Example approval flow for accepting a feature request into planning. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "product",
+    "approval"
+  ],
+  "categories": [
+    "product/planning"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "work",
+        "type": "condition"
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "work"
+      },
+      {
+        "from": "work",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "fixed"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

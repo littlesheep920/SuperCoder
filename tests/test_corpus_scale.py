@@ -37,11 +37,16 @@ def manifests() -> list[tuple[Path, dict]]:
 
 class CorpusSizeTests(unittest.TestCase):
     def test_corpus_size_is_in_the_intended_band(self) -> None:
-        """Target was 30-50; going far outside means the assumption changed."""
+        """The corpus must stay large enough for the metrics to mean something.
+
+        The band widened from 30-50 to 150-400 when the evaluation set grew to
+        several hundred queries: a corpus of forty cannot support that many
+        distinct questions without them all pointing at the same resources.
+        """
 
         count = len(manifests())
-        self.assertGreaterEqual(count, 30, "corpus shrank below the intended band")
-        self.assertLessEqual(count, 60, "corpus grew beyond what was evaluated")
+        self.assertGreaterEqual(count, 150, "corpus shrank below what the evaluation covers")
+        self.assertLessEqual(count, 400, "corpus grew beyond what was evaluated")
 
     def test_all_six_kinds_are_represented(self) -> None:
         kinds = Counter(manifest["kind"] for _, manifest in manifests())

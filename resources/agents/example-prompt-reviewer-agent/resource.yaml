@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-prompt-reviewer-agent",
+  "name": "Example Prompt Reviewer Agent",
+  "version": "1.0.0",
+  "description": "Example agent that reviews a prompt draft for ambiguity and missing constraints. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "prompt",
+    "review"
+  ],
+  "categories": [
+    "ml/evaluation"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-experiment-tracker",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "ml-platform",
+  "agent": {
+    "role": "Example agent that reviews a prompt draft for ambiguity and missing constraints.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-experiment-tracker"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

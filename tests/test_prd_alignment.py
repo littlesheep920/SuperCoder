@@ -58,14 +58,19 @@ class MetricDisclosureTests(unittest.TestCase):
                         f"{profile}.{key}={metrics[key]} is not quoted in the PRD",
                     )
 
-    def test_baseline_describes_the_expanded_corpus(self) -> None:
-        """A stale baseline would make every quoted number silently wrong."""
+    def test_baseline_describes_the_current_corpus(self) -> None:
+        """The PRD must describe the corpus the archived baseline measured."""
 
         config = baseline("hybrid")["config"]
-        self.assertEqual(config.get("corpus_size"), 42)
+        corpus_size = config.get("corpus_size")
+        self.assertIsInstance(corpus_size, int)
+        self.assertIn(f"{corpus_size} 项", self.text)
 
     def test_latency_claim_is_present_and_caveated(self) -> None:
-        self.assertRegex(self.text, r"463\s*ms")
+        """The quoted latency must match the archived measurement."""
+
+        p95 = baseline("hybrid")["metrics"]["p95_latency_ms"]
+        self.assertIn(str(p95), self.text)
         for caveat in ("预热", "尖峰"):
             with self.subTest(caveat=caveat):
                 self.assertIn(caveat, self.text)
@@ -73,9 +78,13 @@ class MetricDisclosureTests(unittest.TestCase):
     def test_corpus_provenance_is_disclosed(self) -> None:
         """Example content must never be presented as real enterprise data."""
 
-        self.assertIn("42 项", self.text)
         self.assertRegex(self.text, r"示例|example")
         self.assertIn("单标注者", self.text)
+
+    def test_unreached_query_target_is_disclosed(self) -> None:
+        """The 300-query goal was not met; the PRD must say so, not omit it."""
+
+        self.assertRegex(self.text, r"未完全达成|未达|未达到")
 
 
 class ContractCoverageTests(unittest.TestCase):

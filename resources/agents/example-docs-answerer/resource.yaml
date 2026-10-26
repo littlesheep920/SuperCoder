@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-docs-answerer",
+  "name": "Example Documentation Answerer Agent",
+  "version": "1.0.0",
+  "description": "Example agent that answers product questions strictly from the published documentation. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "docs",
+    "support"
+  ],
+  "categories": [
+    "developer-tools/documentation"
+  ],
+  "runtimes": [
+    "dify",
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-docs-site-search",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "docs",
+  "agent": {
+    "role": "Example agent that answers product questions strictly from the published documentation.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-docs-site-search"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

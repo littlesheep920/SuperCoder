@@ -1,0 +1,58 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-user-story-split",
+  "name": "Example User Story Split Prompt",
+  "version": "1.0.0",
+  "description": "Example prompt that splits an oversized user story into independently deliverable slices. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "prompt",
+    "planning",
+    "product"
+  ],
+  "categories": [
+    "product/planning"
+  ],
+  "runtimes": [
+    "dify",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

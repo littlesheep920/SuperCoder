@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-experiment-reviewer",
+  "name": "Example Experiment Reviewer Agent",
+  "version": "1.0.0",
+  "description": "Example agent that compares experiment runs and reports whether a change is distinguishable from noise. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "experiments",
+    "ml"
+  ],
+  "categories": [
+    "ml/experiments"
+  ],
+  "runtimes": [
+    "dify",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-experiment-tracker",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "ml-platform",
+  "agent": {
+    "role": "Example agent that compares experiment runs and reports whether a change is distinguishable from noise.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-experiment-tracker"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

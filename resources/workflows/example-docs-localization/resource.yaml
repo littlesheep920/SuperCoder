@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-docs-localization",
+  "name": "Example Documentation Localization Flow",
+  "version": "1.0.0",
+  "description": "Example workflow for documentation localization flow, pausing for human approval before the final step. Illustrative sample content for the SuperCoder protocol.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "docs",
+    "localization"
+  ],
+  "categories": [
+    "documentation/localization"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "docs",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "work",
+        "type": "condition"
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "work"
+      },
+      {
+        "from": "work",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

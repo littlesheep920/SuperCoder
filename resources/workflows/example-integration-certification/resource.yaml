@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-integration-certification",
+  "name": "Example Integration Certification",
+  "version": "1.0.0",
+  "description": "Example certification flow for a completed integration requiring approval. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "integration",
+    "certification"
+  ],
+  "categories": [
+    "software-development/integration"
+  ],
+  "runtimes": [
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "integration-team",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "work",
+        "type": "condition"
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "work"
+      },
+      {
+        "from": "work",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "fixed"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-markdown-link-check",
+  "name": "Example Markdown Link Check",
+  "version": "1.0.0",
+  "description": "Example resource for the SuperCoder protocol. Lists relative markdown links so dangling references can be found offline. Illustrative sample content for the SuperCoder protocol; deterministic and offline.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "markdown",
+    "quality"
+  ],
+  "categories": [
+    "documentation/quality"
+  ],
+  "runtimes": [
+    "kiro",
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "docs",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

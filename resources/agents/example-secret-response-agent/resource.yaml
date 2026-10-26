@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-secret-response-agent",
+  "name": "Example Secret Response Agent",
+  "version": "1.0.0",
+  "description": "Example agent that summarises a secret-scanning finding and lists what must be rotated. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "security",
+    "incident"
+  ],
+  "categories": [
+    "security/incident"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-secret-scanner-report",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "security",
+  "agent": {
+    "role": "Example agent that summarises a secret-scanning finding and lists what must be rotated.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-secret-scanner-report"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

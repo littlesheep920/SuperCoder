@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-flaky-test-hunter",
+  "name": "Example Flaky Test Hunter Agent",
+  "version": "1.0.0",
+  "description": "Example agent that identifies flaky tests from stored reports and proposes quarantine candidates. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "testing",
+    "triage"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "claude-code",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-test-report-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "qa-automation",
+  "agent": {
+    "role": "Example agent that identifies flaky tests from stored reports and proposes quarantine candidates.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-test-report-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

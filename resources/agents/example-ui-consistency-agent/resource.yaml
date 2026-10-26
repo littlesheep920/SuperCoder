@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-ui-consistency-agent",
+  "name": "Example UI Consistency Agent",
+  "version": "1.0.0",
+  "description": "Example agent that reports components whose styling diverges from the design tokens. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "ui",
+    "design"
+  ],
+  "categories": [
+    "software-development/ui"
+  ],
+  "runtimes": [
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-design-token-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "frontend",
+  "agent": {
+    "role": "Example agent that reports components whose styling diverges from the design tokens.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-design-token-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

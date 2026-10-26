@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-openapi-spec-reader",
+  "name": "Example OpenAPI Spec Reader MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads a repository's OpenAPI document by operation id. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "api",
+    "spec"
+  ],
+  "categories": [
+    "developer-tools/api"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "backend-api",
+  "mcp": {
+    "transport": "sse",
+    "tools": [
+      {
+        "name": "openapi-spec-reader-get",
+        "description": "Read openapi spec reader get from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "openapi-spec-reader-search",
+        "description": "Read openapi spec reader search from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "openapi-spec-reader-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "openapi-spec-reader-endpoint"
+      ],
+      "additionalProperties": false
+    },
+    "url": "https://openapi-spec-reader-endpoint.example.invalid/api"
+  }
+}

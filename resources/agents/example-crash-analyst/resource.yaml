@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-crash-analyst",
+  "name": "Example Crash Analyst Agent",
+  "version": "1.0.0",
+  "description": "Example agent that summarises crash clusters for a release and names the top affected device class. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "mobile",
+    "crash"
+  ],
+  "categories": [
+    "software-development/mobile"
+  ],
+  "runtimes": [
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-mobile-crash-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "agent": {
+    "role": "Example agent that summarises crash clusters for a release and names the top affected device class.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-mobile-crash-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

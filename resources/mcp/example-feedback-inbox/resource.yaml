@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "kind": "mcp",
+  "slug": "example-feedback-inbox",
+  "name": "Example Feedback Inbox MCP",
+  "version": "1.0.0",
+  "description": "Example MCP server that reads user feedback entries with their stated severity. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "mcp",
+    "feedback",
+    "support"
+  ],
+  "categories": [
+    "collaboration/support"
+  ],
+  "runtimes": [
+    "dify"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "MCP.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "mcp": {
+    "transport": "sse",
+    "tools": [
+      {
+        "name": "feedback-inbox-get",
+        "description": "Read feedback inbox get from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      {
+        "name": "feedback-inbox-search",
+        "description": "Read feedback inbox search from the upstream system.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "config_schema": {
+      "type": "object",
+      "properties": {
+        "feedback-inbox-endpoint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "feedback-inbox-endpoint"
+      ],
+      "additionalProperties": false
+    },
+    "url": "https://feedback-inbox-endpoint.example.invalid/api"
+  }
+}

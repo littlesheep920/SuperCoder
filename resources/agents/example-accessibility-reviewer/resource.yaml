@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-accessibility-reviewer",
+  "name": "Example Accessibility Reviewer Agent",
+  "version": "1.0.0",
+  "description": "Example agent that reviews components against stored accessibility findings and tracks regressions. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "agent",
+    "accessibility",
+    "ui"
+  ],
+  "categories": [
+    "software-development/ui"
+  ],
+  "runtimes": [
+    "cursor",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-accessibility-report",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "frontend",
+  "agent": {
+    "role": "Example agent that reviews components against stored accessibility findings and tracks regressions.",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-accessibility-report"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-nightly-test-review",
+  "name": "Example Nightly Test Review",
+  "version": "1.0.0",
+  "description": "Example review flow for nightly test results requiring human approval. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "testing",
+    "nightly"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "qa-automation",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "work",
+        "type": "condition"
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "done",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "work"
+      },
+      {
+        "from": "work",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "done"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "fixed"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}
