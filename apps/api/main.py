@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from .config import Settings, get_settings
 from .dependencies import Container, build_container
 from .middleware.context import RequestContextMiddleware, register_exception_handlers
-from .routers import governance, resources, search, system, versions
+from .routers import discovery, governance, resources, search, system, versions
 
 __all__ = ["app", "create_app"]
 
@@ -62,6 +62,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.include_router(versions.router, prefix=prefix)
     app.include_router(governance.router, prefix=prefix)
     app.include_router(search.router, prefix=prefix)
+    app.include_router(discovery.router, prefix=prefix)
     return app
 
 
