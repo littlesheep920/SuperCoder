@@ -437,11 +437,41 @@ Docker 可用后补齐了此前缺失的验证。脚本：`python scripts/check_
 
 **修正的一处文档错误**：早期注释把 `resource_id` 描述为 `kind/slug@version` 形式，实际是 ULID 公开 ID。若不修正，客户端会按错误的形状拼路由。
 
-#### 4.7.11 仍未验证
+#### 4.7.11 提交路径实测（MySQL + 可写 Git）
 
-1. **成功提交一次资源**：本环境 MySQL 虽已可用，但 `commit` 需要 Git 可写；实测返回 503 为正确行为，成功路径由带假对象的单元测试覆盖。
-2. **提示词稳定性基于少量样本**：登记通道的"0 错误"在 2 个描述上成立，样本不足以给出错误率。
-3. **前端无组件级测试**：仍靠浏览器驱动验证。
+此前 `commit` 只观察到 503（Git 只读），成功路径从未跑通。Docker 可用后完成实测。
+
+脚本：`python scripts/check_commit_e2e.py`（要求 HEAD 在 `verify-*` 分支且工作区干净）
+
+| 检查项 | 结果 |
+|---|---|
+| 预览报告为新资源 | ✅ |
+| commit 返回 201 | ✅ |
+| 返回内容哈希 | ✅ |
+| 创建状态为 draft | ✅ |
+| manifest 与正文写入 Git | ✅ |
+| 写入文件的 status 为 draft | ✅ |
+| 资源可通过 API 读回 | ✅ |
+| 版本状态为 draft | ✅ |
+
+**实测中发现的三个真实缺陷**（全部为既有代码问题，与新增功能无关）：
+
+| 缺陷 | 影响 | 原因 |
+|---|---|---|
+| `validator unavailable: TypeError` | commit 永远 422 | `validate_manifest` 只接受 `Path`，而配置传入字符串 |
+| `AttributeError: 'VersionRecord' object has no attribute 'version'` | 写入成功后返回 500 | 字段实际名为 `identifier` |
+| `AttributeError: replacement_version_id` | `include_versions=true` 对所有资源 500 | `select()` 结果未用 `.scalars()` 解包 |
+
+**为什么测试没发现**：单元测试的假对象定义了 `version` 属性，假对象与代码互相吻合，却都与真实 `VersionRecord` 不符。假对象已改为真实字段名。
+
+**为什么修了三次**：前两次修复随临时分支被丢弃，由端到端脚本再次暴露。这也是该类脚本存在的理由。
+
+#### 4.7.12 仍未验证
+
+1. **提示词稳定性基于少量样本**：登记通道的"0 错误"在 2 个描述上成立，样本不足以给出错误率。
+2. **前端无组件级测试**：仍靠浏览器驱动验证。
+3. **多 Worker 并发提交未测**：提交路径单进程验证通过，未在并发下测试。
+4. **生产身份认证未接入**：使用开发令牌，真实 SSO 场景未验证。
 
 ## 5. 实现过程中发现并修复的缺陷
 
