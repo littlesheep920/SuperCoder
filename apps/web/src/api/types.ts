@@ -229,3 +229,64 @@ export interface CallerIdentity {
   governance_roles: string[];
   capabilities: Capability[];
 }
+
+/** Request body for POST /v1/discovery/recommend. */
+export interface DiscoveryRequest {
+  question: string;
+  context?: string;
+  filters?: Record<string, unknown>;
+  max_recommendations?: number;
+}
+
+export interface DiscoveryRecommendation {
+  resource_id: string;
+  kind: string;
+  version: string;
+  artifact_hash: string;
+  reason: string;
+  score: number;
+}
+
+/**
+ * Response of POST /v1/discovery/recommend.
+ *
+ * `answered: false` is a normal outcome. `considered` lists every candidate the
+ * judge saw, so a refusal can be audited instead of taken on trust.
+ */
+export interface DiscoveryResponse {
+  answered: boolean;
+  recommendations: DiscoveryRecommendation[];
+  refusal_reason: string | null;
+  clarifying_questions: string[];
+  considered: string[];
+  degraded: string[];
+  model: string | null;
+}
+
+/** Request body for POST /v1/registration/draft. */
+export interface ManifestDraftRequest {
+  description: string;
+  kind_hint?: string;
+}
+
+export interface DraftValidation {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+/**
+ * Response of POST /v1/registration/draft.
+ *
+ * Drifting a manifest writes nothing: `next_step` states that registering is a
+ * separate action, and `manifest` may be null when drafting failed.
+ */
+export interface ManifestDraftResponse {
+  manifest: Record<string, unknown> | null;
+  validation: DraftValidation;
+  warnings: string[];
+  needs_input: string[];
+  degraded: string[];
+  model: string | null;
+  next_step: string;
+}

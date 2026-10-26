@@ -97,6 +97,25 @@ class AllowedValueTests(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertEqual(len(values), len(set(values)))
 
+    def test_nested_enumerations_are_extracted(self) -> None:
+        """A real run invented execution_mode 'sync'; the prompt must list the set."""
+
+        allowed = extract_allowed_values(SCHEMA)
+        self.assertEqual(
+            allowed["tool.execution_mode"], ["python", "executable", "container", "http"]
+        )
+        self.assertEqual(allowed["mcp.transport"], ["stdio", "sse", "streamable-http"])
+        self.assertEqual(allowed["prompt.prompt_type"], ["system", "task", "template", "few-shot"])
+        self.assertIn("retrieval-augmented", allowed["agent.context_strategy"])
+
+    def test_prompt_states_every_enumeration(self) -> None:
+        d = drafter(payload(VALID_MANIFEST))
+        d.draft(description="a skill")
+        system = d.client.calls[0]["system"]
+        for value in ("executable", "streamable-http", "few-shot", "checkpointed"):
+            with self.subTest(value=value):
+                self.assertIn(value, system)
+
 
 class DraftTests(unittest.TestCase):
     def test_valid_draft_is_accepted(self) -> None:

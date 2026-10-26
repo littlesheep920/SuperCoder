@@ -1,10 +1,14 @@
 import type {
   AuditRecord,
   CallerIdentity,
+  DiscoveryRequest,
+  DiscoveryResponse,
   ErrorBody,
   Job,
   JobEvent,
   ListResponse,
+  ManifestDraftRequest,
+  ManifestDraftResponse,
   ResourceDetail,
   ResourceReview,
   ResourceSummary,
@@ -165,4 +169,31 @@ export const api = {
     };
     return { data: (await response.json()) as SearchResponse, diagnostics };
   },
+
+  /**
+   * Ask "which capability should I use?" and receive either grounded
+   * recommendations or an auditable refusal.
+   *
+   * A refusal is a normal outcome, not an error: the response carries the reason
+   * and every candidate that was considered, so the console can show why nothing
+   * fit rather than presenting a weak match as an answer.
+   */
+  recommend: (body: DiscoveryRequest) =>
+    request<DiscoveryResponse>("/discovery/recommend", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  /**
+   * Draft a manifest candidate from a description.
+   *
+   * This writes nothing. The response carries the schema validation result and a
+   * nextStep stating that registering is a separate action. The console must not
+   * present a draft as a created resource.
+   */
+  draftManifest: (body: ManifestDraftRequest) =>
+    request<ManifestDraftResponse>("/registration/draft", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

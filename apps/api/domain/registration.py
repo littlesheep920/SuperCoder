@@ -68,30 +68,47 @@ class DraftOutcome:
 
 
 def extract_allowed_values(schema: Mapping[str, Any]) -> dict[str, list[str]]:
-    """Pull the closed value sets the model must respect out of the schema.
+    """Pull every closed value set the model must respect out of the schema.
 
     Reading them from the schema rather than restating them in the prompt means a
     schema change cannot leave the prompt describing the old contract.
+
+    Nested enumerations matter as much as top-level ones. An early version listed
+    only kind/runtime/status, and a real run then emitted ``execution_mode:
+    "sync"`` — a value the model invented because nothing told it the allowed set.
     """
 
-    defs = schema.get("$defs", {})
     values: dict[str, list[str]] = {}
 
+    def add(name: str, enum: Any) -> None:
+        if isinstance(enum, list) and enum:
+            rendered = [str(item) for item in enum]
+            if all(isinstance(item, str) for item in enum):
+                values[name] = rendered
+
+    defs = schema.get("$defs", {})
+
     kind_enum = schema.get("properties", {}).get("kind", {}).get("enum")
-    if isinstance(kind_enum, list):
-        values["kind"] = [str(item) for item in kind_enum]
+    add("kind", kind_enum)
 
     runtime_enum = defs.get("runtime", {}).get("enum")
-    if isinstance(runtime_enum, list):
-        values["runtime"] = [str(item) for item in runtime_enum]
+    add("runtime", runtime_enum)
 
     status_enum = defs.get("lifecycleStatus", {}).get("enum")
-    if isinstance(status_enum, list):
-        values["status"] = [str(item) for item in status_enum]
+    add("status", status_enum)
 
     required = schema.get("required")
     if isinstance(required, list):
         values["required_fields"] = [str(item) for item in required]
+
+    # Nested enumerations, keyed by <spec>.<field> so the prompt is unambiguous.
+    for spec_name in ("toolSpec", "mcpSpec", "promptSpec", "agentSpec", "workflowSpec"):
+        properties = defs.get(spec_name, {}).get("properties", {})
+        for field_name, definition in properties.items():
+            enum = definition.get("enum")
+            if enum:
+                label = f"{spec_name.replace('Spec', '')}.{field_name}"
+                add(label, enum)
 
     return values
 
