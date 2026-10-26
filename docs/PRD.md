@@ -572,6 +572,10 @@ RRF 融合
 docker compose up --build
 ```
 
+> **必须带 `--build`**。`docker compose up` 只复用已有镜像，不会重新构建；源码改动后
+> 若省略此参数，容器会继续提供上一次构建的前端产物与后端代码。改动只涉及环境变量时
+> 用 `docker compose up -d` 即可，镜像内容不变。
+
 启动顺序：MySQL（执行迁移）→ 种子数据 → API → Worker → Web。
 
 访问：
