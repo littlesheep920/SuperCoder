@@ -16,6 +16,7 @@ from .repositories.contracts import (
 from .schemas.governance import AuditRecord, Job, JobEvent
 from .schemas.resources import (
     DiffResponse,
+    ResolvedDependency,
     ResourceReview,
     ResourceSummary,
     ResourceVersion,
@@ -84,7 +85,27 @@ def to_version_detail(version: VersionRecord, *, runtimes=None, dependencies=Non
         manifest=dict(version.manifest),
         artifacts=[],
         runtimes=[RuntimeValidation(runtime=item.runtime, validation_status=item.validation_status) for item in (runtimes or ())],
-        dependencies=[dict() for _ in (dependencies or ())],
+        # A dependency is a real record, not an empty placeholder. The previous
+        # `dict()` stub satisfied no schema: `ResolvedDependency` forbids extras and
+        # requires kind/slug/version/source/ordinal/resolution_status, so any version
+        # read with at least one dependency raised a validation error.
+        dependencies=[
+            ResolvedDependency(
+                kind=item.dependency_kind,
+                slug=item.dependency_slug,
+                version=item.version_constraint,
+                optional=item.is_optional,
+                source=item.source,
+                purpose=item.purpose,
+                ordinal=item.ordinal,
+                resolution_status=item.resolution_status,
+                resolved_resource_version_id=item.resolved_version_public_id,
+                external_locator=item.external_locator,
+                external_digest=item.external_digest,
+                resolution_error_code=item.resolution_error_code,
+            )
+            for item in (dependencies or ())
+        ],
         status_changed_by=version.status_changed_by,
         status_reason=version.status_reason,
         validated_at=version.validated_at,

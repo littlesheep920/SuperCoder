@@ -10,6 +10,7 @@ from .auth import AuthContext, DevTokenAuth
 from .application.catalog import CatalogService
 from .application.discovery_service import DiscoveryService
 from .application.draft_commit import DraftCommitService
+from .application.version_editor import VersionEditorService
 from .application.draft_comparer import DraftComparer
 from .application.diffs import DiffService
 from .application.governance import GovernanceService
@@ -93,6 +94,10 @@ class Container:
     # Commits a confirmed draft. Absent when the Git provider is read-only, so
     # the endpoint fails closed rather than pretending to write.
     draft_commit: DraftCommitService | None = None
+    # Edits a draft version's body. Absent when Git is read-only, because editing
+    # the body means writing the file: the recorded digest must match the bytes on
+    # disk, and there is no way to satisfy that without writing.
+    version_editor: VersionEditorService | None = None
     mysql_engine: object = None
 
 
@@ -171,6 +176,13 @@ def build_container(settings: Settings | None = None) -> Container:
                 git,
                 ResourceCommandService(uow_factory, snapshots),
                 settings.git.repository_root,
+            )
+        ),
+        version_editor=(
+            None
+            if settings.git.read_only or not settings.mysql.enabled
+            else VersionEditorService(
+                git, ResourceCommandService(uow_factory, snapshots)
             )
         ),
     )

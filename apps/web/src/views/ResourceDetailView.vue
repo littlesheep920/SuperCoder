@@ -4,6 +4,7 @@ import { api } from "../api/client";
 import type { ResourceDetail } from "../api/types";
 import { useCapabilities } from "../composables/useCapabilities";
 import VersionLifecyclePanel from "../components/VersionLifecyclePanel.vue";
+import VersionEditor from "../components/VersionEditor.vue";
 import { stateLabel } from "../domain/lifecycle";
 
 const props = defineProps<{ id: string }>();
@@ -127,6 +128,8 @@ onMounted(load);
       </div>
 
       <VersionLifecyclePanel :version="activeVersion" @changed="load" />
+
+      <VersionEditor :version="activeVersion" @changed="load" />
     </template>
   </div>
 </template>

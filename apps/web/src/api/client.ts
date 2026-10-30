@@ -96,6 +96,38 @@ export const api = {
       body: JSON.stringify({ reason }),
     }),
 
+  /**
+   * Replace a draft body and/or patch its manifest.
+   *
+   * The server writes the file and hashes what it wrote, so no digest is sent: a
+   * client-computed hash for a file it is about to change could only disagree.
+   */
+  editDraftBody: (
+    versionId: string,
+    body: { body?: string | null; manifest?: Record<string, unknown> | null; row_version: number; reason: string },
+    etag: string,
+  ) =>
+    request<{ version: ResourceVersion; body_path: string; body_written: boolean }>(
+      `/resource-versions/${versionId}/body`,
+      {
+        method: "PUT",
+        body: JSON.stringify(body),
+        headers: { "If-Match": etag },
+      },
+    ),
+  readDraftBody: (versionId: string) =>
+    request<{ version_id: string; entrypoint: string; body: string | null; available: boolean }>(
+      `/resource-versions/${versionId}/body`,
+    ),
+  createVersion: (
+    resourceId: string,
+    body: { manifest: unknown; artifacts: unknown[]; replacement_version_id?: string | null; reason: string },
+  ) =>
+    request<ResourceVersion>(`/resources/${resourceId}/versions`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
   transition: (versionId: string, body: Record<string, unknown>, etag: string) =>
     request<{ version: ResourceVersion; job: Job | null; audit_id: string }>(
       `/resource-versions/${versionId}/transitions`,

@@ -73,6 +73,23 @@ class UpdateDraftVersionRequest(BaseModel):
     reason: str = Field(min_length=1, max_length=2000)
 
 
+class EditDraftBodyRequest(BaseModel):
+    """Replace a draft version's body text and/or patch its manifest.
+
+    ``body`` is the full replacement text for the entrypoint file. The server writes
+    it to the managed checkout and then records the digest of what it wrote, so the
+    caller never has to compute a hash — and cannot submit one that disagrees with
+    the file, which is exactly what ``UpdateDraftVersionRequest.artifacts`` invites.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    body: str | None = Field(default=None, max_length=1_000_000)
+    manifest: dict[str, Any] | None = None
+    row_version: int = Field(ge=1)
+    reason: str = Field(min_length=1, max_length=2000)
+
+
 class ResourceVersionSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -228,3 +245,18 @@ class DiffResponse(BaseModel):
     target_version: str
     unified_diff: str
     changed_paths: list[str] = Field(default_factory=list)
+
+
+class EditedDraftResponse(BaseModel):
+    """Result of editing a draft body.
+
+    Declared after ResourceVersion so the reference resolves without a forward
+    declaration, and so a reader meets the type it depends on first.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    version: ResourceVersion
+    body_path: str
+    body_written: bool
+    audit_id: str = Field(pattern=_PUBLIC_ID_PATTERN)

@@ -55,7 +55,7 @@ services:
       SUPERCODER_MYSQL_USER: supercoder_local
       SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
       SUPERCODER_GIT_REPOSITORY_ROOT: /app
-      # Read-only by default: the image runs unprivileged and the checkout is
+      # Read-only by default: the image runs unprivileged and the checkout below is
       # bind-mounted, so an unexpected write would land in the operator's working
       # tree. Override only to exercise the registration commit path deliberately.
       SUPERCODER_GIT_READ_ONLY: ${SUPERCODER_GIT_READ_ONLY:-true}
@@ -80,6 +80,13 @@ services:
       SUPERCODER_SEARCH_EMBEDDING_DIMENSIONS: ${SUPERCODER_SEARCH_EMBEDDING_DIMENSIONS:-1024}
       SUPERCODER_SEARCH_RERANK_MODEL: ${SUPERCODER_SEARCH_RERANK_MODEL:-BAAI/bge-reranker-v2-m3}
       SUPERCODER_SEARCH_API_KEY: ${SUPERCODER_SEARCH_API_KEY:-}
+    volumes:
+      # The checkout is the source of truth for resource bodies, so it must be the
+      # operator's working tree, not a copy baked into the image. Without this
+      # mount a resource written inside the container is lost on rebuild and never
+      # reaches the Git working tree — and reads can disagree with the host.
+      - ./resources:/app/resources
+      - ./schemas:/app/schemas:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -104,6 +111,11 @@ services:
       SUPERCODER_GIT_REPOSITORY_ROOT: /app
       SUPERCODER_GIT_READ_ONLY: "true"
       SUPERCODER_DEV_AUTH_TOKENS_FILE: /app/scripts/dev_tokens.json
+    volumes:
+      # Same checkout as the API, read-only here: the seed step only reads
+      # manifests, and binding it keeps seeding consistent with what the API sees.
+      - ./resources:/app/resources:ro
+      - ./schemas:/app/schemas:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -121,6 +133,11 @@ services:
       SUPERCODER_MYSQL_PASSWORD: ${SUPERCODER_MYSQL_PASSWORD:-supercoder}
       SUPERCODER_GIT_REPOSITORY_ROOT: /app
       SUPERCODER_GIT_READ_ONLY: "true"
+    volumes:
+      # The worker validates what the API registered, so it must read the same
+      # checkout. Read-only: validation never writes.
+      - ./resources:/app/resources:ro
+      - ./schemas:/app/schemas:ro
     depends_on:
       mysql:
         condition: service_healthy
