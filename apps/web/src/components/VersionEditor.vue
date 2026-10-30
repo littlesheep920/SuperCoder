@@ -203,6 +203,11 @@ watch(() => props.version?.version_id, load, { immediate: true });
       <p v-else-if="!mayEdit" class="muted small">
         当前身份没有编辑权限（需要 <code>resource:edit</code>）。
       </p>
+      <p v-if="isDraft" class="muted small">
+        正文来自工作树中的 <code>{{ entrypoint || "—" }}</code>，不是该版本的快照：
+        同一资源的所有版本共用这一个文件，因此这里显示的是文件当前内容。
+        保存会写入文件并创建一个新版本，旧版本的哈希仍被记录，但其正文需从 Git 历史取得。
+      </p>
 
       <p v-if="!bodyAvailable" class="error small">
         工作树中找不到 <code>{{ entrypoint }}</code>，正文无法编辑。
