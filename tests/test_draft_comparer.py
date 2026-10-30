@@ -106,6 +106,35 @@ class NoMatchTests(unittest.TestCase):
         result = comparer.compare(draft={"kind": "skill"}, scope=object())
         self.assertFalse(result.diff.base_present)
 
+    def test_a_programming_error_is_not_swallowed(self) -> None:
+        """Only availability failures degrade; a real defect must surface.
+
+        The original code caught `except Exception`, so a typo in the comparison path
+        would silently report every draft as "new" — a legitimate-looking answer that
+        hides the bug.
+        """
+
+        class BrokenFactory:
+            def __call__(self):
+                raise AttributeError("a defect, not an outage")
+
+        comparer = DraftComparer(BrokenFactory())
+        with self.assertRaises(AttributeError):
+            comparer.compare(draft=DRAFT, scope=object())
+
+    def test_a_connection_failure_still_degrades(self) -> None:
+        from sqlalchemy.exc import OperationalError
+
+        class OfflineFactory:
+            def __call__(self):
+                raise OperationalError(
+                    "SELECT 1", {}, Exception("Can't connect to MySQL server")
+                )
+
+        comparer = DraftComparer(OfflineFactory())
+        result = comparer.compare(draft=DRAFT, scope=object())
+        self.assertFalse(result.diff.base_present)
+
 
 class MatchTests(unittest.TestCase):
     def test_same_slug_and_kind_produces_a_diff(self) -> None:

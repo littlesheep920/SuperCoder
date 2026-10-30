@@ -11,10 +11,52 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from sqlalchemy.exc import DBAPIError, OperationalError
+
 from ..domain.draft_diff import DraftDiff, diff_manifest
+from ..domain.errors import ServiceUnavailableError
 from ..repositories.contracts import ResourceQuery, UnitOfWorkFactory
 
 __all__ = ["DraftComparer"]
+
+
+def _is_availability_error(error: BaseException) -> bool:
+    """Whether the database is unavailable, as opposed to a query or code defect.
+
+    Three shapes mean "no database here", and drafting can proceed without a base:
+
+    * `ServiceUnavailableError` — raised by the composition root when MySQL is not
+      configured at all. Naming the type is exact; matching its message would break
+      the moment the wording changes.
+    * `OperationalError` — the driver could not connect, lost the connection, or the
+      database is gone.
+    * `RuntimeError` carrying an availability message, for factories that raise a
+      plain error instead of the domain type.
+
+    Anything else — an `AttributeError`, a `KeyError`, a syntax error in a query — is
+    a defect, and hiding it would turn every comparison into a silent "this is new".
+    """
+
+    if isinstance(error, ServiceUnavailableError):
+        return True
+
+    message = str(getattr(error, "orig", error)).lower()
+    markers = (
+        "can't connect",
+        "cannot connect",
+        "gone away",
+        "lost connection",
+        "unknown database",
+        "access denied",
+        "connection refused",
+        "server has gone",
+        "timed out",
+        "mysql is disabled",
+        "is not enabled",
+        "relational operations are unavailable",
+        "no database",
+    )
+    return any(marker in message for marker in markers)
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,9 +89,16 @@ class DraftComparer:
                 )
                 candidates = list(page.items)
                 uow.commit()
-        except Exception:
-            # A missing database must not block drafting: without a base the diff
-            # is simply reported as a new resource.
+        except (OperationalError, DBAPIError, RuntimeError, ServiceUnavailableError) as error:
+            # The database being unavailable must not block drafting: without a base
+            # the diff is reported as a new resource.
+            #
+            # Only availability failures are caught. `except Exception` also swallowed
+            # programming errors — a typo in this method would silently turn every
+            # comparison into "no existing resource", which reads as a legitimate
+            # answer rather than a bug.
+            if not _is_availability_error(error):
+                raise
             return DraftComparison(diff_manifest(draft, None), None, None, None)
 
         match = next(

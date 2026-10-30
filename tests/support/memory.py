@@ -320,6 +320,74 @@ class _MemoryVersionRepository:
         self._s.versions[record.public_id] = updated
         return updated
 
+    def update_draft_content(
+        self,
+        *,
+        public_id: str,
+        expected_row_version: int,
+        expected_artifact_hash,
+        expected_manifest_snapshot_hash,
+        manifest,
+        artifact_hash,
+        manifest_snapshot_hash,
+        reason: str,
+        changed_by: str,
+        changed_at,
+        derived: dict | None = None,
+    ) -> VersionRecord:
+        """Rewrite a draft in place, mirroring the SQL implementation.
+
+        Status and its timestamps are untouched: editing content is not a lifecycle
+        event, and changing them here would drift from the CHECK constraints.
+        """
+
+        record = self._s.versions.get(public_id)
+        if record is None:
+            raise NotFoundError("version not found")
+        if (
+            record.row_version != expected_row_version
+            or record.status is not LifecycleState.DRAFT
+            or record.artifact_hash != expected_artifact_hash
+            or record.manifest_snapshot_hash != expected_manifest_snapshot_hash
+        ):
+            raise PreconditionFailedError(
+                code=ErrorCode.ROW_VERSION_MISMATCH, message="version changed since read"
+            )
+        changes: dict = {
+            "manifest": dict(manifest),
+            "artifact_hash": artifact_hash,
+            "manifest_snapshot_hash": manifest_snapshot_hash,
+            "status_reason": reason,
+            "status_changed_by": changed_by,
+            "row_version": record.row_version + 1,
+            "updated_at": changed_at,
+        }
+        if derived:
+            # The memory record keeps the same mirrored fields the SQL columns hold,
+            # under their domain names rather than the *_json column names.
+            mapping = {
+                "name": "name",
+                "description": "description",
+                "owner_team": "owner_team",
+                "entrypoint": "entrypoint",
+                "aliases_json": "aliases",
+                "inputs_json": "inputs",
+                "outputs_json": "outputs",
+                "type_spec_json": "type_spec",
+            }
+            for column, attribute in mapping.items():
+                if column not in derived:
+                    continue
+                value = derived[column]
+                if column in ("aliases_json", "inputs_json", "outputs_json"):
+                    value = tuple(value)
+                elif column == "type_spec_json":
+                    value = dict(value)
+                changes[attribute] = value
+        updated = replace(record, **changes)
+        self._s.versions[record.public_id] = updated
+        return updated
+
 
 class _MemoryPermissionRepository:
     def __init__(self, store: MemoryStore) -> None:
@@ -413,6 +481,19 @@ class _MemoryMetadataRepository:
         self._s = store
 
     def replace_snapshot(self, version_public_id, snapshot, *, expected_version_row):
+        """Replace metadata, checking the expected row version like the SQL version.
+
+        Ignoring `expected_version_row` made this double more forgiving than the real
+        repository: an in-place draft update bumped row_version and then wrote metadata
+        against the stale value, which the SQL path rejected with a 412 while the
+        in-memory path accepted it. Tests passed and production failed.
+        """
+
+        record = self._s.versions.get(version_public_id)
+        if record is not None and record.row_version != expected_version_row:
+            raise PreconditionFailedError(
+                code=ErrorCode.ROW_VERSION_MISMATCH, message="version row changed"
+            )
         self._s.metadata[version_public_id] = snapshot
 
     def get_snapshot(self, version_public_id):

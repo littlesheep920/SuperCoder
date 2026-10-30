@@ -258,6 +258,14 @@ class Stage1ApiTest(unittest.TestCase):
         self.assertEqual(malformed.status_code, 400)
 
     def test_update_draft_applies_manifest_patch(self):
+        """A manifest-only edit with the same version number updates in place.
+
+        The earlier implementation always appended a version row, so this case
+        collided with uq_rv_resource_version and failed with a MySQL integrity error
+        (a 500 in production). The version number is what decides: unchanged means
+        "correct this draft", changed means "new version".
+        """
+
         kind, slug = _KINDS[0]
         created = self.client.post("/v1/resources", json=_request_body(kind, slug), headers=_OWNER).json()
         old_version = created["version"]
@@ -273,12 +281,44 @@ class Stage1ApiTest(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200, msg=response.text)
         patched = response.json()
-        self.assertNotEqual(patched["version_id"], version_id)
+
+        # Same version row, new content and a bumped row_version.
+        self.assertEqual(patched["version_id"], version_id)
+        self.assertEqual(patched["version"], old_version["version"])
         self.assertEqual(patched["description"], "patched description")
         self.assertNotEqual(patched["artifact_hash"], old_version["artifact_hash"])
+        self.assertEqual(patched["row_version"], old_version["row_version"] + 1)
+
+        # The change is persisted, not just echoed back.
+        current = self.client.get(f"/v1/resource-versions/{version_id}", headers=_OWNER)
+        self.assertEqual(current.status_code, 200)
+        self.assertEqual(current.json()["description"], "patched description")
+
+    def test_update_draft_with_a_new_version_creates_a_version_row(self):
+        """A different version number still produces a new, separate version."""
+
+        kind, slug = _KINDS[0]
+        created = self.client.post("/v1/resources", json=_request_body(kind, slug), headers=_OWNER).json()
+        old_version = created["version"]
+        version_id = old_version["version_id"]
+        response = self.client.patch(
+            f"/v1/resource-versions/{version_id}",
+            json={
+                "manifest": {"version": "1.0.1"},
+                "row_version": old_version["row_version"],
+                "reason": "bump the version",
+            },
+            headers={**_OWNER, "If-Match": f'"{version_id}:{old_version["row_version"]}"'},
+        )
+        self.assertEqual(response.status_code, 200, msg=response.text)
+        bumped = response.json()
+        self.assertNotEqual(bumped["version_id"], version_id)
+        self.assertEqual(bumped["version"], "1.0.1")
+
+        # The original stays as immutable history.
         original = self.client.get(f"/v1/resource-versions/{version_id}", headers=_OWNER)
         self.assertEqual(original.status_code, 200)
-        self.assertNotEqual(original.json()["description"], "patched description")
+        self.assertEqual(original.json()["version"], old_version["version"])
 
 
 if __name__ == "__main__":

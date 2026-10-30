@@ -126,6 +126,10 @@ class VersionEditorService:
         if manifest_patch is not None and "version" in manifest_patch:
             patched_version = str(manifest_patch["version"])
         if body is not None:
+            # A body edit always produces new content, so it must carry a new version
+            # number: the previous content stays on record as immutable history. A
+            # manifest-only correction is different and may keep the version, in which
+            # case the command service updates the draft in place.
             if patched_version is None:
                 raise ValidationError(
                     message=(
@@ -137,8 +141,8 @@ class VersionEditorService:
             if patched_version == current_version:
                 raise ValidationError(
                     message=(
-                        f"the new version must differ from {current_version}; each edit "
-                        "creates a new immutable version record"
+                        f"the new version must differ from {current_version}; each body "
+                        "edit creates a new immutable version record"
                     )
                 )
 

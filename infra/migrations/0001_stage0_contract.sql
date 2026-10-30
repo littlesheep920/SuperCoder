@@ -127,20 +127,25 @@ CREATE TABLE resource_version (
         AND CHAR_LENGTH(status_reason) > 0
         AND CHAR_LENGTH(created_by) > 0
     ),
+    -- An unpublished withdrawal moves a draft or validating version straight to
+    -- 'retired' (the `unpublished_withdrawal` transition) without ever passing
+    -- through approval. These three constraints originally required the full chain
+    -- for every retired row, so withdrawing a draft failed with a CHECK violation at
+    -- delete time. They now cover only the states that genuinely imply the timestamp.
     CONSTRAINT ck_rv_validated_state_time CHECK (
-        status NOT IN ('approved', 'published', 'deprecated', 'retired')
+        status NOT IN ('approved', 'published', 'deprecated')
         OR validated_at IS NOT NULL
     ),
     CONSTRAINT ck_rv_approved_state_time CHECK (
-        status NOT IN ('approved', 'published', 'deprecated', 'retired')
+        status NOT IN ('approved', 'published', 'deprecated')
         OR approved_at IS NOT NULL
     ),
     CONSTRAINT ck_rv_published_state_time CHECK (
-        status NOT IN ('published', 'deprecated', 'retired')
+        status NOT IN ('published', 'deprecated')
         OR published_at IS NOT NULL
     ),
     CONSTRAINT ck_rv_deprecated_state_time CHECK (
-        status NOT IN ('deprecated', 'retired') OR deprecated_at IS NOT NULL
+        status <> 'deprecated' OR deprecated_at IS NOT NULL
     ),
     CONSTRAINT ck_rv_retired_state_time CHECK (
         status <> 'retired' OR retired_at IS NOT NULL

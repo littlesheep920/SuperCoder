@@ -222,19 +222,64 @@ class ResourceCommandService:
             permissions = self._snapshots.build_permissions(loaded)
             now = self._clock()
 
-            version = uow.versions.add(
-                self._new_version(
-                    new_ulid(),
-                    current.resource_public_id,
-                    loaded,
-                    actor,
-                    now,
-                    reason,
+            # Two legitimate meanings for "edit a draft":
+            #
+            # * the version number changed -> a new version, keeping the old one as
+            #   immutable history;
+            # * the version number is the same -> correcting this draft in place.
+            #
+            # The first implementation always appended a row, so a manifest-only edit
+            # (same version number) collided with uq_rv_resource_version and returned a
+            # 500 from MySQL. Which one the caller meant is decided here, by whether
+            # the identifier actually changed.
+            identifier_changed = loaded.version != current.identifier
+
+            if identifier_changed:
+                version = uow.versions.add(
+                    self._new_version(
+                        new_ulid(),
+                        current.resource_public_id,
+                        loaded,
+                        actor,
+                        now,
+                        reason,
+                    )
                 )
-            )
-            uow.metadata.replace_snapshot(version.public_id, metadata, expected_version_row=1)
-            uow.permissions.replace_resource_declarations(version.public_id, permissions, expected_version_row=1)
-            # Invalidate prior approvals; the old draft stays as immutable history.
+                uow.metadata.replace_snapshot(version.public_id, metadata, expected_version_row=1)
+                uow.permissions.replace_resource_declarations(
+                    version.public_id, permissions, expected_version_row=1
+                )
+            else:
+                version = uow.versions.update_draft_content(
+                    public_id=version_public_id,
+                    expected_row_version=current.row_version,
+                    expected_artifact_hash=current.artifact_hash,
+                    expected_manifest_snapshot_hash=current.manifest_snapshot_hash,
+                    manifest=patched_manifest,
+                    artifact_hash=loaded.artifact_hash,
+                    manifest_snapshot_hash=loaded.manifest_snapshot_hash,
+                    reason=reason,
+                    changed_by=actor.subject_id,
+                    changed_at=now,
+                    # The columns that mirror manifest fields, kept in step with the
+                    # JSON. Updating only the JSON would leave reads reporting stale
+                    # values, because these are separate columns.
+                    derived=self._derived_columns(loaded),
+                )
+                # `update_draft_content` already bumped row_version, so the metadata
+                # writes must expect the NEW value. Passing the pre-update value made
+                # `replace_snapshot` reject the change with "version row changed" —
+                # which surfaced as a 412 on a perfectly valid edit.
+                expected_row = version.row_version
+                uow.metadata.replace_snapshot(
+                    version.public_id, metadata, expected_version_row=expected_row
+                )
+                uow.permissions.replace_resource_declarations(
+                    version.public_id, permissions, expected_version_row=expected_row
+                )
+
+            # Invalidate prior approvals; content that was approved is no longer the
+            # content on record, whether it lives under a new version or the same one.
             uow.reviews.invalidate_for_version(
                 version_public_id,
                 invalidated_at=now,
@@ -256,6 +301,30 @@ class ResourceCommandService:
             )
             uow.commit()
             return version
+
+    def _derived_columns(self, loaded) -> dict[str, object]:
+        """Columns that mirror manifest fields, for an in-place draft update.
+
+        `name`, `description`, `owner_team`, `aliases_json`, `inputs_json`,
+        `outputs_json` and `type_spec_json` are stored separately from `manifest_json`.
+        Any path that changes the manifest must rewrite them too, or reads through
+        those columns keep returning the pre-edit values.
+
+        The JSON columns are SQLAlchemy `JSON`, so they take Python values directly;
+        passing pre-serialised strings would store JSON-inside-JSON and break the
+        `JSON_TYPE(...) = 'ARRAY'` CHECK constraints.
+        """
+
+        return {
+            "name": str(loaded.manifest.get("name")),
+            "description": str(loaded.manifest.get("description")),
+            "owner_team": str(loaded.manifest.get("owner_team")),
+            "entrypoint": loaded.entrypoint,
+            "aliases_json": list(loaded.tags),
+            "inputs_json": list(loaded.manifest.get("inputs", [])),
+            "outputs_json": list(loaded.manifest.get("outputs", [])),
+            "type_spec_json": dict(loaded.manifest.get(loaded.kind.value, {}) or {}),
+        }
 
     def _new_version(
         self,

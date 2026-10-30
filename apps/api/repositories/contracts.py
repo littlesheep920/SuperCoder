@@ -538,6 +538,34 @@ class VersionRepository(Protocol):
         """Perform a compare-and-swap update and require exactly one affected row."""
         ...
 
+    def update_draft_content(
+        self,
+        *,
+        public_id: str,
+        expected_row_version: int,
+        expected_artifact_hash: ArtifactHash,
+        expected_manifest_snapshot_hash: ArtifactHash,
+        manifest: dict,
+        artifact_hash: ArtifactHash,
+        manifest_snapshot_hash: ArtifactHash,
+        reason: str,
+        changed_by: str,
+        changed_at: datetime,
+        derived: dict | None = None,
+    ) -> VersionRecord:
+        """Rewrite a draft's content in place and bump its row version.
+
+        Why this exists next to `add`: `update_draft` appends a new version row, and
+        `uq_rv_resource_version` makes (resource, version) unique. A manifest-only
+        edit keeps the same version number, so appending collides and the request
+        fails with a MySQL integrity error. An in-place update is the correct
+        semantic for "the same version, with a corrected description".
+
+        The compare-and-swap conditions make a concurrent edit fail loudly instead of
+        overwriting: exactly one row must match the caller's expectations.
+        """
+        ...
+
 
 @runtime_checkable
 class PermissionRepository(Protocol):

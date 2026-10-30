@@ -199,6 +199,9 @@ def edit_draft_body(
         "body_written": edited.body_written,
         "previous_version_id": edited.previous_version_id,
     }
+
+
+@router.get("/resource-versions/{version_id}/diff")
 def diff_version(
     version_id: str,
     base_version_id: str = Query(...),

@@ -493,6 +493,67 @@ class SqlVersionRepository:
             raise ConflictError(code=ErrorCode.INVALID_STATE_TRANSITION, message="version vanished")
         return refreshed
 
+    def update_draft_content(
+        self,
+        *,
+        public_id: str,
+        expected_row_version: int,
+        expected_artifact_hash: ArtifactHash,
+        expected_manifest_snapshot_hash: ArtifactHash,
+        manifest: dict,
+        artifact_hash: ArtifactHash,
+        manifest_snapshot_hash: ArtifactHash,
+        reason: str,
+        changed_by: str,
+        changed_at: datetime,
+        derived: dict | None = None,
+    ) -> VersionRecord:
+        """Rewrite a draft in place, bumping row_version.
+
+        `status` and its timestamps are deliberately untouched: editing content is not
+        a lifecycle event, and writing them here would also trip the CHECK constraints
+        that tie each state to its timestamp.
+
+        `derived` carries the columns mirrored from manifest fields (name, description,
+        owner_team, aliases, inputs, outputs, type_spec). Those are real columns, not a
+        view over `manifest_json`, so updating only the JSON left the record reporting
+        the old description — which is what the first version of this method did.
+        """
+
+        session = self._session
+        values: dict[str, object] = {
+            "manifest_json": dict(manifest),
+            "artifact_hash": artifact_hash,
+            "manifest_snapshot_hash": manifest_snapshot_hash,
+            "status_reason": reason,
+            "status_changed_by": changed_by,
+            "updated_at": changed_at,
+            "row_version": expected_row_version + 1,
+        }
+        if derived:
+            values.update(derived)
+
+        result = session.execute(
+            update(ResourceVersion)
+            .where(
+                ResourceVersion.public_id == public_id,
+                ResourceVersion.row_version == expected_row_version,
+                ResourceVersion.status == LifecycleState.DRAFT.value,
+                ResourceVersion.artifact_hash == expected_artifact_hash,
+                ResourceVersion.manifest_snapshot_hash == expected_manifest_snapshot_hash,
+            )
+            .values(**values)
+        )
+        if result.rowcount != 1:
+            raise PreconditionFailedError(
+                code=ErrorCode.ROW_VERSION_MISMATCH,
+                message="The version changed since it was last read.",
+            )
+        refreshed = self.get(public_id)
+        if refreshed is None:
+            raise ConflictError(code=ErrorCode.INVALID_STATE_TRANSITION, message="version vanished")
+        return refreshed
+
     def _resource_id_for_version(self, public_id: str) -> int:
         value = self._session.execute(
             select(ResourceVersion.id).where(ResourceVersion.public_id == public_id)
