@@ -45,7 +45,12 @@ jobs:
         run: python scripts/validate_stage1.py
 
       - name: Unit and API tests (explicit, for readable output)
-        run: python -m unittest discover -s tests -p "test_stage*.py" -v
+        # Runs every test file, not a stage-prefixed subset. The previous pattern
+        # was `test_stage*.py`, which silently excluded fourteen files — including
+        # the discovery, registration and LLM client suites added later. A gate
+        # that skips a third of the suite still reports green, which is worse than
+        # no gate: it certifies code it never ran.
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Seed script is executable and fails cleanly without MySQL
         run: |
