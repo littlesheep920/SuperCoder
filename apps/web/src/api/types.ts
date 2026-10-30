@@ -128,13 +128,21 @@ export interface AuditRecord {
   audit_id: string;
   occurred_at: string;
   actor_id: string;
+  actor_type: string;
   action: string;
   outcome: string;
   entity_type: string;
   entity_public_id: string;
-  reason_code: string;
-  reason_summary: string;
+  resource_version_id: string | null;
+  from_status: string | null;
+  to_status: string | null;
+  reason_code: string | null;
+  reason_summary: string | null;
   event_hash: string;
+  /** The hash of the preceding entry; a break here means the chain is not intact. */
+  previous_event_hash: string | null;
+  artifact_hash: string | null;
+  correlation_id: string;
 }
 
 export interface ListResponse<T> {

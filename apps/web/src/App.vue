@@ -49,6 +49,7 @@ onMounted(() => {
         <router-link to="/register">资源登记</router-link>
         <router-link to="/register/draft">登记草稿</router-link>
         <router-link to="/jobs">任务监控</router-link>
+        <router-link to="/audit">审计日志</router-link>
       </nav>
     </aside>
     <main class="main">

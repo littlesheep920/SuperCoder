@@ -84,6 +84,9 @@ def list_audit(
     actor_id: str | None = Query(default=None),
     action: str | None = Query(default=None),
     entity_type: str | None = Query(default=None),
+    entity_public_id: str | None = Query(default=None),
+    version_public_id: str | None = Query(default=None),
+    outcome: str | None = Query(default=None),
     correlation_id: str | None = Query(default=None),
     cursor: str | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=100),
@@ -93,10 +96,16 @@ def list_audit(
     from ..presenters import to_audit
     from ..repositories.contracts import AuditQuery
 
+    # `entity_public_id` and `version_public_id` exist on AuditQuery but were not
+    # exposed, so a resource or version could not show its own history — the one
+    # view that makes the audit trail useful.
     query = AuditQuery(
         actor_id=actor_id,
         action=action,
         entity_type=entity_type,
+        entity_public_id=entity_public_id,
+        version_public_id=version_public_id,
+        outcome=outcome,
         correlation_id=correlation_id,
         cursor=cursor,
         limit=limit,
