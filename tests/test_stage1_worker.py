@@ -88,6 +88,43 @@ class Stage1WorkerTest(unittest.TestCase):
         self.assertEqual(updated.status, JobState.DEAD_LETTER)
         self.assertEqual(updated.error_code, "UNSUPPORTED_JOB_KIND")
 
+    def test_an_exception_in_the_handler_still_reaches_a_terminal_state(self):
+        """A crashed handler must fail the job, not leave it leased until expiry.
+
+        The failure path used to pass the record read *before* the RUNNING
+        transition. Its row_version was then one behind, the failure transition was
+        rejected with ROW_VERSION_MISMATCH, and the job sat leased until the lease
+        expired — every crashed validation ended as LEASE_EXPIRED after
+        max_attempts, which is a dead end no operator can fix.
+        """
+
+        job, _ = self._create_validation_job()
+
+        def explode(_job):
+            raise RuntimeError("handler blew up")
+
+        original = self.worker._validate
+        self.worker._validate = explode
+        try:
+            self.assertTrue(self.worker.poll_once())
+        finally:
+            self.worker._validate = original
+
+        updated = self.container.jobs.get(job.public_id)
+        self.assertIsNotNone(updated)
+        self.assertNotEqual(
+            updated.status,
+            JobState.RUNNING,
+            "a crashed handler must not leave the job RUNNING",
+        )
+        self.assertIn(
+            updated.status,
+            (JobState.QUEUED, JobState.RETRY_SCHEDULED, JobState.FAILED, JobState.DEAD_LETTER),
+            f"unexpected status after a crash: {updated.status}",
+        )
+        self.assertEqual(updated.error_code, "WORKER_ERROR")
+        self.assertIn("RuntimeError", updated.error_summary or "")
+
     def test_expired_lease_is_rescheduled_then_reclaimed(self):
         job, _ = self._create_validation_job()
         now = now_utc()

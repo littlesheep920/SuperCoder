@@ -158,6 +158,20 @@ export const api = {
       body: JSON.stringify({ reason, row_version: rowVersion }),
       headers: { "If-Match": etag },
     }),
+  /** Requeue a failed job. Reserves 202: acceptance is not completion. */
+  retryJob: (jobId: string) =>
+    request<Job>(`/jobs/${jobId}/retry`, { method: "POST" }),
+
+  /**
+   * Relative path for the event stream.
+   *
+   * `EventSource` cannot send an Authorization header, so this relies on the same
+   * origin that already serves `/v1`. The token is deliberately not appended as a
+   * query parameter: URLs are recorded by proxies and kept in history, so a token
+   * there is a leaked token. If the deployment requires header auth for streams,
+   * the proxy must inject it.
+   */
+  jobEventsStreamPath: (jobId: string) => `${BASE}/jobs/${jobId}/events/stream`,
 
   listAudit: (params: Record<string, string> = {}) => {
     const qs = new URLSearchParams(params).toString();

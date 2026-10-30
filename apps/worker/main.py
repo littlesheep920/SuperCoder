@@ -72,8 +72,13 @@ class Worker:
     def _execute(self, job) -> None:
         container = self._container
         now = now_utc()
+        # Track the newest record across transitions. `_transition` bumps
+        # row_version and returns a new object, so the failure path must use that
+        # object, not the one read before the transition.
+        current = job
         try:
             running = self._transition(job, JobState.RUNNING, started_at=now, event_type="running")
+            current = running
             if running.job_kind == "resource_validation":
                 result = self._validate(running)
                 self._finish_success(running, result)
@@ -85,8 +90,13 @@ class Worker:
                     retryable=False,
                 )
         except Exception as error:  # noqa: BLE001 - durable failure path
+            # The previous code passed `job` here. After the RUNNING transition its
+            # row_version is one behind, so the failure transition was rejected with
+            # ROW_VERSION_MISMATCH and the job was never moved to a terminal state.
+            # It then sat leased until the lease expired, which is why every failed
+            # validation ended as LEASE_EXPIRED after max_attempts.
             self._finish_failure(
-                job,
+                current,
                 error_code="WORKER_ERROR",
                 summary=f"{type(error).__name__}: {error}",
                 retryable=True,
