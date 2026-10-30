@@ -864,7 +864,12 @@ class SqlAuditRepository:
                     and_(AuditLog.occurred_at == occurred_at, AuditLog.id < record_id),
                 )
             )
-        rows = session.execute(stmt).all()
+        # Same shape mistake as list_for_resource: `select(AuditLog)` yields rows
+        # wrapping the entity, so `.all()` returns Row objects and
+        # `row.resource_version_id` raises AttributeError. `.scalars()` unwraps.
+        # The audit list endpoint had never been exercised against a live database
+        # with entries, because nothing wrote audit rows in the tested flows.
+        rows = list(session.execute(stmt).scalars().all())
         has_more = len(rows) > query.limit
         rows = rows[: query.limit]
         next_cursor = None

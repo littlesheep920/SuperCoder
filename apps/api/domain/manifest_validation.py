@@ -36,17 +36,17 @@ class ManifestValidation:
         return {"valid": self.valid, "errors": list(self.errors), "warnings": list(self.warnings)}
 
 
-def load_schema(root: pathlib.Path) -> dict[str, Any]:
-    return json.loads((root / SCHEMA_PATH).read_text(encoding="utf-8"))
+def load_schema(root: pathlib.Path | str) -> dict[str, Any]:
+    return json.loads((pathlib.Path(root) / SCHEMA_PATH).read_text(encoding="utf-8"))
 
 
-def _load_validator(root: pathlib.Path):
+def _load_validator(root: pathlib.Path | str):
     """Import the Stage 0 validator so both paths share one implementation."""
 
     import importlib.util
     import sys
 
-    script = root / "scripts" / "validate_stage0.py"
+    script = pathlib.Path(root) / "scripts" / "validate_stage0.py"
     module_name = "_supercoder_stage0_validator"
     if module_name in sys.modules:
         return sys.modules[module_name].JsonSchemaValidator
@@ -60,8 +60,18 @@ def _load_validator(root: pathlib.Path):
     return module.JsonSchemaValidator
 
 
-def validate_manifest(root: pathlib.Path, manifest: Any) -> ManifestValidation:
-    """Check one manifest against the repository schema plus single-manifest rules."""
+def validate_manifest(root: pathlib.Path | str, manifest: Any) -> ManifestValidation:
+    """Check one manifest against the repository schema plus single-manifest rules.
+
+    ``root`` accepts a string because configuration carries paths as strings
+    (``SUPERCODER_GIT_REPOSITORY_ROOT``). It is converted here rather than at every
+    call site: annotating it as ``Path`` only meant the commit path passed the
+    configured string, which made the validator raise a TypeError that surfaced as
+    "validator unavailable" — a message pointing at the schema rather than at the
+    actual mistake.
+    """
+
+    root = pathlib.Path(root)
 
     if not isinstance(manifest, dict):
         return ManifestValidation(False, ("manifest must be an object",))

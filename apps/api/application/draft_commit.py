@@ -173,7 +173,11 @@ class DraftCommitService:
         return DraftCommitResult(
             resource_id=str(resource.public_id),
             version_id=str(version.public_id),
-            version=str(version.version),
+            # VersionRecord carries the semantic version as ``identifier``; there is
+            # no ``version`` attribute. Reading the wrong one raised AttributeError
+            # after the files were written and the row inserted, so the endpoint
+            # returned 500 for an operation that had actually succeeded.
+            version=str(version.identifier),
             artifact_hash=str(version.artifact_hash),
             slug=slug,
             kind=kind.value,

@@ -434,7 +434,10 @@ class SqlVersionRepository:
                 )
             )
 
-        rows = session.execute(stmt).all()
+        # ``select(ResourceVersion)`` yields rows wrapping the entity, so ``.all()``
+        # returns Row objects and the following ``version.replacement_version_id``
+        # raises AttributeError. ``.scalars()`` unwraps to ResourceVersion.
+        rows = list(session.execute(stmt).scalars().all())
         has_more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = None

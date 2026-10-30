@@ -57,7 +57,11 @@ class FakeGit:
 
 class FakeVersion:
     public_id = "ver_1"
-    version = "1.0.0"
+    # VersionRecord exposes the semantic version as ``identifier``, not ``version``.
+    # The earlier fake invented ``version``, so the fake and the code agreed with
+    # each other while both disagreed with the real record — and the mismatch only
+    # appeared when the path ran against MySQL.
+    identifier = "1.0.0"
     artifact_hash = "a" * 64
 
 
