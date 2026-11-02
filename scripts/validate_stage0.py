@@ -959,6 +959,37 @@ def _resource_cross_field_errors(manifests: dict[str, dict[str, Any]]) -> list[s
     return errors
 
 
+def _corpus_manifest_paths(root: Path) -> list[Path]:
+    """Manifests belonging to the shipped corpus, in a stable order.
+
+    `resources/` is a working tree: resources registered at runtime land beside the
+    corpus. The corpus is what git tracks, so that is the set the contract applies to.
+    When git is unavailable (a source tarball, say) every manifest is treated as corpus:
+    failing closed here would make the validator unusable outside a checkout, and the
+    labelling tests still guard the shipped set.
+    """
+
+    try:
+        listed = subprocess.run(
+            ["git", "ls-files", "-z", "--", "resources"],
+            cwd=str(root),
+            capture_output=True,
+            check=False,
+        )
+    except OSError:
+        listed = None
+
+    if listed is None or listed.returncode != 0:
+        return sorted((root / "resources").glob("*/*/resource.yaml"))
+
+    names = {
+        item
+        for item in (listed.stdout or b"").decode("utf-8", errors="replace").split("\0")
+        if item.endswith("resource.yaml")
+    }
+    return [root / name for name in sorted(names)]
+
+
 def check_resource_contracts(root: Path, context: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     schema_path = root / "schemas/resource.schema.json"
@@ -981,7 +1012,11 @@ def check_resource_contracts(root: Path, context: dict[str, Any]) -> list[str]:
 
     manifests: dict[str, dict[str, Any]] = {}
     kinds_seen: set[str] = set()
-    for manifest_path in sorted((root / "resources").glob("*/*/resource.yaml")):
+    # The contract applies to the corpus we ship. `resources/` also receives whatever
+    # someone registers through the console, and those manifests are the user's draft
+    # work: failing Stage 0 because a registration is incomplete would block the very
+    # workflow the platform exists to support. The corpus is what git tracks.
+    for manifest_path in _corpus_manifest_paths(root):
         relative = manifest_path.relative_to(root).as_posix()
         try:
             manifest = _load_json(manifest_path)

@@ -6,6 +6,7 @@ import json
 import shutil
 import sys
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -13,6 +14,24 @@ from scripts import validate_stage0 as validator
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+def corpus_manifests() -> list[Path]:
+    """Manifests that are part of the shipped corpus.
+
+    Defined as the files git tracks under `resources/`. The working tree also collects
+    resources registered through the console, and those are the user's to shape; a test
+    that read them would fail for a reason that has nothing to do with the corpus.
+    """
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "-z", "--", "resources"],
+        cwd=str(ROOT),
+        capture_output=True,
+    )
+    listed = (tracked.stdout or b"").decode("utf-8", errors="replace").split("\0")
+    names = {item for item in listed if item.endswith("resource.yaml")}
+    return [ROOT / name for name in sorted(names)]
+
 
 
 class TemporaryRootTestCase(unittest.TestCase):
@@ -158,7 +177,7 @@ class ManifestValidationTests(unittest.TestCase):
     def test_project_demo_manifests_parse_and_cover_all_resource_kinds(self) -> None:
         manifests = [
             validator._load_json(path)
-            for path in sorted((ROOT / "resources").glob("*/*/resource.yaml"))
+            for path in corpus_manifests()
         ]
 
         self.assertEqual({manifest["kind"] for manifest in manifests}, validator.RESOURCE_KINDS)
@@ -186,7 +205,7 @@ class ManifestValidationTests(unittest.TestCase):
 class CrossFieldContractTests(unittest.TestCase):
     def _project_manifests(self) -> dict[str, dict[str, object]]:
         manifests: dict[str, dict[str, object]] = {}
-        for path in sorted((ROOT / "resources").glob("*/*/resource.yaml")):
+        for path in corpus_manifests():
             manifest = validator._load_json(path)
             manifests[validator._resource_identity(manifest)] = manifest
         return manifests
@@ -263,7 +282,7 @@ class EvaluationJoinTests(TemporaryRootTestCase):
         super().setUp()
         shutil.copytree(ROOT / "evals", self.root / "evals")
         self.manifests = {}
-        for path in sorted((ROOT / "resources").glob("*/*/resource.yaml")):
+        for path in corpus_manifests():
             manifest = validator._load_json(path)
             self.manifests[validator._resource_identity(manifest)] = manifest
 

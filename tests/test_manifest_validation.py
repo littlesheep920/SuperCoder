@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import subprocess
 import unittest
 
 from apps.api.domain.manifest_validation import validate_manifest
@@ -11,9 +12,27 @@ from apps.api.domain.manifest_validation import validate_manifest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
+def corpus_manifests() -> list[pathlib.Path]:
+    """Manifests that are part of the shipped corpus.
+
+    Defined as the files git tracks under `resources/`. The working tree also collects
+    resources registered through the console, and those are the user's to shape; a test
+    that read them would fail for a reason that has nothing to do with the corpus.
+    """
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "-z", "--", "resources"],
+        cwd=str(ROOT),
+        capture_output=True,
+    )
+    listed = (tracked.stdout or b"").decode("utf-8", errors="replace").split("\0")
+    names = {item for item in listed if item.endswith("resource.yaml")}
+    return [ROOT / name for name in sorted(names)]
+
+
 def sample_manifests() -> list[tuple[str, dict]]:
     out = []
-    for path in sorted((ROOT / "resources").glob("*/*/resource.yaml")):
+    for path in corpus_manifests():
         out.append((path.relative_to(ROOT).as_posix(), json.loads(path.read_text(encoding="utf-8"))))
     return out
 

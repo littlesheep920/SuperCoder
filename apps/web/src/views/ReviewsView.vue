@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { ResourceReview, ResourceVersion } from "../api/types";
 import { useCapabilities } from "../composables/useCapabilities";
@@ -43,17 +43,37 @@ async function approve() {
       artifact_hash: version.value.artifact_hash,
       manifest_snapshot_hash: version.value.manifest_snapshot_hash,
       runtime_scope: version.value.runtimes.map((r) => r.runtime),
-      validation_evidence_ref: "evidence/stage1",
+      // Point at the validation that actually ran for this version rather than a
+      // constant. The field is required, so an invented value would satisfy the schema
+      // while pointing a reader at evidence that does not exist.
+      validation_evidence_ref: `version:${version.value.version_id}`,
       permission_summary: { declared: [] },
       dependency_summary: { resolved: true, count: version.value.dependencies.length },
       evaluation_refs: [],
       rationale,
     });
+    createdNotice.value =
+      "已记录批准。回到资源详情页点“审核通过”，才能把版本推进到 approved。";
     await load();
   } catch (e) {
     message.value = e instanceof Error ? e.message : String(e);
   }
 }
+
+/** Set after a successful approval, to name the next step explicitly. */
+const createdNotice = ref("");
+
+/** Whether this version already has a valid independent approval. */
+const hasValidApproval = computed(() => {
+  const current = version.value;
+  if (!current) return false;
+  return reviews.value.some(
+    (review) =>
+      review.decision === "approve" &&
+      review.artifact_hash === current.artifact_hash &&
+      review.reviewer_id !== current.created_by,
+  );
+});
 
 onMounted(load);
 </script>
@@ -70,6 +90,19 @@ onMounted(load);
       <button v-if="can('lifecycle:review')" class="primary" @click="approve">批准（approve）</button>
       <span v-else class="muted small">需要审核角色才能批准</span>
     </div>
+
+    <p v-if="version && hasValidApproval" class="ok small">
+      已有一条针对当前内容哈希的独立批准。
+      <router-link :to="`/resources/${id}`">回到资源详情页推进生命周期 →</router-link>
+    </p>
+    <p v-else-if="version" class="muted small">
+      还没有针对当前内容哈希的独立批准；创建一条后，才能推进到 approved。
+    </p>
+
+    <p v-if="createdNotice" class="ok">
+      {{ createdNotice }}
+      <router-link :to="`/resources/${id}`">前往资源详情页 →</router-link>
+    </p>
 
     <table v-if="reviews.length">
       <thead><tr><th>审核者</th><th>类型</th><th>结论</th><th>意见</th><th>时间</th></tr></thead>

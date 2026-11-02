@@ -33,13 +33,67 @@ export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
+/**
+ * Translate a server `detail` into something a reader can act on.
+ *
+ * The API speaks in English codes and gate names (`an independent valid approval
+ * review is required`, `dependency unresolved`). Those are precise for logs and useless
+ * for a person looking at a Chinese console, and surfacing them verbatim made a
+ * governance rule look like a crash. Everything that does not match a known phrase
+ * passes through unchanged — hiding an unknown message would be worse than showing it.
+ */
+export function explainServerDetail(detail: string, status: number): string {
+  const value = detail.toLowerCase();
+
+  const rules: Array<[RegExp, string]> = [
+    [
+      /independent valid approval/,
+      "还不能审核通过：需要先有一条独立审核记录（在“审核队列”里批准当前内容）。",
+    ],
+    [
+      /validation (is )?(not )?(passed|complete)|validation required/,
+      "校验尚未完成，无法进入待审核。",
+    ],
+    [/dependency .*unresolved|unresolved .*dependency/, "存在未解析的必需依赖，无法继续。"],
+    [/at least one runtime/, "发布前至少要声明一个运行环境。"],
+    [/owner role/, "此操作需要所有者角色。"],
+    [/publisher/, "此操作需要发布者角色。"],
+    [/reviewer/, "此操作需要审核角色。"],
+    [/row_version|etag|changed since/, "这条记录已被其他人修改，请刷新后重试。"],
+    [/version already exists/, "该版本号已存在，请换一个版本号。"],
+    [/only draft versions can be modified/, "只有草稿状态可以修改；请先退回草稿。"],
+    [/status has already been retired|retired/, "该版本已退役，不能再变更。"],
+    [/resource not found or not visible/, "找不到该资源，或无权查看。"],
+    [/version not found/, "找不到该版本。"],
+    [/artifact .* not present|provenance/, "提交的产物与磁盘上的文件不一致。"],
+    [/rate limit|too many requests/, "请求过于频繁，请稍后再试。"],
+  ];
+
+  for (const [pattern, message] of rules) {
+    if (pattern.test(value)) return message;
+  }
+
+  if (status === 401) return "未登录或令牌无效，请在右上角填写访问令牌。";
+  if (status === 403) return "当前身份没有执行此操作的权限。";
+  if (status === 404) return "请求的资源不存在。";
+  if (status === 409) return "操作与当前状态冲突，请刷新后重试。";
+  if (status === 412) return "这条记录已被其他人修改，请刷新后重试。";
+  if (status === 422) return `提交的内容未通过校验：${detail}`;
+  if (status === 503) return "依赖的服务暂不可用，请稍后重试。";
+  return detail;
+}
+
 export class ApiError extends Error {
   code: string;
   status: number;
   traceId: string | null;
+  /** The server's original message, kept for logs and troubleshooting. */
+  serverDetail: string;
 
   constructor(body: ErrorBody, status: number) {
-    super(body.detail ?? body.code);
+    const raw = body.detail ?? body.code;
+    super(explainServerDetail(raw, status));
+    this.serverDetail = raw;
     this.code = body.code;
     this.status = status;
     this.traceId = body.trace_id ?? null;

@@ -18,7 +18,7 @@
  */
 
 import { computed, ref, watch } from "vue";
-import { api } from "../api/client";
+import { api, ApiError } from "../api/client";
 import type { ResourceVersion, ResourceVersionSummary } from "../api/types";
 import { useCapabilities } from "../composables/useCapabilities";
 import {
@@ -44,6 +44,16 @@ const notice = ref("");
 const reason = ref("");
 /** Set when the server rejects the ETag, so the user is told to reload. */
 const stale = ref(false);
+
+/** Where the user must go to satisfy the refusal, when that is knowable. */
+type RefusalAction = { label: string; route: "reviews" | "jobs" };
+const blockedBy = ref<RefusalAction | null>(null);
+
+/** Path to the sub-screen for this resource version. */
+function subScreenPath(route: RefusalAction["route"]): string {
+  const resourceId = props.version?.resource_id ?? "";
+  return `/resources/${resourceId}/${route}`;
+}
 
 const currentStatus = computed(() => props.version?.status ?? "");
 
@@ -148,14 +158,29 @@ async function apply(spec: TransitionSpec): Promise<void> {
     emit("changed");
   } catch (cause) {
     const text = cause instanceof Error ? cause.message : String(cause);
+    // The client already translated the message. This panel adds the one thing the
+    // shared translation cannot know: which screen would resolve the refusal, so the
+    // user gets a link instead of a dead end.
     error.value = text;
-    // A 412 means someone else moved the version first. Say so plainly.
-    if (/ETag|row_version|changed since/i.test(text) || /\b412\b/.test(text)) {
+    blockedBy.value = nextStepFor(cause);
+    if (/刷新|412/.test(text)) {
       stale.value = true;
     }
   } finally {
     busy.value = null;
   }
+}
+
+/** The screen that resolves this refusal, when one is identifiable. */
+function nextStepFor(cause: unknown): RefusalAction | null {
+  const code = cause instanceof ApiError ? cause.serverDetail.toLowerCase() : "";
+  if (code.includes("independent valid approval")) {
+    return { label: "去审核队列创建批准记录", route: "reviews" };
+  }
+  if (code.includes("validation")) {
+    return { label: "查看校验任务", route: "jobs" };
+  }
+  return null;
 }
 
 /** Clear transient messages when the version switches. */
@@ -165,6 +190,7 @@ watch(
     error.value = "";
     notice.value = "";
     stale.value = false;
+    blockedBy.value = null;
     reason.value = "";
   },
 );
@@ -220,7 +246,16 @@ watch(
       </template>
 
       <p v-if="notice" class="ok">{{ notice }}</p>
-      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="error" class="error">
+        {{ error }}
+        <router-link
+          v-if="blockedBy"
+          :to="subScreenPath(blockedBy.route)"
+          class="error-link"
+        >
+          → {{ blockedBy.label }}
+        </router-link>
+      </p>
       <p v-if="stale" class="error small">
         该版本已被其他人修改，请刷新后再试。
         <button class="link" @click="emit('changed')">重新加载</button>
@@ -259,6 +294,11 @@ watch(
 }
 .ok {
   color: var(--ok, #4ade80);
+}
+.error-link {
+  color: var(--accent, #38bdf8);
+  margin-left: 6px;
+  text-decoration: underline;
 }
 .link {
   background: none;

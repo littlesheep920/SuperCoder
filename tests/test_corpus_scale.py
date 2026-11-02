@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import unittest
 from collections import Counter
 from pathlib import Path
@@ -29,10 +30,35 @@ KINDS = {"skill", "mcp", "prompt", "agent", "workflow", "tool"}
 
 
 def manifests() -> list[tuple[Path, dict]]:
+    """The shipped corpus: manifests git tracks under resources/.
+
+    Resources a user registers through the console land in the same tree but are not
+    committed, so they are excluded. The labelling rule is about the corpus we ship,
+    and holding a user's own slug to it would reject perfectly reasonable names.
+    """
+
     return [
         (path, json.loads(path.read_text(encoding="utf-8")))
         for path in sorted(RESOURCES.glob("*/*/resource.yaml"))
+        if is_tracked(path)
     ]
+
+
+_TRACKED: frozenset[str] | None = None
+
+
+def is_tracked(path: Path) -> bool:
+    global _TRACKED
+    if _TRACKED is None:
+        result = subprocess.run(
+            ["git", "ls-files", "-z", "--", "resources"],
+            cwd=str(ROOT),
+            capture_output=True,
+        )
+        listed = (result.stdout or b"").decode("utf-8", errors="replace").split("\0")
+        _TRACKED = frozenset(item for item in listed if item)
+    relative = path.relative_to(ROOT).as_posix()
+    return relative in _TRACKED
 
 
 class CorpusSizeTests(unittest.TestCase):
