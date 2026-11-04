@@ -1,0 +1,27 @@
+{
+  "digest": "sha256:d980b9d6711960aa09548c88d38a5b1fe875a13e36734f5d7855ad7f049e14a2",
+  "files": {
+    ".claude/skills/example-mcp-server/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-mcp-server\ndescription: Example resource for the SuperCoder protocol. Fixture mcp-server.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# mcp-server\n\nExample resource for the SuperCoder protocol.\n"
+    },
+    ".mcp.json": {
+      "media_type": "application/json",
+      "text": "{\n  \"mcpServers\": {\n    \"example-mcp-server\": {\n      \"command\": \"npx\",\n      \"transport\": \"stdio\"\n    }\n  }\n}\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "claude-code",
+  "warnings": [
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    }
+  ]
+}

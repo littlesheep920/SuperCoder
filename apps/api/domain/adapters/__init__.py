@@ -20,11 +20,21 @@ from .ir import (
     ValidationIssue,
     ValidationResult,
 )
+from .targets import (
+    ChatGPTTarget,
+    ClaudeCodeTarget,
+    DshTarget,
+    available_targets,
+    find_target,
+)
 
 __all__ = [
     "AdaptationTarget",
     "AgentSkillsTarget",
     "BundleFile",
+    "ChatGPTTarget",
+    "ClaudeCodeTarget",
+    "DshTarget",
     "ExportBundle",
     "ExportWarning",
     "PermissionReport",
@@ -32,4 +42,6 @@ __all__ = [
     "SKILL_NAME_PATTERN",
     "ValidationIssue",
     "ValidationResult",
+    "available_targets",
+    "find_target",
 ]

@@ -18,7 +18,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from apps.api.domain.adapters import AgentSkillsTarget  # noqa: E402
+from apps.api.domain.adapters import available_targets  # noqa: E402
 from tests.test_adapter_ir import FakeResource  # noqa: E402
 
 GOLDEN = ROOT / "tests" / "golden" / "adapters"
@@ -102,25 +102,27 @@ def main() -> int:
     GOLDEN.mkdir(parents=True, exist_ok=True)
     failures: list[str] = []
 
-    for name, spec in CASES.items():
-        bundle = AgentSkillsTarget().export(build_resource(name, spec))
-        payload = render(bundle)
-        text = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
-        path = GOLDEN / f"{name}.json"
+    # One fixture per (target, case) so a change to any single target is reviewable in
+    # isolation rather than buried in a shared file.
+    for target in available_targets():
+        for name, spec in CASES.items():
+            bundle = target.export(build_resource(name, spec))
+            payload = render(bundle)
+            text = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+            path = GOLDEN / f"{target.identifier}--{name}.json"
 
-        if arguments.write:
-            path.write_text(text, encoding="utf-8", newline="\n")
-            print(f"wrote {path.relative_to(ROOT)}")
-            continue
+            if arguments.write:
+                path.write_text(text, encoding="utf-8", newline="\n")
+                print(f"wrote {path.relative_to(ROOT)}")
+                continue
 
-        if not path.exists():
-            failures.append(f"{path.name}: missing (run with --write)")
-            continue
-        expected = path.read_text(encoding="utf-8")
-        if expected != text:
-            failures.append(f"{path.name}: differs from the current export")
-        else:
-            print(f"ok {path.name}")
+            if not path.exists():
+                failures.append(f"{path.name}: missing (run with --write)")
+                continue
+            if path.read_text(encoding="utf-8") != text:
+                failures.append(f"{path.name}: differs from the current export")
+            else:
+                print(f"ok {path.name}")
 
     if failures:
         print()

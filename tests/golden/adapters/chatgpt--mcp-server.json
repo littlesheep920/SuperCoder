@@ -1,0 +1,39 @@
+{
+  "digest": "sha256:f3df259f3d553b5437beeaaf00f4dbd75b72f26b32249465f8aa7d8b3ed4fe66",
+  "files": {
+    "package.json": {
+      "media_type": "application/json",
+      "text": "{\n  \"name\": \"example-mcp-server\",\n  \"description\": \"Example resource for the SuperCoder protocol. Fixture mcp-server.\",\n  \"supercoder\": {\n    \"resource_id\": \"01ARZ3NDEKTSV4RRFFQ69G5FAV\",\n    \"version_id\": \"01BX5ZZKBKACTAV9WEVGEMMVRZ\",\n    \"semver\": \"1.0.0\"\n  }\n}\n"
+    },
+    "skills/example-mcp-server/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-mcp-server\ndescription: Example resource for the SuperCoder protocol. Fixture mcp-server.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# mcp-server\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "chatgpt",
+  "warnings": [
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    },
+    {
+      "code": "mcp_has_no_config_home",
+      "effect": "ChatGPT has no file-based MCP configuration, so the server definition is not exported.",
+      "mitigation": "Register the server through the environment's own UI.",
+      "source": "kind=mcp"
+    },
+    {
+      "code": "upload_is_manual",
+      "effect": "The package must be uploaded through ChatGPT's Skills page; there is no public API for installing a skill into an account. Availability depends on workspace plan and administrator settings.",
+      "mitigation": "Upload via Skills > Create > Upload from your computer.",
+      "source": "chatgpt distribution"
+    }
+  ]
+}

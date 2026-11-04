@@ -1,7 +1,7 @@
 {
-  "digest": "sha256:18f666087b1f2d81da791420e50bdfc2c59bea0d5df2f01410724c7b4b11378e",
+  "digest": "sha256:1c189dc3460d507ab67f386685b6f0e4c907e4d43832c63a47e94ff246821037",
   "files": {
-    ".agents/skills/example-vocabulary-coverage/SKILL.md": {
+    ".dsh/skills/example-vocabulary-coverage/SKILL.md": {
       "media_type": "text/markdown",
       "text": "---\nname: example-vocabulary-coverage\ndescription: Example resource for the SuperCoder protocol. Fixture plain-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# plain-skill\n\nExample resource for the SuperCoder protocol.\n"
     }
@@ -11,6 +11,13 @@
     "requires_approval": [],
     "unsupported": []
   },
-  "target": "agent-skills",
-  "warnings": []
+  "target": "dsh",
+  "warnings": [
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    }
+  ]
 }

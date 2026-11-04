@@ -1,0 +1,29 @@
+{
+  "digest": "sha256:cdb53b1a48012c6e0fb6db77466aaf415715486200e5c6bc6e3f129c7e596855",
+  "files": {
+    ".claude/skills/example-typed-io/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-typed-io\ndescription: Example resource for the SuperCoder protocol. Fixture typed-io-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# typed-io-skill\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "claude-code",
+  "warnings": [
+    {
+      "code": "typed_io_not_carried",
+      "effect": "1 input and 1 output declarations are described in the body but not machine-validated by the target.",
+      "mitigation": "Document the contract in the body so a reader can honour it.",
+      "source": "inputs/outputs"
+    },
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    }
+  ]
+}

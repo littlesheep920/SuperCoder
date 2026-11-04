@@ -1,0 +1,23 @@
+{
+  "digest": "sha256:a9772f7ea6a03684eb4abb160b30f427e1d39e0c91567042670231e13d82005a",
+  "files": {
+    ".claude/skills/example-vocabulary-coverage/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-vocabulary-coverage\ndescription: Example resource for the SuperCoder protocol. Fixture plain-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# plain-skill\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "claude-code",
+  "warnings": [
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    }
+  ]
+}

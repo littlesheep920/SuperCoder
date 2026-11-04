@@ -1,0 +1,33 @@
+{
+  "digest": "sha256:96fd91a5592cbac521dd52d042a9fae818b34fd838bb417c465fea3321b0ea5b",
+  "files": {
+    "package.json": {
+      "media_type": "application/json",
+      "text": "{\n  \"name\": \"example-vocabulary-coverage\",\n  \"description\": \"Example resource for the SuperCoder protocol. Fixture plain-skill.\",\n  \"supercoder\": {\n    \"resource_id\": \"01ARZ3NDEKTSV4RRFFQ69G5FAV\",\n    \"version_id\": \"01BX5ZZKBKACTAV9WEVGEMMVRZ\",\n    \"semver\": \"1.0.0\"\n  }\n}\n"
+    },
+    "skills/example-vocabulary-coverage/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-vocabulary-coverage\ndescription: Example resource for the SuperCoder protocol. Fixture plain-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# plain-skill\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "chatgpt",
+  "warnings": [
+    {
+      "code": "other_runtimes_not_exported",
+      "effect": "This resource also declares agent-skills; only the current target is exported.",
+      "mitigation": "Export separately for each target: agent-skills.",
+      "source": "runtimes"
+    },
+    {
+      "code": "upload_is_manual",
+      "effect": "The package must be uploaded through ChatGPT's Skills page; there is no public API for installing a skill into an account. Availability depends on workspace plan and administrator settings.",
+      "mitigation": "Upload via Skills > Create > Upload from your computer.",
+      "source": "chatgpt distribution"
+    }
+  ]
+}
