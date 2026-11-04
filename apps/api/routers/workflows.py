@@ -18,10 +18,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Header, Response
 from pydantic import BaseModel, Field
 
-from ..application.workflow_runs import RunCreationRequest, WorkflowRunService
+from ..application.workflow_runs import (
+    GateDecisionRequest,
+    RunCreationRequest,
+    WorkflowRunService,
+)
 from ..auth import AuthContext
 from ..dependencies import Container, get_auth, get_container
-from ..domain.errors import ServiceUnavailableError
+from ..domain.errors import PreconditionFailedError, ServiceUnavailableError
 
 router = APIRouter(tags=["Workflows"])
 
@@ -43,6 +47,17 @@ class ApprovalBody(BaseModel):
     decision: str = Field(pattern="^(approve|reject)$")
     reason: str = Field(min_length=1, max_length=4000)
     row_version: int = Field(ge=1)
+
+
+def body_gate_etag(run_id: str, row_version: int) -> str:
+    """The ETag form for a run at a given row version.
+
+    Kept as a function rather than inlined so the GET, cancel, and approval endpoints cannot
+    disagree about the format: a decision that compares against a different shape would refuse
+    every request.
+    """
+
+    return f"{run_id}:{row_version}"
 
 
 def _service(container: Container) -> WorkflowRunService:
@@ -204,5 +219,47 @@ def cancel_workflow_run(
     """
 
     record = _service(container).request_cancellation(auth, run_id)
+    response.headers["ETag"] = f'"{record.public_id}:{record.row_version}"'
+    return _run_payload(record)
+
+
+@router.post(
+    "/workflow-runs/{run_id}/approvals", operation_id="decideWorkflowRunApproval"
+)
+def decide_workflow_run_approval(
+    run_id: str,
+    body: ApprovalBody,
+    response: Response,
+    if_match: str | None = Header(default=None, alias="If-Match"),
+    container: Container = Depends(get_container),
+    auth: AuthContext = Depends(get_auth),
+) -> dict:
+    """Apply a reviewer's decision at the run's current gate.
+
+    The decision is bound to the run, the gate, and the row version the reviewer observed.
+    Those three bindings are what stop an approval from being reused at a different gate or
+    against a run that has changed since it was read.
+
+    `If-Match` is compared with the body's `row_version`: a client that sends one but not the
+    other is contradicting itself, and the contract requires both to agree.
+    """
+
+    if if_match is not None:
+        expected = f'"{body_gate_etag(run_id, body.row_version)}"'
+        if if_match.strip() != expected:
+            raise PreconditionFailedError(
+                "If-Match does not name this run and row version; reload the run and decide again"
+            )
+
+    record = _service(container).decide(
+        auth,
+        run_id,
+        GateDecisionRequest(
+            gate=body.gate,
+            decision=body.decision,
+            reason=body.reason,
+            row_version=body.row_version,
+        ),
+    )
     response.headers["ETag"] = f'"{record.public_id}:{record.row_version}"'
     return _run_payload(record)

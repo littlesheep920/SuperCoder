@@ -20,10 +20,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from ..domain.models import ResourceKind
+from ..auth import AuthContext
 from ..domain.errors import (
     ConflictError,
     ErrorCode,
     NotFoundError,
+    PreconditionFailedError,
     ValidationError,
 )
 from ..domain.models import ActorIdentity
@@ -33,7 +35,16 @@ from ..domain.workflow_resolution import (
     ResolutionError,
     resolve_definition,
 )
-from ..domain.workflow_runs import RunStatus, approval_gate_for
+from ..domain.workflow_runs import (
+    ApprovalRefused,
+    GateDecision,
+    RunGateState,
+    RunStatus,
+    approval_gate_for,
+    check_gate_decision,
+    next_status_after_gate,
+    transition,
+)
 from ..domain.workflows import DefinitionError, WorkflowDefinition, parse_definition
 from ..repositories.contracts import (
     NewWorkflowRun,
@@ -118,6 +129,20 @@ class _RepositoryCatalog:
             )
         self._dependency_cache[version_public_id] = declared
         return declared
+
+
+@dataclass(frozen=True)
+class GateDecisionRequest:
+    """A reviewer's decision at one gate of one run.
+
+    Carries the gate and the row version the reviewer saw, so the decision can be refused when
+    it applies to a different gate or to a run that has since changed.
+    """
+
+    gate: str
+    decision: str
+    reason: str
+    row_version: int
 
 
 @dataclass(frozen=True)
@@ -308,6 +333,97 @@ class WorkflowRunService:
                     row_version=record.row_version,
                     error_code="cancellation_requested",
                     error_summary=f"cancellation requested by {actor.actor.subject_id}",
+                ),
+                expected_row_version=record.row_version,
+            )
+            uow.commit()
+            return updated
+
+    # ---------------------------------------------------------------- approval gates
+
+    def open_gate(self, actor: AuthContext, public_id: str, gate: str) -> WorkflowRunRecord:
+        """Move a running run into `awaiting_approval` at a named gate.
+
+        Called by the worker when it reaches a stage whose definition requires approval. The
+        gate name is stored so a decision can be checked against it, and so a user can tell
+        which approval is outstanding without reading the definition.
+        """
+
+        with self._uow_factory() as uow:
+            record = uow.workflows.get_run(public_id, for_update=True)
+            if record is None:
+                raise NotFoundError("workflow run not found")
+
+            target = transition(record.status, RunStatus.AWAITING_APPROVAL)
+            updated = uow.workflows.update_run(
+                public_id,
+                WorkflowRunUpdate(
+                    status=str(target),
+                    row_version=record.row_version,
+                    approval_gate=gate,
+                ),
+                expected_row_version=record.row_version,
+            )
+            uow.commit()
+            return updated
+
+    def decide(self, actor: AuthContext, public_id: str, request: GateDecisionRequest) -> WorkflowRunRecord:
+        """Apply a human decision at the run's current gate.
+
+        The rules live in `domain.workflow_runs`; this method's job is to load the run under a
+        lock, hand the decision to those rules, and write the result. Doing the checks here
+        instead would give the worker a second copy of them to drift from.
+
+        Every refusal is a `ConflictError` naming the specific mistake, because "conflict"
+        alone leaves a reviewer unable to tell an expired page from a gate already decided.
+        """
+
+        with self._uow_factory() as uow:
+            record = uow.workflows.get_run(public_id, for_update=True)
+            if record is None:
+                raise NotFoundError("workflow run not found")
+
+            state = RunGateState(
+                status=record.status,
+                approval_gate=record.approval_gate,
+                row_version=record.row_version,
+                decided_by=record.approved_by,
+            )
+            decision = GateDecision(
+                gate=request.gate,
+                approved=request.decision == "approve",
+                actor_id=actor.actor.subject_id,
+                reason=request.reason,
+            )
+
+            try:
+                check_gate_decision(state, decision, expected_row_version=request.row_version)
+                next_status = next_status_after_gate(state, decision)
+            except ApprovalRefused as refusal:
+                # `stale` is a precondition failure, not a conflict: the client's copy of the
+                # run is out of date rather than the request being wrong.
+                if refusal.code == "stale":
+                    raise PreconditionFailedError(str(refusal)) from refusal
+                raise ConflictError(str(refusal)) from refusal
+
+            updated = uow.workflows.update_run(
+                public_id,
+                WorkflowRunUpdate(
+                    status=str(next_status),
+                    row_version=record.row_version,
+                    approved_by=actor.actor.subject_id,
+                    approved_at=datetime.now(timezone.utc),
+                    approval_reason=request.reason,
+                    # An approved gate is cleared so a later decision cannot be matched against
+                    # one that has already been answered; a rejected run keeps the gate name as
+                    # part of the record of where it stopped.
+                    clear_fields=("approval_gate",) if decision.approved else (),
+                    error_code=None if decision.approved else "approval_rejected",
+                    error_summary=(
+                        None
+                        if decision.approved
+                        else f"rejected at {request.gate}: {request.reason}"
+                    ),
                 ),
                 expected_row_version=record.row_version,
             )

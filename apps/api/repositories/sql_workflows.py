@@ -233,6 +233,13 @@ class SqlWorkflowRepository:
             value = getattr(update, name)
             if value is not None:
                 setattr(row, column, value)
+
+        # An explicit clear is how an answered gate is recorded as answered; omitting the field
+        # means "unchanged", which would leave a decided gate looking undecided.
+        for column in update.clear_fields:
+            if hasattr(row, column):
+                setattr(row, column, None)
+
         row.row_version = row.row_version + 1
         row.updated_at = _utc_now()
         self._session.flush()

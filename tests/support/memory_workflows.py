@@ -185,6 +185,21 @@ class MemoryWorkflowRepository(WorkflowRepository):
             if value is not None:
                 changes[name] = copy.deepcopy(value) if isinstance(value, Mapping) else value
 
+        # An explicit clear is the only way to set a field to None: omitting a field means
+        # "leave it alone", which for an answered gate would leave it looking unanswered.
+        for name in update.clear_fields:
+            if name in (
+                "output",
+                "output_hash",
+                "checkpoint",
+                "approval_gate",
+                "approval_reason",
+                "approved_by",
+                "error_code",
+                "error_summary",
+            ):
+                changes[name] = None
+
         # The record is a slots dataclass, so it is rebuilt field by field rather than by
         # splatting a `__dict__` it does not have.
         updated = replace(current, **changes)

@@ -741,6 +741,10 @@ class WorkflowRunUpdate:
     Deliberately excludes the snapshot, the input hash and the graph hash: those are frozen at
     creation, so a database update that tried to change them would be rejected by the schema
     rather than silently accepted here.
+
+    Clearing a field and leaving it alone are different operations — an answered approval gate
+    must be cleared — so `clear_fields` names the fields to set to NULL. Without it an update
+    could only add values, and "this gate is now answered" would be unrepresentable.
     """
 
     status: str
@@ -756,6 +760,8 @@ class WorkflowRunUpdate:
     finished_at: datetime | None = None
     error_code: str | None = None
     error_summary: str | None = None
+    #: Column names to set to NULL explicitly, for example `("approval_gate",)`.
+    clear_fields: tuple[str, ...] = ()
 
 
 @runtime_checkable
