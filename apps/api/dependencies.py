@@ -14,6 +14,7 @@ from .application.version_editor import VersionEditorService
 from .application.draft_comparer import DraftComparer
 from .application.diffs import DiffService
 from .application.export import ExportService
+from .application.review import ReviewService
 from .application.workflow_runs import WorkflowRunService
 from .application.governance import GovernanceService
 from .application.job_service import JobService
@@ -106,6 +107,9 @@ class Container:
     # Creates and reads workflow runs. Needs persistence for the frozen snapshot, so it
     # is absent without MySQL and the endpoints fail closed rather than pretending.
     workflow_runs: object | None = None
+    #: Builds a review of one run from its snapshot and usage rows. Needs persistence, so it
+    #: is absent without MySQL and the endpoint fails closed.
+    review: object | None = None
     mysql_engine: object = None
 
 
@@ -205,6 +209,7 @@ def build_container(settings: Settings | None = None) -> Container:
         workflow_runs=(
             None if not settings.mysql.enabled else WorkflowRunService(uow_factory)
         ),
+        review=None if not settings.mysql.enabled else ReviewService(uow_factory),
     )
 
 

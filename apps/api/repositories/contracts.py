@@ -665,6 +665,21 @@ class MetadataRepository(Protocol):
 
     def append_usage(self, usage: UsageRecord) -> UsageRecord: ...
 
+    def list_usage(
+        self,
+        *,
+        workflow_run_public_id: str | None = None,
+        correlation_id: str | None = None,
+        limit: int = 1000,
+    ) -> tuple[UsageRecord, ...]:
+        """Usage rows for one run or one correlation, newest first.
+
+        Scoped to a run or a correlation rather than listing everything: a review is always
+        about one piece of work, and an unbounded listing would let a caller read another
+        team's activity by asking for all of it.
+        """
+        ...
+
 
 @dataclass(frozen=True, slots=True)
 class WorkflowDefinitionRecord:

@@ -870,3 +870,58 @@ class SqlMetadataRepository:
         session.flush()
         session.refresh(model)
         return usage
+
+    def list_usage(
+        self,
+        *,
+        workflow_run_public_id: str | None = None,
+        correlation_id: str | None = None,
+        limit: int = 1000,
+    ) -> tuple[UsageRecord, ...]:
+        session = self._session
+        statement = select(ResourceUsage).order_by(
+            ResourceUsage.started_at.desc(), ResourceUsage.id.desc()
+        )
+        if workflow_run_public_id is not None:
+            statement = statement.join(
+                _WorkflowRunReference,
+                _WorkflowRunReference.id == ResourceUsage.workflow_run_id,
+            ).where(_WorkflowRunReference.public_id == workflow_run_public_id)
+        if correlation_id is not None:
+            statement = statement.where(ResourceUsage.correlation_id == correlation_id)
+
+        rows = session.execute(statement.limit(limit)).scalars()
+        results: list[UsageRecord] = []
+        for row in rows:
+            version_public_id = session.execute(
+                select(ResourceVersion.public_id).where(ResourceVersion.id == row.resource_version_id)
+            ).scalar_one()
+            run_public_id = None
+            if row.workflow_run_id is not None:
+                run_public_id = session.execute(
+                    select(_WorkflowRunReference.public_id).where(
+                        _WorkflowRunReference.id == row.workflow_run_id
+                    )
+                ).scalar_one_or_none()
+            results.append(
+                UsageRecord(
+                    public_id=row.public_id,
+                    version_public_id=version_public_id,
+                    actor_id=row.actor_id,
+                    action=row.action,
+                    status=row.status,
+                    correlation_id=row.correlation_id,
+                    started_at=row.started_at,
+                    runtime=row.runtime,
+                    request_id=row.request_id,
+                    job_public_id=None,
+                    finished_at=row.finished_at,
+                    error_code=row.error_code,
+                    workflow_run_public_id=run_public_id,
+                    adapter_version=row.adapter_version,
+                    input_hash=row.input_hash,
+                    output_hash=row.output_hash,
+                    metrics=dict(row.metrics_json or {}),
+                )
+            )
+        return tuple(results)

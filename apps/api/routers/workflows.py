@@ -263,3 +263,28 @@ def decide_workflow_run_approval(
     )
     response.headers["ETag"] = f'"{record.public_id}:{record.row_version}"'
     return _run_payload(record)
+
+
+@router.get("/workflow-runs/{run_id}/review", operation_id="getWorkflowRunReview")
+def get_workflow_run_review(
+    run_id: str,
+    container: Container = Depends(get_container),
+    auth: AuthContext = Depends(get_auth),
+) -> dict:
+    """A structured review of one run: what it used, what happened, what it produced.
+
+    Structured rather than prose on purpose. Every figure here is traceable to a usage row or to
+    the run's frozen snapshot, which is what makes the review checkable; a narrative summary
+    could not be.
+    """
+
+    if container.review is None:
+        raise ServiceUnavailableError(message="workflow review requires MySQL")
+
+    # Reading the run first applies the same visibility rule as every other run endpoint, so a
+    # review cannot be fetched for a run the caller could not otherwise see.
+    _service(container).get_run(auth, run_id)
+    review = container.review.review_run(run_id)
+    payload = review.to_payload()
+    payload["review_digest"] = review.digest()
+    return payload

@@ -2445,6 +2445,45 @@
           }
         }
       }
+    },
+    "/workflow-runs/{runId}/review": {
+      "get": {
+        "operationId": "getWorkflowRunReview",
+        "summary": "Structured review of one workflow run",
+        "description": "Assembles a deterministic account of one run: the stages it declared, the exact capability versions it pinned, how many times each was used, the outcomes, the hashes it produced, and any approval. Every figure is traceable to a usage record or to the run's frozen resolution snapshot; nothing is inferred. The response carries a digest over the whole review so a reader can tell whether it changed.",
+        "tags": [
+          "Workflows"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run's review.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRunReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6455,6 +6494,276 @@
           "cancelled",
           "timed_out"
         ]
+      },
+      "WorkflowRunReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_id",
+          "workflow_definition_id",
+          "status",
+          "requested_by",
+          "runtime",
+          "correlation_id",
+          "started_at",
+          "finished_at",
+          "definition_graph_hash",
+          "resolution_snapshot_hash",
+          "input_hash",
+          "output_hash",
+          "approval",
+          "error",
+          "stages",
+          "capabilities",
+          "usage_rows",
+          "notes",
+          "review_digest"
+        ],
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/PublicId"
+          },
+          "workflow_definition_id": {
+            "$ref": "#/components/schemas/PublicId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkflowRunStatus"
+          },
+          "requested_by": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/Runtime"
+          },
+          "correlation_id": {
+            "$ref": "#/components/schemas/CorrelationId"
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "definition_graph_hash": {
+            "$ref": "#/components/schemas/Hash"
+          },
+          "resolution_snapshot_hash": {
+            "$ref": "#/components/schemas/Hash"
+          },
+          "input_hash": {
+            "$ref": "#/components/schemas/Hash"
+          },
+          "output_hash": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Hash"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "gate",
+              "approved_by",
+              "approved_at",
+              "reason"
+            ],
+            "properties": {
+              "gate": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160
+              },
+              "approved_by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160
+              },
+              "approved_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 4000
+              }
+            }
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "summary"
+            ],
+            "properties": {
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 100
+              },
+              "summary": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 1000
+              }
+            }
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stage_id",
+                "title",
+                "gate",
+                "capabilities"
+              ],
+              "properties": {
+                "stage_id": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "gate": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "capabilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "node_id",
+                "kind",
+                "slug",
+                "stage_id",
+                "version",
+                "constraint",
+                "artifact_hash",
+                "optional",
+                "uses",
+                "succeeded",
+                "failed",
+                "other",
+                "output_hashes",
+                "last_error"
+              ],
+              "properties": {
+                "node_id": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "kind": {
+                  "$ref": "#/components/schemas/ResourceKind"
+                },
+                "slug": {
+                  "$ref": "#/components/schemas/Slug"
+                },
+                "stage_id": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "version": {
+                  "$ref": "#/components/schemas/SemanticVersion"
+                },
+                "constraint": {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "artifact_hash": {
+                  "$ref": "#/components/schemas/Hash"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "uses": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "succeeded": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "failed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "other": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "output_hashes": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Hash"
+                  }
+                },
+                "last_error": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 100
+                }
+              }
+            }
+          },
+          "usage_rows": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "review_digest": {
+            "$ref": "#/components/schemas/Hash"
+          }
+        }
       }
     }
   },

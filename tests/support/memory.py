@@ -528,6 +528,16 @@ class _MemoryMetadataRepository:
         self._s.usage.append(usage)
         return usage
 
+    def list_usage(self, *, workflow_run_public_id=None, correlation_id=None, limit=1000):
+        selected = [
+            record
+            for record in self._s.usage
+            if (workflow_run_public_id is None or record.workflow_run_public_id == workflow_run_public_id)
+            and (correlation_id is None or record.correlation_id == correlation_id)
+        ]
+        selected.sort(key=lambda record: (record.started_at, record.public_id), reverse=True)
+        return tuple(selected[:limit])
+
 
 def _job_visible(store: MemoryStore, job: JobRecord, scope: VisibilityScope) -> bool:
     if scope.organization_member:
