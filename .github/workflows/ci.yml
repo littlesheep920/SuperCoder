@@ -231,3 +231,9 @@ jobs:
 
       - name: Links resolve and figures match the code
         run: python scripts/check_docs.py
+
+      - name: Documents agree with each other and with the code
+        # `check_docs.py` verifies links and the PRD's figures. This additionally catches
+        # two documents stating different things about the same fact, which is what makes
+        # a documentation set untrustworthy even when each page looks fine alone.
+        run: python scripts/check_doc_consistency.py
