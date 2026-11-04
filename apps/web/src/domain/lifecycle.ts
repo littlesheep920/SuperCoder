@@ -151,6 +151,25 @@ export const EVERY_CAPABILITY: ReadonlySet<TransitionCapability> = new Set<Trans
   "resource:edit",
 ]);
 
+/**
+ * Who performs each lifecycle step, in the words a user reads.
+ *
+ * The panel used to say "需要的权限为 `lifecycle:publish`" — the identifier is precise for
+ * logs and meaningless to a person asking "why can't I press this?". The question a user
+ * actually has is "who do I ask?", so this maps the capability to that answer.
+ *
+ * These are role descriptions, not permission checks: the server re-checks everything, and
+ * a deployment may grant these capabilities to different people than the names suggest.
+ */
+export const CAPABILITY_OWNER: Readonly<Record<TransitionCapability, string>> = {
+  "lifecycle:submit": "资源所有者",
+  "lifecycle:validate": "校验者",
+  "lifecycle:review": "审核者",
+  "lifecycle:publish": "发布者",
+  "lifecycle:reverse_deprecation": "发布者",
+  "resource:edit": "资源所有者",
+};
+
 /** States a caller may move to from `state`, in display order. */
 export function targetsFrom(state: string): readonly LifecycleState[] {
   const key = state as LifecycleState;

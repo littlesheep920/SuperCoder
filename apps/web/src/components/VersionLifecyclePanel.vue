@@ -22,6 +22,7 @@ import { api, ApiError } from "../api/client";
 import type { ResourceVersion, ResourceVersionSummary } from "../api/types";
 import { useCapabilities } from "../composables/useCapabilities";
 import {
+  CAPABILITY_OWNER,
   EVERY_CAPABILITY,
   isSameState,
   stateLabel,
@@ -81,6 +82,19 @@ const blocked = computed<TransitionSpec[]>(() => {
 const blockedCapabilities = computed(() =>
   [...new Set(blocked.value.map((spec) => spec.capability).filter(Boolean))].join(" / "),
 );
+
+/**
+ * Who performs the blocked steps, in words.
+ *
+ * The capability identifier is exact and unreadable. Someone staring at grey buttons wants
+ * to know whose job it is, so the panel answers that instead of naming a permission.
+ */
+const blockedRoleNames = computed(() => {
+  const roles = blocked.value
+    .map((spec) => (spec.capability ? CAPABILITY_OWNER[spec.capability] : undefined))
+    .filter((role): role is string => Boolean(role));
+  return [...new Set(roles)].join(" / ");
+});
 
 /**
  * True when the caller holds no lifecycle capability at all.
@@ -216,9 +230,11 @@ watch(
       <template v-else>
         <div v-if="options.length === 0" class="muted small">
           <template v-if="blocked.length > 0">
-            {{ describe(version.status) }} 状态可以推进，但当前身份缺少所需权限：
-            <strong>{{ blocked.map((s) => s.label).join("、") }}</strong>。
-            需要的权限为 <code>{{ blockedCapabilities }}</code>。
+            {{ describe(version.status) }} 状态可以推进，但当前身份不具备所需角色：
+            <strong>{{ blocked.map((s) => s.label).join("、") }}</strong>
+            需要
+            <strong>{{ blockedRoleNames }}</strong>
+            执行。
           </template>
           <template v-else>
             {{ describe(version.status) }} 状态没有可用的推进动作。

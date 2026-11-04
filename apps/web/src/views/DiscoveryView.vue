@@ -54,6 +54,24 @@ function buildFilters() {
   };
 }
 
+/**
+ * Example queries offered before the first search.
+ *
+ * They name real tasks a capability catalogue would answer, rather than generic filler: the
+ * point is to show what kind of sentence produces a good result.
+ */
+const EXAMPLE_QUERIES = [
+  "审查代码改动并给出证据",
+  "把文档翻译成另一种语言",
+  "检查接口的权限差异",
+];
+
+/** Fill the box and run, so an example is one click rather than a copy-paste. */
+function useExample(example: string): void {
+  query.value = example;
+  void runSearch();
+}
+
 async function runSearch() {
   if (!query.value.trim()) {
     error.value = "请输入要查找的能力描述";
@@ -209,10 +227,30 @@ function similarityTitle(hit: SearchHit): string {
 
         <p v-if="loading" class="muted">检索中…</p>
         <p v-else-if="error" class="error">{{ error }}</p>
-        <p v-else-if="showEmpty" class="muted">
-          没有匹配的能力。可尝试放宽筛选，或换用更概括的描述。
-        </p>
-        <p v-else-if="!searched" class="muted">输入需求开始检索。</p>
+
+        <!--
+          An empty result area tells a reader nothing: it looks the same whether the search
+          ran and found nothing or never ran at all. The first case explains itself; the
+          second offers examples, because a blank box is the worst possible starting point.
+        -->
+        <div v-else-if="showEmpty" class="empty-state">
+          <p class="title">没有匹配的能力</p>
+          <p class="hint">可以放宽左侧筛选，或换用更概括的描述。</p>
+        </div>
+
+        <div v-else-if="!searched" class="empty-state">
+          <p class="title">输入一句业务语言的需求</p>
+          <p class="hint">系统在你有权访问的范围内检索，并说明每个结果为何被召回。</p>
+          <div class="row" style="justify-content: center; margin-top: var(--space-3)">
+            <button
+              v-for="example in EXAMPLE_QUERIES"
+              :key="example"
+              @click="useExample(example)"
+            >
+              {{ example }}
+            </button>
+          </div>
+        </div>
 
         <ul v-else class="hit-list">
           <li
@@ -292,8 +330,11 @@ function similarityTitle(hit: SearchHit): string {
       </aside>
     </div>
 
-    <!-- Bottom: debug strip -->
-    <section class="debug panel" aria-label="检索调试">
+    <!--
+      Bottom: debug strip. Hidden until a search has run: before that it shows only dashes
+      and "0 ms", which reads as a failure rather than as "nothing has happened yet".
+    -->
+    <section v-if="searched" class="debug panel" aria-label="检索调试">
       <h3>检索调试</h3>
       <div class="debug-grid">
         <div><span class="muted">查询 ID</span><br /><span class="mono small">{{ queryId || "—" }}</span></div>

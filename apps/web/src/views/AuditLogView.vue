@@ -68,6 +68,24 @@ const chain = computed(() => {
   return { checked: items.length - 1, breaks };
 });
 
+/**
+ * Entries grouped by calendar day, in the order they arrive.
+ *
+ * A flat list of fifty rows gives the eye no anchor: a reader cannot tell where one session
+ * ends and another begins. Grouping by day is the unit people actually reason about, and it
+ * costs nothing because the records are already newest-first.
+ */
+const groups = computed(() => {
+  const buckets: Array<{ day: string; entries: typeof entries.value }> = [];
+  for (const entry of entries.value) {
+    const day = new Date(entry.occurred_at).toLocaleDateString();
+    const current = buckets[buckets.length - 1];
+    if (current && current.day === day) current.entries.push(entry);
+    else buckets.push({ day, entries: [entry] });
+  }
+  return buckets;
+});
+
 async function load(reset = true): Promise<void> {
   if (!allowed.value) return;
   loading.value = true;
@@ -181,24 +199,32 @@ watch(allowed, (nowAllowed, wasAllowed) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="entry in entries" :key="entry.audit_id">
-            <td class="nowrap">{{ new Date(entry.occurred_at).toLocaleString() }}</td>
-            <td>{{ entry.actor_id }}<span class="muted small"> · {{ entry.actor_type }}</span></td>
-            <td>
-              <span class="mono">{{ entry.action }}</span>
-              <span v-if="entry.reason_code" class="muted small"> · {{ entry.reason_code }}</span>
-            </td>
-            <td>
-              <template v-if="entry.from_status || entry.to_status">
-                {{ entry.from_status ?? "—" }} → {{ entry.to_status ?? "—" }}
-              </template>
-              <span v-else class="muted">—</span>
-            </td>
-            <td>
-              <span :class="['outcome', entry.outcome]">{{ entry.outcome }}</span>
-            </td>
-            <td class="mono muted small" :title="entry.event_hash">{{ shortHash(entry.event_hash) }}</td>
-          </tr>
+          <template v-for="group in groups" :key="group.day">
+            <tr class="day-divider">
+              <td colspan="6">
+                {{ group.day }}
+                <span class="faint">· {{ group.entries.length }} 条</span>
+              </td>
+            </tr>
+            <tr v-for="entry in group.entries" :key="entry.audit_id">
+              <td class="nowrap">{{ new Date(entry.occurred_at).toLocaleTimeString() }}</td>
+              <td>{{ entry.actor_id }}<span class="muted small"> · {{ entry.actor_type }}</span></td>
+              <td>
+                <span class="mono">{{ entry.action }}</span>
+                <span v-if="entry.reason_code" class="muted small"> · {{ entry.reason_code }}</span>
+              </td>
+              <td>
+                <template v-if="entry.from_status || entry.to_status">
+                  {{ entry.from_status ?? "—" }} → {{ entry.to_status ?? "—" }}
+                </template>
+                <span v-else class="muted">—</span>
+              </td>
+              <td>
+                <span :class="['outcome', entry.outcome]">{{ entry.outcome }}</span>
+              </td>
+              <td class="mono muted small" :title="entry.event_hash">{{ shortHash(entry.event_hash) }}</td>
+            </tr>
+          </template>
         </tbody>
       </table>
 
@@ -221,6 +247,17 @@ watch(allowed, (nowAllowed, wasAllowed) => {
 </template>
 
 <style scoped>
+/* A day header that recedes: it groups rows without competing with the data. */
+.day-divider td {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 6px var(--space-3);
+  border-bottom: 1px solid var(--border-strong);
+}
+
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
