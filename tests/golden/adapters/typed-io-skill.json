@@ -1,0 +1,23 @@
+{
+  "digest": "sha256:2431e854b5092f9b9136102e45911478a669eb662caf85538b2dbdcce7ecff7e",
+  "files": {
+    ".agents/skills/example-typed-io/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-typed-io\ndescription: Example resource for the SuperCoder protocol. Fixture typed-io-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# typed-io-skill\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "agent-skills",
+  "warnings": [
+    {
+      "code": "typed_io_not_carried",
+      "effect": "1 input and 1 output declarations are described in the body but not machine-validated by the target.",
+      "mitigation": "Document the contract in the body so a reader can honour it.",
+      "source": "inputs/outputs"
+    }
+  ]
+}

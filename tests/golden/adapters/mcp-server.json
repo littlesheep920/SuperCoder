@@ -1,0 +1,23 @@
+{
+  "digest": "sha256:33a3de6769767e92b1e890c72e5ec49a59720e771a0a23e2a5403e95e2b31ff5",
+  "files": {
+    ".agents/skills/example-mcp-server/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-mcp-server\ndescription: Example resource for the SuperCoder protocol. Fixture mcp-server.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# mcp-server\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "agent-skills",
+  "warnings": [
+    {
+      "code": "mcp_has_no_config_home",
+      "effect": "Agent Skills has no file-based MCP configuration, so the server definition is not exported.",
+      "mitigation": "Register the server through the environment's own UI.",
+      "source": "kind=mcp"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "digest": "sha256:18f666087b1f2d81da791420e50bdfc2c59bea0d5df2f01410724c7b4b11378e",
+  "files": {
+    ".agents/skills/example-vocabulary-coverage/SKILL.md": {
+      "media_type": "text/markdown",
+      "text": "---\nname: example-vocabulary-coverage\ndescription: Example resource for the SuperCoder protocol. Fixture plain-skill.\nmetadata:\n  supercoder-resource: 01ARZ3NDEKTSV4RRFFQ69G5FAV\n  supercoder-version: 01BX5ZZKBKACTAV9WEVGEMMVRZ\n  supercoder-semver: 1.0.0\n---\n\n# plain-skill\n\nExample resource for the SuperCoder protocol.\n"
+    }
+  },
+  "permissions": {
+    "declared": [],
+    "requires_approval": [],
+    "unsupported": []
+  },
+  "target": "agent-skills",
+  "warnings": []
+}
