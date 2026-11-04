@@ -232,6 +232,11 @@ jobs:
       - name: Links resolve and figures match the code
         run: python scripts/check_docs.py
 
+      - name: Documents follow the documentation standard
+        # Structural only: one title, no skipped heading levels, consistent tables, no
+        # empty sections. Inconsistent form makes a reader doubt the content.
+        run: python scripts/check_doc_format.py
+
       - name: Documents agree with each other and with the code
         # `check_docs.py` verifies links and the PRD's figures. This additionally catches
         # two documents stating different things about the same fact, which is what makes

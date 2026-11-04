@@ -35,6 +35,7 @@ EXPECTED_DOCS = [
     "docs/SECURITY_AND_CONFIGURATION.md",
     "docs/GIT_WORKFLOW.md",
     "docs/ADAPTERS.md",
+    "docs/DOCUMENTATION_STANDARD.md",
     "docs/STAGE3_ACCEPTANCE_REPORT.md",
 ]
 

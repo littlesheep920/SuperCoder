@@ -43,6 +43,8 @@ SuperCoder 的文档分为三层：**产品规范**、**冻结契约**、**阶�
 
 | 文档 | 内容 |
 |---|---|
+| [`STAGE3_ACCEPTANCE_REPORT.md`](STAGE3_ACCEPTANCE_REPORT.md) | 运行环境适配阶段验收：逐项结论、实测记录、已知限制 |
+| [`ADAPTERS.md`](ADAPTERS.md) | 三个运行环境的格式、目录、有损映射与导出规则 |
 | [`STAGE2_ACCEPTANCE_REPORT.md`](STAGE2_ACCEPTANCE_REPORT.md) | 检索阶段验收：逐项结论、实测指标、已知限制 |
 | [`GIT_WORKFLOW.md`](GIT_WORKFLOW.md) | 分支模型、提交规范、提交前校验清单 |
 
@@ -50,19 +52,28 @@ SuperCoder 的文档分为三层：**产品规范**、**冻结契约**、**阶�
 
 ---
 
-## 4. 其他入口
+## 4. 文档规范
+
+[`DOCUMENTATION_STANDARD.md`](DOCUMENTATION_STANDARD.md) 规定文档的结构要求：层级、编号、状态标记、数字可复现性与引用规则。由 `scripts/check_doc_format.py` 强制。
+
+**写文档前先读它**——结构不一致会让读者怀疑内容。
+
+---
+
+## 5. 其他入口
 
 | 位置 | 内容 |
 |---|---|
 | [`../.env.example`](../.env.example) | 全部配置项与默认值 |
-| [`../scripts/`](../scripts/) | 契约校验器、评测脚本、种子数据 |
+| [`../scripts/`](../scripts/) | 契约校验器、文档门禁、评测脚本、种子数据 |
 | [`../tests/`](../tests/) | 测试套件（含 PRD 一致性测试） |
 
 ---
 
-## 5. 文档维护规则
+## 6. 文档维护规则
 
 1. **PRD 是产品规范，不是变更日志**。它描述当前状态，不记录历史演进。
 2. **冻结契约只能通过契约评审修改**，提交时使用 `contract` 类型。
 3. **阶段关闭后归档**，其结论并入 PRD。
 4. **文档中的数字必须可复现**。PRD 引用的指标由 [`../tests/test_prd_alignment.py`](../tests/test_prd_alignment.py) 对照基线文件校验，不一致会导致构建失败。
+5. **结构由门禁强制**。链接、数字、跨文档一致性、结构规范共四个脚本，CI 每次运行。

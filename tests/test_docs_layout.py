@@ -93,9 +93,16 @@ class LinkIntegrityTests(unittest.TestCase):
         self.assertEqual(broken, [], "broken relative links:\n" + "\n".join(broken))
 
     def test_active_documents_do_not_link_to_archived_files_in_place(self) -> None:
-        """A live document must point at docs/archive/..., not the bare filename."""
+        """A live document must point at docs/archive/..., not the bare filename.
 
-        off_limits = {name for name in ARCHIVE.glob("*.md")}
+        Comparing basenames alone is not enough: `docs/README.md` and
+        `docs/archive/README.md` share a name but are different documents, and the earlier
+        form of this check flagged every link to the live index as if it pointed at the
+        archived one. Only a link that actually resolves inside docs/archive/ is a
+        violation.
+        """
+
+        archived = ARCHIVE.resolve()
         offenders: list[str] = []
         for path in DOCS.glob("*.md"):
             text = path.read_text(encoding="utf-8")
@@ -103,7 +110,8 @@ class LinkIntegrityTests(unittest.TestCase):
                 target = match.group(2).strip()
                 if "archive/" in target:
                     continue
-                if (path.parent / target.split("#")[0]).name in {p.name for p in off_limits}:
+                resolved = (path.parent / target.split("#")[0]).resolve()
+                if archived in resolved.parents:
                     offenders.append(f"{path.name} -> {target}")
         self.assertEqual(offenders, [], "links should use docs/archive/: " + str(offenders))
 
