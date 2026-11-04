@@ -363,3 +363,114 @@ export interface ExportDownload {
   digest: string;
   warningCodes: string[];
 }
+
+// ---------------------------------------------------------------- workflows
+
+/** One resolved capability inside a run's frozen snapshot. */
+export interface WorkflowSnapshotNode {
+  node_id: string;
+  stage_id: string;
+  kind: string;
+  slug: string;
+  version: string;
+  resource_version_id: string;
+  artifact_hash: string;
+  constraint: string;
+  optional: boolean;
+}
+
+export interface WorkflowSnapshotStage {
+  stage_id: string;
+  title: string;
+  gate: string;
+  /** Node ids the stage owns. Present on a review; absent in a run's snapshot. */
+  capabilities?: string[];
+}
+
+export interface WorkflowDefinition {
+  workflow_id: string;
+  resource_version_id: string;
+  definition_schema_version: string;
+  definition: {
+    schema_version?: string;
+    title?: string;
+    stages?: WorkflowSnapshotStage[];
+  };
+  graph_hash: string;
+  is_deterministic: boolean;
+  created_at: string;
+  updated_at: string;
+  row_version: number;
+}
+
+/** A run as the API returns it, including the snapshot frozen at creation. */
+export interface WorkflowRunSummary {
+  run_id: string;
+  workflow_id: string;
+  status: string;
+  requested_by: string;
+  runtime: string;
+  correlation_id: string;
+  input_hash: string;
+  output_hash: string | null;
+  timeout_seconds: number;
+  created_at: string;
+  updated_at: string;
+  row_version: number;
+  approval_gate: string | null;
+  approved_by: string | null;
+  approval_reason: string | null;
+  error_code: string | null;
+  error_summary: string | null;
+  resolution_snapshot_hash: string;
+  resolution_snapshot: {
+    nodes?: WorkflowSnapshotNode[];
+    stages?: WorkflowSnapshotStage[];
+    resolver_version?: string;
+  };
+}
+
+/** One capability as the review reports it, with what it actually did. */
+export interface ReviewCapability {
+  node_id: string;
+  kind: string;
+  slug: string;
+  stage_id: string;
+  version: string;
+  constraint: string;
+  artifact_hash: string;
+  optional: boolean;
+  uses: number;
+  succeeded: number;
+  failed: number;
+  other: number;
+  output_hashes: string[];
+  last_error: string | null;
+}
+
+export interface WorkflowRunReview {
+  run_id: string;
+  workflow_definition_id: string;
+  status: string;
+  requested_by: string;
+  runtime: string;
+  correlation_id: string;
+  started_at: string | null;
+  finished_at: string | null;
+  definition_graph_hash: string;
+  resolution_snapshot_hash: string;
+  input_hash: string;
+  output_hash: string | null;
+  approval: {
+    gate: string | null;
+    approved_by: string | null;
+    approved_at: string | null;
+    reason: string | null;
+  };
+  error: { code: string | null; summary: string | null };
+  stages: WorkflowSnapshotStage[];
+  capabilities: ReviewCapability[];
+  usage_rows: number;
+  notes: string[];
+  review_digest: string;
+}

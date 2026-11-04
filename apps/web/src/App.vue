@@ -48,7 +48,8 @@ onMounted(() => {
         <router-link to="/resources">能力资产</router-link>
         <router-link to="/register">资源登记</router-link>
         <router-link to="/register/draft">登记草稿</router-link>
-        <router-link to="/jobs">任务监控</router-link>
+        <router-link to="/workflows">工作流运行</router-link>
+      <router-link to="/jobs">任务监控</router-link>
         <router-link to="/audit">审计日志</router-link>
       </nav>
     </aside>

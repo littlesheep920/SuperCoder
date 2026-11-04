@@ -22,6 +22,9 @@ import type {
   SearchDiagnostics,
   SearchRequest,
   SearchResponse,
+  WorkflowDefinition,
+  WorkflowRunReview,
+  WorkflowRunSummary,
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "/v1";
@@ -380,4 +383,44 @@ export const api = {
     // enough for the save to start and still frees the blob.
     setTimeout(() => URL.revokeObjectURL(url), 0);
   },
+
+  // ---------------------------------------------------------------- workflows
+
+  listWorkflows: () => request<ListResponse<WorkflowDefinition>>("/workflows"),
+
+  getWorkflow: (workflowId: string) =>
+    request<WorkflowDefinition>(`/workflows/${workflowId}`),
+
+  createRun: (
+    workflowId: string,
+    body: { runtime: string; input: Record<string, unknown>; timeout_seconds: number },
+    idempotencyKey: string,
+  ) =>
+    request<WorkflowRunSummary>(`/workflows/${workflowId}/runs`, {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify(body),
+    }),
+
+  listRuns: (params: Record<string, string> = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request<ListResponse<WorkflowRunSummary>>(`/workflow-runs${qs ? `?${qs}` : ""}`);
+  },
+
+  getRun: (runId: string) => request<WorkflowRunSummary>(`/workflow-runs/${runId}`),
+
+  getRunReview: (runId: string) =>
+    request<WorkflowRunReview>(`/workflow-runs/${runId}/review`),
+
+  decideRunApproval: (
+    runId: string,
+    body: { gate: string; decision: "approve" | "reject"; reason: string; row_version: number },
+  ) =>
+    request<WorkflowRunSummary>(`/workflow-runs/${runId}/approvals`, {
+      method: "POST",
+      // The If-Match header must agree with the body's row version; the server checks both.
+      headers: { "If-Match": `"${runId}:${body.row_version}"` },
+      body: JSON.stringify(body),
+    }),
+
 };

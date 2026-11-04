@@ -11,6 +11,7 @@ import CapabilityFinderView from "../views/CapabilityFinderView.vue";
 import RegistrationDraftView from "../views/RegistrationDraftView.vue";
 import JobsView from "../views/JobsView.vue";
 import AuditLogView from "../views/AuditLogView.vue";
+import WorkflowRunsView from "../views/WorkflowRunsView.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -30,6 +31,9 @@ export const router = createRouter({
     { path: "/resources/:id/reviews", component: ReviewsView, props: true },
     { path: "/resources/:id/dependencies", component: DependenciesView, props: true },
     { path: "/jobs", component: JobsView },
+    // Workflow runs and their reviews. A run's snapshot is what it pinned, not the
+    // definition as it reads today, so the screen shows the snapshot.
+    { path: "/workflows", component: WorkflowRunsView },
     // Governance history. The hash chain is checked client-side per page, so a
     // break is visible without trusting the server to volunteer it.
     { path: "/audit", component: AuditLogView },
