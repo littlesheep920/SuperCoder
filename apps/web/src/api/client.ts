@@ -8,6 +8,8 @@ import type {
   DraftPreviewRequest,
   DraftPreviewResponse,
   ErrorBody,
+  ExportDownload,
+  ExportTargetList,
   Job,
   JobEvent,
   ListResponse,
@@ -320,4 +322,62 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  listExportTargets: () => request<ExportTargetList>("/export-targets"),
+
+  /**
+   * Download a published version for one environment.
+   *
+   * This bypasses `request` on purpose: the response is a zip, not JSON, and the useful
+   * metadata lives in headers. Returning `{blob, filename, warnings, digest}` lets the
+   * caller save the file and still show what the export could not carry.
+   */
+  exportVersion: async (
+    versionId: string,
+    target: string,
+  ): Promise<ExportDownload> => {
+    const headers = new Headers();
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const response = await fetch(
+      `${BASE}/resource-versions/${versionId}/export?target=${encodeURIComponent(target)}`,
+      { headers },
+    );
+    if (!response.ok) {
+      let body: ErrorBody = { code: "HTTP_ERROR", status: response.status };
+      try {
+        body = await response.json();
+      } catch {
+        // A non-JSON body means the failure is not one of ours; the status still tells
+        // the story, and the translated fallback for that status is better than nothing.
+      }
+      throw new ApiError(body, response.status);
+    }
+    const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const match = /filename="([^"]+)"/.exec(disposition);
+    return {
+      blob,
+      filename: match?.[1] ?? `${target}.zip`,
+      digest: response.headers.get("X-Export-Digest") ?? "",
+      warningCodes: (response.headers.get("X-Export-Warnings") ?? "")
+        .split(",")
+        .map((code) => code.trim())
+        .filter(Boolean),
+    };
+  },
+
+  /** Serve a downloaded archive to the browser as a file save. */
+  saveDownload: (download: ExportDownload) => {
+    const url = URL.createObjectURL(download.blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = download.filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    // Revoking immediately can cancel the download in some browsers; one turn later is
+    // enough for the save to start and still frees the blob.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  },
 };

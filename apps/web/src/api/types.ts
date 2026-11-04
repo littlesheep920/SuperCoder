@@ -337,3 +337,29 @@ export interface DraftCommitResponse {
   created_status: string;
   next_step: string;
 }
+
+
+/** One runtime environment a resource can be exported to. */
+export interface ExportTarget {
+  identifier: string;
+  display_name: string;
+  skills_directory: string;
+}
+
+export interface ExportTargetList {
+  items: ExportTarget[];
+}
+
+/**
+ * A downloaded archive plus what the export could not carry.
+ *
+ * The warnings live in headers on the response, so they are captured here rather than
+ * discarded with the binary: an export that silently loses a capability is exactly what
+ * this feature must not do.
+ */
+export interface ExportDownload {
+  blob: Blob;
+  filename: string;
+  digest: string;
+  warningCodes: string[];
+}

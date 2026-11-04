@@ -15,6 +15,7 @@ import type { ResourceDetail } from "../api/types";
 import { useCapabilities } from "../composables/useCapabilities";
 import VersionLifecyclePanel from "../components/VersionLifecyclePanel.vue";
 import VersionEditor from "../components/VersionEditor.vue";
+import VersionExport from "../components/VersionExport.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import AuditLogView from "./AuditLogView.vue";
 import { stateLabel } from "../domain/lifecycle";
@@ -164,6 +165,8 @@ watch(() => props.id, load);
       <VersionLifecyclePanel :version="activeVersion" @changed="load" />
 
       <VersionEditor :version="activeVersion" @changed="load" />
+
+      <VersionExport :version="activeVersion" />
 
       <AuditLogView :version-id="activeVersion?.version_id ?? null" compact :key="activeVersion?.version_id ?? 'none'" />
 
