@@ -156,3 +156,78 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down --volumes --remove-orphans
+
+  adapters:
+    name: Adapter golden files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `check_adapters.py` compares against committed fixtures; a shallow clone is
+          # enough, but the corpus must be present, which a normal checkout provides.
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+
+      - name: Golden adapter files match the current export
+        # Exports are the new surface this stage added, and nothing else in CI would
+        # notice a silent change to the bytes a user downloads.
+        run: python scripts/check_adapters.py
+
+      - name: Adapter contract and target tests
+        run: >-
+          python -m unittest
+          tests.test_adapter_ir
+          tests.test_adapter_targets
+          tests.test_export_api
+          tests.test_export_view
+          -v
+
+  contract:
+    name: Contract and implementation agree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+
+      - name: Contract operations exist in the code
+        # Added because drift has happened twice: a route whose decorator was deleted
+        # while its handler stayed, and eleven implemented operations never described at
+        # all. The unit tests could not see either, because they tested what existed.
+        run: python scripts/check_contract.py
+
+  docs:
+    name: Documentation consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+
+      - name: Links resolve and figures match the code
+        run: python scripts/check_docs.py
