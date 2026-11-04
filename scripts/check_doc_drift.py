@@ -53,7 +53,12 @@ def main() -> int:
     capability_evidence = {
         "运行环境适配器": len(adapter_modules) >= 4,
         "文件级历史差异": has_route("GET", "/resource-versions/{id}/diff"),
-        "工作流定义、解析与执行": any("workflow" in path for _, path in implemented),
+        # The schema and the resolver are domain modules, and this row is marked implemented
+        # before any route exists, so the evidence is the modules rather than a route.
+        "工作流定义与依赖解析": (
+            (ROOT / "apps/api/domain/workflows.py").exists()
+            and (ROOT / "apps/api/domain/workflow_resolution.py").exists()
+        ),
         "平台评测接口": any("/evaluations" in path for _, path in implemented),
         "生产身份认证": "oidc" in sources.lower() or "saml" in sources.lower(),
         "重复资源识别": "detect_duplicate" in sources,

@@ -86,7 +86,7 @@ POST 导出（published 版本）
 ### 3.3 门禁
 
 ```bash
-python -m unittest discover -s tests -p "test_*.py"   # 658 项通过
+python -m unittest discover -s tests -p "test_*.py"   # 702 项通过
 python scripts/validate_stage0.py --root .            # PASS
 python scripts/check_adapters.py                      # 9 份黄金文件一致
 python scripts/check_contract.py                      # 契约与实现一致
