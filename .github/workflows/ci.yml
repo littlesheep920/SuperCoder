@@ -252,3 +252,9 @@ jobs:
         # two documents stating different things about the same fact, which is what makes
         # a documentation set untrustworthy even when each page looks fine alone.
         run: python scripts/check_doc_consistency.py
+
+      - name: Documents describe the code that exists
+        # Three stale claims were found by hand in one session: a finished adapter marked
+        # unfinished, a working endpoint marked missing, and a test count that moved twice.
+        # Hand audits do not scale, so the checks are a gate.
+        run: python scripts/check_doc_drift.py

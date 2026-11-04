@@ -46,6 +46,8 @@ SuperCoder 的文档分为三层：**产品规范**、**冻结契约**、**阶�
 | [`STAGE3_ACCEPTANCE_REPORT.md`](STAGE3_ACCEPTANCE_REPORT.md) | 运行环境适配阶段验收：逐项结论、实测记录、已知限制 |
 | [`ADAPTERS.md`](ADAPTERS.md) | 三个运行环境的格式、目录、有损映射与导出规则 |
 | [`STAGE2_ACCEPTANCE_REPORT.md`](STAGE2_ACCEPTANCE_REPORT.md) | 检索阶段验收：逐项结论、实测指标、已知限制 |
+| [`STAGE1_ACCEPTANCE_REPORT.md`](STAGE1_ACCEPTANCE_REPORT.md) | 治理闭环阶段验收：资源、版本、生命周期、异步任务 |
+| [`RETRIEVAL_SCORE_ANALYSIS.md`](RETRIEVAL_SCORE_ANALYSIS.md) | 关键词与语义检索的分数分离分析，说明拒答为何不用阈值 |
 | [`GIT_WORKFLOW.md`](GIT_WORKFLOW.md) | 分支模型、提交规范、提交前校验清单 |
 
 已关闭阶段的过程记录见 [`archive/`](archive/README.md)。
