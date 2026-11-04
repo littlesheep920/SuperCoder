@@ -19,6 +19,7 @@ from ..repositories.sql_governance import (
     SqlPermissionRepository,
     SqlReviewRepository,
 )
+from ..repositories.sql_workflows import SqlWorkflowRepository
 from ..repositories.sql_resources import (
     SqlMetadataRepository,
     SqlResourceRepository,
@@ -82,6 +83,7 @@ class SqlUnitOfWork:
         self.metadata: SqlMetadataRepository | None = None
         self.jobs: SqlJobRepository | None = None
         self.audit: SqlAuditRepository | None = None
+        self.workflows: SqlWorkflowRepository | None = None
 
     @property
     def committed(self) -> bool:
@@ -106,6 +108,9 @@ class SqlUnitOfWork:
         self.metadata = SqlMetadataRepository(session)
         self.jobs = SqlJobRepository(session)
         self.audit = SqlAuditRepository(session)
+        # Definitions and runs share one transaction: a run is only ever written together
+        # with its snapshot, and nothing in the schema enforces that across statements.
+        self.workflows = SqlWorkflowRepository(session)
         return self
 
     def __exit__(

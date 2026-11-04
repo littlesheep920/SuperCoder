@@ -27,13 +27,9 @@ NOT_IMPLEMENTED = {
     ("GET", "/agent-registrations"),
     ("POST", "/agent-registrations"),
     ("GET", "/agent-registrations/{}"),
-    ("GET", "/workflows"),
-    ("GET", "/workflows/{}"),
-    ("POST", "/workflows/{}/runs"),
-    ("GET", "/workflow-runs"),
-    ("GET", "/workflow-runs/{}"),
+    # The gate decision endpoint is the remaining workflow operation; the other six are
+    # registered. See apps/api/routers/workflows.py.
     ("POST", "/workflow-runs/{}/approvals"),
-    ("POST", "/workflow-runs/{}/cancel"),
     ("GET", "/evaluations"),
     ("POST", "/evaluations"),
     ("GET", "/evaluations/{}"),

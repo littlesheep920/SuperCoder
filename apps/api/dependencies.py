@@ -14,6 +14,7 @@ from .application.version_editor import VersionEditorService
 from .application.draft_comparer import DraftComparer
 from .application.diffs import DiffService
 from .application.export import ExportService
+from .application.workflow_runs import WorkflowRunService
 from .application.governance import GovernanceService
 from .application.job_service import JobService
 from .application.resource_commands import ResourceCommandService
@@ -102,6 +103,9 @@ class Container:
     # Exports a published version to a runtime environment. Needs the checkout to read the
     # body, so it is absent when Git is unavailable; the endpoint then fails closed.
     export_service: object | None = None
+    # Creates and reads workflow runs. Needs persistence for the frozen snapshot, so it
+    # is absent without MySQL and the endpoints fail closed rather than pretending.
+    workflow_runs: object | None = None
     mysql_engine: object = None
 
 
@@ -195,6 +199,11 @@ def build_container(settings: Settings | None = None) -> Container:
             None
             if not settings.mysql.enabled
             else ExportService(uow_factory, git, VersionQueryService(uow_factory))
+        ),
+        # Workflow runs need the same unit of work factory: a run and its snapshot are
+        # written in one transaction, so they must not come from separate factories.
+        workflow_runs=(
+            None if not settings.mysql.enabled else WorkflowRunService(uow_factory)
         ),
     )
 

@@ -19,6 +19,7 @@ from .routers import (
     discovery,
     draft_commit,
     export,
+    workflows,
     governance,
     registration,
     resources,
@@ -76,6 +77,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.include_router(registration.router, prefix=prefix)
     app.include_router(draft_commit.router, prefix=prefix)
     app.include_router(export.router, prefix=prefix)
+    app.include_router(workflows.router, prefix=prefix)
     return app
 
 

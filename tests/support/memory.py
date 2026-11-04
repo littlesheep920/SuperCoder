@@ -95,6 +95,9 @@ class MemoryStore:
     job_events: dict[str, list[JobEventRecord]] = field(default_factory=dict)
     audit: list[AuditEventRecord] = field(default_factory=list)
     identities: dict[str, IdentityFacts] = field(default_factory=dict)
+    #: Workflow definitions and runs, kept in the same store so that a rolled-back unit of
+    #: work discards them along with everything else.
+    workflows: object | None = None
 
 
 class InMemoryUnitOfWork:
@@ -117,6 +120,7 @@ class InMemoryUnitOfWork:
         self.metadata = _MemoryMetadataRepository(store)
         self.jobs = _MemoryJobRepository(store)
         self.audit = _MemoryAuditRepository(store)
+        self.workflows = _workflow_repository_for(store)
 
     @property
     def committed(self) -> bool:
@@ -759,3 +763,28 @@ def make_uow_factory(store: MemoryStore):
         return InMemoryUnitOfWork(store)
 
     return factory
+
+
+def _workflow_repository_for(store: MemoryStore):
+    """One workflow repository per store, creating the store's workflow state on first use.
+
+    Kept lazy so that `MemoryStore()` stays constructible without importing the workflow
+    test double, which many tests never touch.
+    """
+
+    from .memory_workflows import MemoryWorkflowRepository, WorkflowStore
+
+    if store.workflows is None:
+        store.workflows = WorkflowStore()
+    return MemoryWorkflowRepository(store.workflows, _next_public_id)
+
+
+def _next_public_id() -> str:
+    """A unique id for the test double, shaped like the real 26-character ULID."""
+
+    global _PUBLIC_ID_COUNTER
+    _PUBLIC_ID_COUNTER += 1
+    return f"01TEST{_PUBLIC_ID_COUNTER:020d}"
+
+
+_PUBLIC_ID_COUNTER = 0

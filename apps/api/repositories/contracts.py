@@ -645,6 +645,152 @@ class MetadataRepository(Protocol):
     def append_usage(self, usage: UsageRecord) -> UsageRecord: ...
 
 
+@dataclass(frozen=True, slots=True)
+class WorkflowDefinitionRecord:
+    """A compiled workflow definition, tied to one resource version.
+
+    The definition body is stored as a mapping rather than a typed object because this is the
+    persistence boundary: validation happens on the way in, and the stored form is exactly what
+    was validated so that a later reader cannot see a different shape.
+    """
+
+    public_id: str
+    version_public_id: str
+    definition_schema_version: str
+    definition: Mapping[str, Any]
+    graph_hash: str
+    created_at: datetime
+    updated_at: datetime
+    row_version: int = 1
+    is_deterministic: bool = False
+    compiler_version: str | None = None
+    input_schema: Mapping[str, Any] = field(default_factory=dict)
+    output_schema: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class NewWorkflowDefinition:
+    version_public_id: str
+    definition_schema_version: str
+    definition: Mapping[str, Any]
+    graph_hash: str
+    is_deterministic: bool = False
+    compiler_version: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowRunRecord:
+    """One immutable execution of one workflow definition.
+
+    `resolution_snapshot` is written with the row and never updated. Retrying reuses it;
+    re-resolving creates a new run. That is what makes "which version did this use?"
+    answerable later.
+    """
+
+    public_id: str
+    workflow_definition_id: str
+    definition_graph_hash: str
+    resolution_snapshot: Mapping[str, Any]
+    resolution_snapshot_hash: str
+    requested_by: str
+    runtime: str
+    status: str
+    idempotency_key: str
+    correlation_id: str
+    input: Mapping[str, Any]
+    input_hash: str
+    timeout_seconds: int
+    created_at: datetime
+    updated_at: datetime
+    row_version: int = 1
+    output: Mapping[str, Any] | None = None
+    output_hash: str | None = None
+    checkpoint: Mapping[str, Any] | None = None
+    random_seed: int | None = None
+    approval_gate: str | None = None
+    approval_reason: str | None = None
+    approved_by: str | None = None
+    approved_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    error_code: str | None = None
+    error_summary: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class NewWorkflowRun:
+    workflow_definition_id: str
+    definition_graph_hash: str
+    resolution_snapshot: Mapping[str, Any]
+    resolution_snapshot_hash: str
+    requested_by: str
+    runtime: str
+    idempotency_key: str
+    correlation_id: str
+    input: Mapping[str, Any]
+    input_hash: str
+    timeout_seconds: int
+    random_seed: int | None = None
+    approval_gate: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowRunUpdate:
+    """The mutable surface of a run.
+
+    Deliberately excludes the snapshot, the input hash and the graph hash: those are frozen at
+    creation, so a database update that tried to change them would be rejected by the schema
+    rather than silently accepted here.
+    """
+
+    status: str
+    row_version: int
+    output: Mapping[str, Any] | None = None
+    output_hash: str | None = None
+    checkpoint: Mapping[str, Any] | None = None
+    approval_gate: str | None = None
+    approval_reason: str | None = None
+    approved_by: str | None = None
+    approved_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    error_code: str | None = None
+    error_summary: str | None = None
+
+
+@runtime_checkable
+class WorkflowRepository(Protocol):
+    def add_definition(self, definition: NewWorkflowDefinition) -> WorkflowDefinitionRecord: ...
+
+    def get_definition(self, public_id: str) -> WorkflowDefinitionRecord | None: ...
+
+    def get_definition_for_version(
+        self, version_public_id: str
+    ) -> WorkflowDefinitionRecord | None:
+        """The definition compiled from a resource version, if one exists."""
+        ...
+
+    def list_definitions(self) -> tuple[WorkflowDefinitionRecord, ...]: ...
+
+    def add_run(self, run: NewWorkflowRun) -> WorkflowRunRecord:
+        """Insert a queued run together with its snapshot, in the caller's transaction."""
+        ...
+
+    def get_run(self, public_id: str, *, for_update: bool = False) -> WorkflowRunRecord | None: ...
+
+    def find_run_by_idempotency(
+        self, workflow_definition_id: str, requested_by: str, idempotency_key: str
+    ) -> WorkflowRunRecord | None: ...
+
+    def update_run(
+        self, public_id: str, update: WorkflowRunUpdate, *, expected_row_version: int
+    ) -> WorkflowRunRecord: ...
+
+    def list_runs(
+        self, *, workflow_definition_id: str | None = None, status: str | None = None, limit: int = 50
+    ) -> tuple[WorkflowRunRecord, ...]: ...
+
+
 @runtime_checkable
 class JobRepository(Protocol):
     def add(self, job: NewJob, initial_event: JobEventRecord) -> JobRecord:
@@ -698,6 +844,9 @@ class UnitOfWork(Protocol):
     metadata: MetadataRepository
     jobs: JobRepository
     audit: AuditRepository
+    #: Workflow definitions and runs. Present on every unit of work: a run is only ever
+    #: written together with its snapshot, so the two must share one transaction.
+    workflows: WorkflowRepository
 
     @property
     def committed(self) -> bool: ...
