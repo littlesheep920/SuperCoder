@@ -252,6 +252,59 @@ If-Match: "01J00000000000000000000011:1"
 }
 ```
 
+### 4.3a 版本正文读写、差异与回滚
+
+`GET /resource-versions/{versionId}/body` 返回入口文件的文本与 `available` 标志。`available=false` 表示记录存在但检出中缺少该文件——实现与记录不一致时必须如实报告，不得用空字符串掩盖。
+
+`PUT /resource-versions/{versionId}/body` 把正文写入检出，并按**写入的内容**计算哈希，因此记录中的摘要与文件不可能不一致。规则：
+
+- **正文变化必须携带新的 manifest `version`**：旧内容作为不可变历史留存，新内容需要自己的版本号。同一版本号下改正文返回 `422`。
+- **仅改清单且版本号不变**时原地更新该草稿，`row_version` 递增，`status` 及其时间戳不动（内容编辑不是生命周期事件）。
+- 版本号一旦变化则新建版本行，旧行保留为不可变历史。
+- 必须带 `If-Match`；过期返回 `412`。清单镜像列（`name`、`description`、`owner_team`、`aliases`、`inputs`、`outputs`、`type_spec`）与 JSON 同步更新，否则按列读取会拿到旧值。
+
+`GET /resource-versions/{versionId}/diff?baseVersionId=...` 返回两个版本之间的统一差异。**两侧都必须对调用者可见**；不可见的基线按不存在处理，避免差异内容反证其存在。
+
+`POST /resource-versions/{versionId}/rollback` **创建新的更高版本草稿**，不移动任何版本的指针。已发布的版本号永不复用，因此回滚表达为「以旧内容开新版本」。
+
+### 4.3b 能力发现
+
+`POST /discovery/recommend` 回答「该用哪个能力」，在调用者可见范围内给出候选、每条的推荐理由，以及可引用的版本与内容哈希。
+
+**拒答是一等结果，不是空结果**：没有合适能力时必须明确拒绝并列出检查过的候选，使拒答可被复核。阈值来自实测的分数分离（见 PRD §5.3），不是凭经验设定。
+
+模型只能从接口返回的候选中选择：引用不存在的 `resource_id` 时整条推荐无效或降级为拒答，模型输出不能改变可见范围或权限。
+
+### 4.3c 登记草稿三阶段
+
+登记分三步，**只有最后一步写数据**：
+
+| 阶段 | endpoint | 是否写 | 说明 |
+|---|---|---|---|
+| 生成草稿 | `POST /registration/draft` | 否 | 模型生成候选 manifest，未经校验不可提交 |
+| 预览差异 | `POST /registration/preview` | 否 | 与同名可见资源的路径级差异 |
+| 确认提交 | `POST /registration/commit` | **是** | 必须 `confirmed: true`；写入前重新校验 |
+
+约束：模型产出的 `status` 一律强制为 `draft`；`preview` 对不可见资源按不存在处理；`commit` 校验失败时**回滚已写入的文件**；MySQL 或 Git 只读时 `commit` 返回 `503`，不得假装写入成功；未配置模型时返回 `llm_unavailable`，不拼装一个看似可用的草稿。
+
+### 4.3d 审计与任务重试
+
+`GET /audit` 返回追加式治理历史，最新在前，可见性在查询层过滤（先于计数与分页）。每条记录带 `event_hash` 与 `previous_event_hash`，调用者可自行验证链的完整性。
+
+`POST /jobs/{jobId}/retry` 重新入队**已终态失败**的任务。运行中的任务返回 `409`（会产生两个所有者），已成功的任务同样返回 `409`（没有可重做的事）。
+
+### 4.3e 契约范围外的端点
+
+以下端点已实现，但**不由本契约治理**，其语义分别属于部署文档与安全文档：
+
+| endpoint | 用途 | 归属 |
+|---|---|---|
+| `GET /health` | 存活与组件状态 | PRD §10.3、容器健康检查 |
+| `GET /ready` | 就绪检查，MySQL 不可用时返回 `503` | PRD §10.3、compose 健康门禁 |
+| `GET /auth/me` | 调用者自身的主体、团队与能力集合 | SECURITY_AND_CONFIGURATION.md |
+
+`GET /auth/me` 的结果**只用于前端渲染门控**，服务端对每个动作重新鉴权，因此它从不构成授权决定。契约用 `x-out-of-scope` 显式声明这三者：**「不在 `paths` 里」与「缺失」是两回事**。
+
 ### 4.4 Agent 登记
 
 `POST /agent-registrations` 是创建或复用 Agent 身份、保存 draft 版本并启动运行时/依赖检查的专用异步入口。manifest 必须为 `kind=agent` 且 `status=draft`。返回 `202 AgentRegistration` 和关联 `job_id`；`registered` 只表示登记检查完成，不表示 `approved` 或 `published`。

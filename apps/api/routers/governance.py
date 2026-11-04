@@ -12,6 +12,8 @@ from ..schemas.resources import (
     CreateResourceReviewRequest,
     LifecycleTransitionRequest,
 )
+from ..schemas.common import Page
+from ..schemas.governance import AuditRecord
 
 router = APIRouter(tags=["Governance", "Reviews"])
 
@@ -79,7 +81,11 @@ def create_review(
     return to_review(review)
 
 
-@router.get("/audit")
+@router.get(
+    "/audit",
+    response_model=Page[AuditRecord],
+    operation_id="listAudit",
+)
 def list_audit(
     actor_id: str | None = Query(default=None),
     action: str | None = Query(default=None),

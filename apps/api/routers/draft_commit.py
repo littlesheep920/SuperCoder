@@ -29,7 +29,11 @@ from ..schemas.draft_commit import (
 router = APIRouter(tags=["Registration"])
 
 
-@router.post("/registration/preview", response_model=DraftPreviewResponse)
+@router.post(
+    "/registration/preview",
+    response_model=DraftPreviewResponse,
+    operation_id="previewDraft",
+)
 def preview_draft(
     body: DraftPreviewRequest,
     container: Container = Depends(get_container),
@@ -65,7 +69,12 @@ def preview_draft(
     )
 
 
-@router.post("/registration/commit", response_model=DraftCommitResponse, status_code=201)
+@router.post(
+    "/registration/commit",
+    response_model=DraftCommitResponse,
+    status_code=201,
+    operation_id="commitDraft",
+)
 def commit_draft(
     body: DraftCommitRequest,
     container: Container = Depends(get_container),

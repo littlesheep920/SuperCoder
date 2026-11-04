@@ -27,12 +27,20 @@ PREFIX = "/v1"
 
 
 def decorated_routes() -> set[tuple[str, str]]:
-    """(method, path) pairs declared by `@router.<verb>("...")` in every router."""
+    """(method, path) pairs declared by `@router.<verb>(...)` in every router.
+
+    The path may be the first argument of a single-line decorator or the first line of a
+    multi-line one, which is the form used once a decorator also carries an
+    `operation_id`. Both must be recognised: a guard that only understood one form
+    would report a false mismatch the first time a decorator was reformatted.
+    """
 
     found: set[tuple[str, str]] = set()
     for source in sorted(ROUTERS.glob("*.py")):
         text = source.read_text(encoding="utf-8")
-        for match in re.finditer(r'@router\.(get|post|patch|put|delete)\("([^"]+)"', text):
+        for match in re.finditer(
+            r'@router\.(get|post|patch|put|delete)\(\s*"([^"]+)"', text
+        ):
             found.add((match.group(1).upper(), PREFIX + match.group(2)))
     return found
 

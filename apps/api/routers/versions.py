@@ -12,7 +12,12 @@ from ..middleware.concurrency import make_etag, require_if_match
 from ..presenters import to_diff, to_version_detail, to_version_summary
 from ..schemas.resources import (
     CreateResourceVersionRequest,
+    DiffResponse,
+    DraftBodyResponse,
     EditDraftBodyRequest,
+    EditedDraftResponse,
+    ResourceVersion,
+    RollbackRequest,
     UpdateDraftVersionRequest,
 )
 
@@ -102,7 +107,11 @@ def update_draft_version(
     return to_version_detail(version)
 
 
-@router.get("/resource-versions/{version_id}/body")
+@router.get(
+    "/resource-versions/{version_id}/body",
+    response_model=DraftBodyResponse,
+    operation_id="readDraftBody",
+)
 def read_draft_body(
     version_id: str,
     container: Container = Depends(get_container),
@@ -143,7 +152,11 @@ def read_draft_body(
     }
 
 
-@router.put("/resource-versions/{version_id}/body")
+@router.put(
+    "/resource-versions/{version_id}/body",
+    response_model=EditedDraftResponse,
+    operation_id="editDraftBody",
+)
 def edit_draft_body(
     version_id: str,
     body: EditDraftBodyRequest,
@@ -201,7 +214,11 @@ def edit_draft_body(
     }
 
 
-@router.get("/resource-versions/{version_id}/diff")
+@router.get(
+    "/resource-versions/{version_id}/diff",
+    response_model=DiffResponse,
+    operation_id="diffResourceVersion",
+)
 def diff_version(
     version_id: str,
     base_version_id: str = Query(...),
@@ -216,10 +233,15 @@ def diff_version(
     return to_diff(result)
 
 
-@router.post("/resource-versions/{version_id}/rollback", status_code=201)
+@router.post(
+    "/resource-versions/{version_id}/rollback",
+    status_code=201,
+    response_model=ResourceVersion,
+    operation_id="rollbackResourceVersion",
+)
 def rollback_version(
     version_id: str,
-    body: dict,
+    body: RollbackRequest,
     response: Response,
     container: Container = Depends(get_container),
     auth: AuthContext = Depends(get_auth),
@@ -228,7 +250,7 @@ def rollback_version(
     version = container.rollback.rollback(
         actor=auth.actor,
         source_version_public_id=version_id,
-        reason=str(body.get("reason", "rollback requested")),
+        reason=body.reason,
         scope=auth.visibility_scope(),
         correlation_id=context.correlation_id,
         request_id=context.request_id,

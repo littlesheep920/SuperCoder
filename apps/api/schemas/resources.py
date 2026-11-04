@@ -260,3 +260,33 @@ class EditedDraftResponse(BaseModel):
     body_path: str
     body_written: bool
     audit_id: str = Field(pattern=_PUBLIC_ID_PATTERN)
+
+
+class DraftBodyResponse(BaseModel):
+    """A draft version's entrypoint body as read from the checkout.
+
+    `available` says whether the entrypoint file exists in the working tree; when it is
+    false the record and the checkout disagree, which is worth surfacing rather than
+    returning an empty body as if the file were empty.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    version_id: str = Field(pattern=_PUBLIC_ID_PATTERN)
+    entrypoint: str
+    body: str | None = None
+    available: bool
+
+
+class RollbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class WithdrawRequest(BaseModel):
+    """Reason for retiring a resource's unpublished versions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=1, max_length=500)

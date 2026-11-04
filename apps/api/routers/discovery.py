@@ -20,7 +20,11 @@ from ..search import RankingProfile, SearchSort
 router = APIRouter(tags=["Discovery"])
 
 
-@router.post("/discovery/recommend", response_model=DiscoveryResponse)
+@router.post(
+    "/discovery/recommend",
+    response_model=DiscoveryResponse,
+    operation_id="recommendCapabilities",
+)
 def recommend(
     body: DiscoveryRequest,
     container: Container = Depends(get_container),

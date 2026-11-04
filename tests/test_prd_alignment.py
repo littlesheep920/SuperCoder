@@ -112,7 +112,16 @@ class ContractCoverageTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.text = PRD.read_text(encoding="utf-8")
-        cls.frozen = len(re.findall(r'"operationId"\s*:', OPENAPI.read_text(encoding="utf-8")))
+        # Count operations in `paths` only. `x-out-of-scope` also carries operationIds,
+        # but those endpoints are explicitly outside the contract; counting them would
+        # inflate the denominator and understate coverage.
+        spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+        cls.frozen = sum(
+            1
+            for methods in spec["paths"].values()
+            for method in methods
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        )
         cls.routes = route_count()
 
     def test_frozen_operation_count_is_stated(self) -> None:
@@ -120,6 +129,26 @@ class ContractCoverageTests(unittest.TestCase):
 
     def test_implemented_route_count_is_stated(self) -> None:
         self.assertRegex(self.text, rf"{self.routes}\s*个路由")
+
+    def test_out_of_scope_endpoints_are_declared_not_absent(self) -> None:
+        """A route outside `paths` must be declared, or it looks like a missing route."""
+
+        spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+        declared = {
+            item["path"] for item in spec.get("x-out-of-scope", {}).get("endpoints", [])
+        }
+        in_paths = set(spec["paths"])
+        for path in declared:
+            with self.subTest(path=path):
+                self.assertNotIn(
+                    path, in_paths, "a declared out-of-scope endpoint must not also be in paths"
+                )
+                self.assertIn(
+                    path,
+                    self.text,
+                    "every out-of-scope endpoint should be named in the PRD so the "
+                    "exclusion is visible to a reader of the document",
+                )
 
 
 class StatusHonestyTests(unittest.TestCase):

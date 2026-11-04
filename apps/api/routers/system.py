@@ -147,13 +147,24 @@ def cancel_job(
     return to_job(job)
 
 
-@router.post("/jobs/{job_id}/retry", status_code=202)
+@router.post(
+    "/jobs/{job_id}/retry",
+    status_code=202,
+    response_model=Job,
+    operation_id="retryJob",
+)
 def retry_job(
     job_id: str,
     container: Container = Depends(get_container),
     auth: AuthContext = Depends(get_auth),
     context=Depends(get_context),
 ):
+    """Requeue a failed or dead-lettered job.
+
+    Only terminal failures are retryable: a job that is still running would have two
+    owners, and one that succeeded has nothing to redo.
+    """
+
     job = container.jobs.retry(
         actor=auth.actor, job_public_id=job_id, correlation_id=context.correlation_id
     )

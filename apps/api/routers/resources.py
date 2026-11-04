@@ -11,7 +11,12 @@ from ..domain.models import LifecycleState, ResourceKind
 from ..middleware.concurrency import make_etag, validate_idempotency_key
 from ..presenters import to_resource_summary, to_version_detail, to_version_summary
 from ..repositories.contracts import ResourceQuery, ResourceWithVersion, SortDirection, ResourceSort
-from ..schemas.resources import CreateResourceRequest, ResourceDetail, ResourceSummary
+from ..schemas.resources import (
+    CreateResourceRequest,
+    ResourceDetail,
+    ResourceSummary,
+    WithdrawRequest,
+)
 
 router = APIRouter(tags=["Resources"])
 
@@ -124,15 +129,26 @@ def get_resource(
     return detail
 
 
-@router.delete("/resources/{resource_id}", status_code=204)
+@router.delete(
+    "/resources/{resource_id}",
+    status_code=204,
+    operation_id="withdrawResource",
+)
 def delete_resource(
     resource_id: str,
-    body: dict | None = None,
+    body: WithdrawRequest | None = None,
     container: Container = Depends(get_container),
     auth: AuthContext = Depends(get_auth),
     context=Depends(get_context),
 ):
-    reason = (body or {}).get("reason", "withdrawn by owner")
+    """Retire every unpublished version of a resource.
+
+    This is a withdrawal, not a row delete: published resources are refused, and the
+    audit trail keeps the reason. An optional reason is accepted so a caller can record
+    why without the field becoming mandatory for the common case.
+    """
+
+    reason = body.reason if body is not None else "withdrawn by owner"
     container.governance.withdraw_resource(
         auth=auth,
         resource_public_id=resource_id,

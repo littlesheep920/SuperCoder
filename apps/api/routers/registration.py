@@ -27,7 +27,11 @@ from ..schemas.registration import (
 router = APIRouter(tags=["Registration"])
 
 
-@router.post("/registration/draft", response_model=ManifestDraftResponse)
+@router.post(
+    "/registration/draft",
+    response_model=ManifestDraftResponse,
+    operation_id="draftManifest",
+)
 def draft_manifest(
     body: ManifestDraftRequest,
     container: Container = Depends(get_container),
