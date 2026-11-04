@@ -16,7 +16,6 @@ from __future__ import annotations
 import json
 import pathlib
 import re
-import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "apps" / "api" / "openapi.stage0.yaml"
