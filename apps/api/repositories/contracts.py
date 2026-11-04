@@ -335,6 +335,14 @@ class IndexStatusRecord:
 
 @dataclass(frozen=True, slots=True)
 class UsageRecord:
+    """One real discovery, resolution, or execution of a resource version.
+
+    The frozen data model gives this table more than the record carried before, and the
+    workflow work needs it: without `workflow_run_id` a usage row cannot be attributed to the
+    run that caused it, and without the hashes and metrics a review cannot say what was
+    produced. Declaring only what was implemented made the table's own contract unreachable.
+    """
+
     public_id: str
     version_public_id: str
     actor_id: str
@@ -347,6 +355,19 @@ class UsageRecord:
     job_public_id: str | None = None
     finished_at: datetime | None = None
     error_code: str | None = None
+    #: The run that caused this usage, when one did. Absent for a manual discovery.
+    workflow_run_public_id: str | None = None
+    adapter_version: str | None = None
+    input_hash: str | None = None
+    output_hash: str | None = None
+    #: Free-form measurements. Sorted on write so the stored value is stable.
+    metrics: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def duration_ms(self) -> int | None:
+        if self.finished_at is None:
+            return None
+        return max(0, int((self.finished_at - self.started_at).total_seconds() * 1000))
 
 
 @dataclass(frozen=True, slots=True)

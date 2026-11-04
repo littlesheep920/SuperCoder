@@ -95,6 +95,8 @@ class MemoryStore:
     job_events: dict[str, list[JobEventRecord]] = field(default_factory=dict)
     audit: list[AuditEventRecord] = field(default_factory=list)
     identities: dict[str, IdentityFacts] = field(default_factory=dict)
+    #: Append-only usage records, in the order they were written.
+    usage: list = field(default_factory=list)
     #: Workflow definitions and runs, kept in the same store so that a rolled-back unit of
     #: work discards them along with everything else.
     workflows: object | None = None
@@ -520,6 +522,10 @@ class _MemoryMetadataRepository:
         return status
 
     def append_usage(self, usage: UsageRecord):
+        # Stored rather than echoed: the review aggregation reads this collection, and an
+        # implementation that returned the record without keeping it would make those tests
+        # pass against an empty table.
+        self._s.usage.append(usage)
         return usage
 
 

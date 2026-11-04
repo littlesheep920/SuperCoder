@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from ..common.cursors import decode_cursor, encode_cursor
 from ..config import get_settings
 from ..db.models_governance import ResourceIndexStatus, ResourceUsage
+from ..db.models_governance import _WorkflowRunReference
 from ..db.models_resource import (
     Resource,
     ResourceCategory,
@@ -833,19 +834,37 @@ class SqlMetadataRepository:
     def append_usage(self, usage: UsageRecord) -> UsageRecord:
         session = self._session
         version_id = self._version_id(usage.version_public_id)
+
+        # A run reference is optional, so a missing row means the caller passed a stale id
+        # rather than the run not existing; refusing is better than silently dropping the link.
+        run_id = None
+        if usage.workflow_run_public_id is not None:
+            run_id = session.execute(
+                select(_WorkflowRunReference.id).where(
+                    _WorkflowRunReference.public_id == usage.workflow_run_public_id
+                )
+            ).scalar_one_or_none()
+
         model = ResourceUsage(
             public_id=usage.public_id,
             resource_version_id=version_id,
+            workflow_run_id=run_id,
             actor_id=usage.actor_id,
             action=usage.action,
             runtime=usage.runtime,
+            adapter_version=usage.adapter_version,
             status=usage.status,
             request_id=usage.request_id,
             correlation_id=usage.correlation_id,
-            metrics_json={},
+            input_hash=usage.input_hash,
+            output_hash=usage.output_hash,
+            # Sorted so the stored JSON does not depend on insertion order, which keeps a
+            # replayed insert byte-identical.
+            metrics_json=dict(sorted(usage.metrics.items())),
             error_code=usage.error_code,
             started_at=usage.started_at,
             finished_at=usage.finished_at,
+            duration_ms=usage.duration_ms,
         )
         session.add(model)
         session.flush()

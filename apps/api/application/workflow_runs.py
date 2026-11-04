@@ -19,7 +19,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from ..domain.models import ResourceKind
+from ..domain.models import ResourceKind, new_ulid
 from ..auth import AuthContext
 from ..domain.errors import (
     ConflictError,
@@ -48,6 +48,7 @@ from ..domain.workflow_runs import (
 from ..domain.workflows import DefinitionError, WorkflowDefinition, parse_definition
 from ..repositories.contracts import (
     NewWorkflowRun,
+    UsageRecord,
     UnitOfWorkFactory,
     WorkflowDefinitionRecord,
     WorkflowRunRecord,
@@ -243,6 +244,30 @@ class WorkflowRunService:
                     approval_gate=None,
                 )
             )
+            # The resolution really happened, so it is recorded as usage. Written in the same
+            # transaction as the run: a run whose resolution is not recorded would leave the
+            # review with a gap it could not explain.
+            for node in snapshot["nodes"]:
+                uow.metadata.append_usage(
+                    UsageRecord(
+                        public_id=new_ulid(),
+                        version_public_id=node["resource_version_id"],
+                        actor_id=actor.actor.subject_id,
+                        action="resolve",
+                        status="succeeded",
+                        correlation_id=request.correlation_id,
+                        started_at=run.created_at,
+                        finished_at=run.created_at,
+                        workflow_run_public_id=run.public_id,
+                        metrics={
+                            "node_id": node["node_id"],
+                            "stage_id": node["stage_id"],
+                            "version": node["version"],
+                            "constraint": node["constraint"],
+                        },
+                    )
+                )
+
             uow.commit()
             return run
 
