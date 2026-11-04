@@ -13,6 +13,7 @@ from .application.draft_commit import DraftCommitService
 from .application.version_editor import VersionEditorService
 from .application.draft_comparer import DraftComparer
 from .application.diffs import DiffService
+from .application.export import ExportService
 from .application.governance import GovernanceService
 from .application.job_service import JobService
 from .application.resource_commands import ResourceCommandService
@@ -98,6 +99,9 @@ class Container:
     # the body means writing the file: the recorded digest must match the bytes on
     # disk, and there is no way to satisfy that without writing.
     version_editor: VersionEditorService | None = None
+    # Exports a published version to a runtime environment. Needs the checkout to read the
+    # body, so it is absent when Git is unavailable; the endpoint then fails closed.
+    export_service: object | None = None
     mysql_engine: object = None
 
 
@@ -184,6 +188,13 @@ def build_container(settings: Settings | None = None) -> Container:
             else VersionEditorService(
                 git, ResourceCommandService(uow_factory, snapshots)
             )
+        ),
+        # Export only reads, so a read-only checkout is enough; MySQL is required because
+        # the version's lifecycle state is what decides whether it may be exported at all.
+        export_service=(
+            None
+            if not settings.mysql.enabled
+            else ExportService(uow_factory, git, VersionQueryService(uow_factory))
         ),
     )
 

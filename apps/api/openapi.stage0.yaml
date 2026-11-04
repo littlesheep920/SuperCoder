@@ -515,6 +515,34 @@
         }
       }
     },
+    "/export-targets": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "operationId": "listExportTargets",
+        "summary": "List runtime environments a resource can be exported to",
+        "description": "The environments this deployment can produce artefacts for, with the directory each one reads skills from. One authoritative source: the console renders the choices from this, rather than carrying its own copy that could drift.",
+        "responses": {
+          "200": {
+            "description": "The available export targets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportTargetList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
     "/jobs": {
       "get": {
         "tags": [
@@ -1298,6 +1326,61 @@
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
+          },
+          "default": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/resource-versions/{versionId}/export": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "operationId": "exportResourceVersion",
+        "summary": "Export a published version for a runtime environment",
+        "description": "Returns a zip of the files the target consumes. Only `published` versions may be exported: an unpublished resource has not completed review, and the export path must not become a second way for unreviewed content to leave the platform. A version in any other state is refused with 409 naming the current state. The archive's zip metadata is fixed, so the same version and target always produce byte-identical output and can be verified by hash. Capabilities the target cannot carry are reported in `X-Export-Warnings`; they are never silently dropped.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/VersionId"
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Export target identifier, for example `claude-code`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A zip archive. `X-Export-Digest` carries the content digest, `X-Export-Warning-Count` the number of warnings, and `X-Export-Warnings` their comma-separated codes.",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectionUnavailable"
           },
           "default": {
             "$ref": "#/components/responses/UnexpectedError"
@@ -4016,6 +4099,41 @@
           "error",
           "incomplete"
         ]
+      },
+      "ExportTarget": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "display_name",
+          "skills_directory"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "skills_directory": {
+            "type": "string"
+          }
+        }
+      },
+      "ExportTargetList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportTarget"
+            }
+          }
+        }
       },
       "Hash": {
         "type": "string",

@@ -18,6 +18,7 @@ from .middleware.context import RequestContextMiddleware, register_exception_han
 from .routers import (
     discovery,
     draft_commit,
+    export,
     governance,
     registration,
     resources,
@@ -74,6 +75,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     app.include_router(discovery.router, prefix=prefix)
     app.include_router(registration.router, prefix=prefix)
     app.include_router(draft_commit.router, prefix=prefix)
+    app.include_router(export.router, prefix=prefix)
     return app
 
 
