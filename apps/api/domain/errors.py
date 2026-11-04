@@ -136,24 +136,54 @@ class NotFoundError(DomainError):
 class ConflictError(DomainError):
     status_code = 409
 
-    def __init__(self, code: ErrorCode = ErrorCode.INVALID_STATE_TRANSITION,
-                 message: str = "The requested operation conflicts with current state.", **kwargs: object) -> None:
+    def __init__(
+        self,
+        code: ErrorCode | str = ErrorCode.INVALID_STATE_TRANSITION,
+        message: str = "The requested operation conflicts with current state.",
+        **kwargs: object,
+    ) -> None:
+        # A bare string is a message, not a code. Without this, `ConflictError("x")`
+        # stores the text in `code`, and the response mapper then fails reading
+        # `code.value`, turning a 409 into a 500.
+        if isinstance(code, str) and not isinstance(code, ErrorCode):
+            message = code
+            code = ErrorCode.INVALID_STATE_TRANSITION
         super().__init__(code, message, **kwargs)
 
 
 class PreconditionFailedError(DomainError):
     status_code = 412
 
-    def __init__(self, code: ErrorCode = ErrorCode.ROW_VERSION_MISMATCH,
-                 message: str = "The entity changed since it was last read.", **kwargs: object) -> None:
+    def __init__(
+        self,
+        code: ErrorCode | str = ErrorCode.ROW_VERSION_MISMATCH,
+        message: str = "The entity changed since it was last read.",
+        **kwargs: object,
+    ) -> None:
+        # A bare string is a message, not a code. Without this, `ConflictError("x")`
+        # stores the text in `code`, and the response mapper then fails reading
+        # `code.value`, turning a 409 into a 500.
+        if isinstance(code, str) and not isinstance(code, ErrorCode):
+            message = code
+            code = ErrorCode.ROW_VERSION_MISMATCH
         super().__init__(code, message, **kwargs)
 
 
 class ValidationError(DomainError):
     status_code = 422
 
-    def __init__(self, code: ErrorCode = ErrorCode.SCHEMA_VALIDATION_FAILED,
-                 message: str = "The request violates a governance or schema constraint.", **kwargs: object) -> None:
+    def __init__(
+        self,
+        code: ErrorCode | str = ErrorCode.SCHEMA_VALIDATION_FAILED,
+        message: str = "The request violates a governance or schema constraint.",
+        **kwargs: object,
+    ) -> None:
+        # A bare string is a message, not a code. Without this, `ConflictError("x")`
+        # stores the text in `code`, and the response mapper then fails reading
+        # `code.value`, turning a 409 into a 500.
+        if isinstance(code, str) and not isinstance(code, ErrorCode):
+            message = code
+            code = ErrorCode.SCHEMA_VALIDATION_FAILED
         super().__init__(code, message, **kwargs)
 
 
