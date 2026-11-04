@@ -85,6 +85,16 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Colour tokens meet WCAG AA contrast
+        # The palette claims 4.5:1 for body text. A claim in a comment drifts; computed
+        # ratios do not. This reads the token values and fails if a pairing regresses.
+        working-directory: .
+        run: python scripts/check_contrast.py
+
   compose:
     name: Compose stack (honest gate)
     runs-on: ubuntu-latest

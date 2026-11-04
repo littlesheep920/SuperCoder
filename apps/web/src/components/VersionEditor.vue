@@ -196,14 +196,24 @@ watch(() => props.version?.version_id, load, { immediate: true });
 
     <p v-if="loading" class="muted">加载中…</p>
     <p v-else-if="!version" class="muted">没有可编辑的版本。</p>
-    <template v-else>
-      <p v-if="!isDraft" class="muted small">
-        只有草稿状态可以编辑；当前为 <strong>{{ version.status }}</strong>。如需修改，请先退回草稿。
+
+    <!--
+      A non-draft version cannot be edited, so showing a full read-only editor wastes a
+      third of the page and implies an action is available. The reason and a route to fix
+      it are collapsed to one line instead.
+    -->
+    <template v-else-if="!isDraft">
+      <p class="muted small" style="margin: 0">
+        当前为 <strong>{{ version.status }}</strong>，不可编辑。编辑只对草稿开放；
+        如需修改，请先在页面的“生命周期”面板中退回草稿。
       </p>
-      <p v-else-if="!mayEdit" class="muted small">
+    </template>
+
+    <template v-else>
+      <p v-if="!mayEdit" class="muted small">
         当前身份没有编辑权限（需要 <code>resource:edit</code>）。
       </p>
-      <p v-if="isDraft" class="muted small">
+      <p v-else class="muted small">
         正文来自工作树中的 <code>{{ entrypoint || "—" }}</code>，不是该版本的快照：
         同一资源的所有版本共用这一个文件，因此这里显示的是文件当前内容。
         保存会写入文件并创建一个新版本，旧版本的哈希仍被记录，但其正文需从 Git 历史取得。

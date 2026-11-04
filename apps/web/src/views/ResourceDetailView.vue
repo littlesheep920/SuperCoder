@@ -18,6 +18,35 @@ import VersionEditor from "../components/VersionEditor.vue";
 import VersionExport from "../components/VersionExport.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import AuditLogView from "./AuditLogView.vue";
+
+/**
+ * Shorten a digest for display.
+ *
+ * A 64-character hash in a table cell forces every row to wrap or the column to stretch,
+ * which is what made the overview hard to scan. Showing a prefix plus a copy button keeps
+ * the value reachable without letting it dominate the layout.
+ */
+function shortHash(value: string | null | undefined): string {
+  if (!value) return "—";
+  const body = value.startsWith("sha256:") ? value.slice(7) : value;
+  return body.length <= 16 ? body : `${body.slice(0, 8)}…${body.slice(-4)}`;
+}
+
+const copied = ref("");
+
+async function copyHash(value: string | null | undefined): Promise<void> {
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    copied.value = "已复制";
+    setTimeout(() => (copied.value = ""), 1500);
+  } catch {
+    // A clipboard write can be refused (insecure origin, denied permission). The value is
+    // still selectable in the title attribute, so this needs no error state.
+    copied.value = "复制失败";
+    setTimeout(() => (copied.value = ""), 1500);
+  }
+}
 import { stateLabel } from "../domain/lifecycle";
 
 const props = defineProps<{ id: string }>();
@@ -117,7 +146,21 @@ watch(() => props.id, load);
             <tr><th>名称</th><td>{{ summary?.name }}</td></tr>
             <tr><th>最新版本</th><td>{{ summary?.version ?? "—" }}</td></tr>
             <tr><th>状态</th><td><StatusBadge :status="summary?.status" small /></td></tr>
-            <tr><th>制品哈希</th><td class="muted mono">{{ summary?.artifact_hash }}</td></tr>
+            <tr>
+              <th>制品哈希</th>
+              <td>
+                <span class="mono muted" :title="summary?.artifact_hash">
+                  {{ shortHash(summary?.artifact_hash) }}
+                </span>
+                <button
+                  class="link"
+                  :disabled="!summary?.artifact_hash"
+                  @click="copyHash(summary?.artifact_hash)"
+                >
+                  {{ copied || "复制" }}
+                </button>
+              </td>
+            </tr>
             <tr><th>入口</th><td class="mono">{{ detail.version?.entrypoint }}</td></tr>
             <tr><th>说明</th><td>{{ detail.version?.description }}</td></tr>
             <tr><th>创建者</th><td>{{ detail.created_by }}</td></tr>
@@ -162,11 +205,22 @@ watch(() => props.id, load);
         </p>
       </div>
 
-      <VersionLifecyclePanel :version="activeVersion" @changed="load" />
+      <!--
+        Section order follows the task that dominates the current state. A draft needs the
+        lifecycle panel and the editor; a published version needs the export panel, which is
+        where most readers of a published resource are heading. Everything else keeps the
+        same weight so the page does not reshuffle unpredictably.
+      -->
+      <template v-if="summary?.status === 'published'">
+        <VersionExport :version="activeVersion" />
+        <VersionLifecyclePanel :version="activeVersion" @changed="load" />
+      </template>
+      <template v-else>
+        <VersionLifecyclePanel :version="activeVersion" @changed="load" />
+        <VersionExport :version="activeVersion" />
+      </template>
 
       <VersionEditor :version="activeVersion" @changed="load" />
-
-      <VersionExport :version="activeVersion" />
 
       <AuditLogView :version-id="activeVersion?.version_id ?? null" compact :key="activeVersion?.version_id ?? 'none'" />
 
