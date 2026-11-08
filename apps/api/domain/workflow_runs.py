@@ -92,6 +92,34 @@ def is_terminal(status: str | RunStatus) -> bool:
     return RunStatus(status) in TERMINAL
 
 
+def as_utc(moment: datetime) -> datetime:
+    """The same instant as an aware UTC datetime.
+
+    MySQL `DATETIME(6)` columns come back naive while the application writes aware UTC values,
+    and Python refuses to compare the two. Every deadline comparison goes through this so a run
+    read from the database and a clock reading can be compared at all.
+    """
+
+    if moment.tzinfo is None:
+        return moment.replace(tzinfo=timezone.utc)
+    return moment.astimezone(timezone.utc)
+
+
+def run_deadline(created_at: datetime, timeout_seconds: int) -> datetime:
+    """When a run stops being allowed to make progress.
+
+    Measured from creation, not from the first step, and covering every state including a wait
+    at a gate. A run is a bounded request: if no worker picks it up, or nobody decides its gate,
+    it must still end, and ending as `timed_out` says truthfully why.
+    """
+
+    return as_utc(created_at) + timedelta(seconds=timeout_seconds)
+
+
+def is_overdue(created_at: datetime, timeout_seconds: int, now: datetime) -> bool:
+    return as_utc(now) >= run_deadline(created_at, timeout_seconds)
+
+
 def can_transition(current: str | RunStatus, requested: str | RunStatus) -> bool:
     return RunStatus(requested) in ALLOWED[RunStatus(current)]
 

@@ -38,6 +38,19 @@ from ..domain.workflow_resolution import (
     ResolutionError,
     resolve_definition,
 )
+from ..domain.hashing import canonical_json_bytes, sha256_digest
+from ..domain.models import ActorType, ArtifactHash, JobState
+from ..domain.workflow_compiler import retry_attempts
+from ..domain.workflow_execution import (
+    CANCELLATION_REQUESTED,
+    RUN_JOB_KIND,
+    WORKFLOW_QUEUE,
+    Checkpoint,
+    CheckpointMismatch,
+    GateRecord,
+)
+from ..repositories.contracts import JobEventRecord, NewJob
+from .helpers import AuditWriter
 from ..domain.workflow_runs import (
     RUN_RUNTIMES,
     ApprovalRefused,
@@ -307,8 +320,100 @@ class WorkflowRunService:
                     )
                 )
 
+            # The root job is written with the run (API_CONTRACT §4.5, ARCHITECTURE_FREEZE §6.3):
+            # a run that exists without a job sits in `queued` with nothing to move it.
+            root = self._enqueue(
+                uow,
+                run,
+                actor.actor,
+                step="start",
+                version_public_id=definition_record.version_public_id,
+                max_attempts=retry_attempts(definition_record.definition),
+            )
+            AuditWriter(uow).append(
+                actor=actor.actor,
+                action="workflow.run.create",
+                outcome="succeeded",
+                entity_type="workflow_run",
+                entity_public_id=run.public_id,
+                correlation_id=request.correlation_id,
+                reason_code="QUEUED",
+                reason_summary=f"run queued with {len(snapshot['nodes'])} pinned capabilities",
+                to_status="queued",
+                metadata={
+                    "resolution_snapshot_hash": snapshot_hash,
+                    "root_job_id": root.public_id,
+                    "runtime": request.runtime,
+                },
+            )
             uow.commit()
             return run
+
+    @staticmethod
+    def _enqueue(
+        uow,
+        run: WorkflowRunRecord,
+        actor: ActorIdentity,
+        *,
+        step: str,
+        version_public_id: str | None,
+        max_attempts: int = 3,
+        parent_job_public_id: str | None = None,
+    ):
+        """Queue a job that advances ``run``, in the caller's transaction.
+
+        The idempotency key is derived from the run and the step, so the same event cannot
+        queue two jobs: a second approval of one gate, or a second cancellation request, finds
+        the first job instead.
+        """
+
+        key = f"workflow-run:{run.public_id}:{step}"
+        existing = uow.jobs.find_idempotent(WORKFLOW_QUEUE, key)
+        if existing is not None:
+            return existing
+        now = datetime.now(timezone.utc)
+        payload = {"workflow_run_id": run.public_id, "step": step}
+        public_id = new_ulid()
+        return uow.jobs.add(
+            NewJob(
+                public_id=public_id,
+                job_kind=RUN_JOB_KIND,
+                queue_name=WORKFLOW_QUEUE,
+                idempotency_key=key,
+                correlation_id=run.correlation_id,
+                payload=payload,
+                payload_hash=ArtifactHash(sha256_digest(canonical_json_bytes(payload))),
+                available_at=now,
+                max_attempts=max_attempts,
+                version_public_id=version_public_id,
+                parent_job_public_id=parent_job_public_id,
+            ),
+            JobEventRecord(
+                job_public_id=public_id,
+                sequence_no=1,
+                event_type="queued",
+                actor_type=ActorType(str(actor.actor_type)),
+                actor_id=actor.subject_id,
+                payload={"job_kind": RUN_JOB_KIND, "workflow_run_id": run.public_id, "step": step},
+                occurred_at=now,
+                to_status=JobState.QUEUED,
+            ),
+        )
+
+    def _continue_after(self, uow, run: WorkflowRunRecord, actor: ActorIdentity, step: str):
+        """Queue a follow-up job for ``run``, linked to its root job when there is one."""
+
+        definition = uow.workflows.get_definition(run.workflow_definition_id)
+        root = uow.jobs.find_idempotent(WORKFLOW_QUEUE, f"workflow-run:{run.public_id}:start")
+        return self._enqueue(
+            uow,
+            run,
+            actor,
+            step=step,
+            version_public_id=None if definition is None else definition.version_public_id,
+            max_attempts=3 if definition is None else retry_attempts(definition.definition),
+            parent_job_public_id=None if root is None else root.public_id,
+        )
 
     def _snapshot(
         self, definition: WorkflowDefinition, record: WorkflowDefinitionRecord, resolution
@@ -395,10 +500,25 @@ class WorkflowRunService:
                 WorkflowRunUpdate(
                     status=record.status,
                     row_version=record.row_version,
-                    error_code="cancellation_requested",
+                    error_code=CANCELLATION_REQUESTED,
                     error_summary=f"cancellation requested by {actor.actor.subject_id}",
                 ),
                 expected_row_version=record.row_version,
+            )
+            # A run waiting at a gate has no job, so without one nothing would act on the
+            # request until the deadline. The wake-up job is idempotent per run.
+            self._continue_after(uow, updated, actor.actor, "cancel")
+            AuditWriter(uow).append(
+                actor=actor.actor,
+                action="workflow.run.cancel_request",
+                outcome="succeeded",
+                entity_type="workflow_run",
+                entity_public_id=public_id,
+                correlation_id=record.correlation_id,
+                reason_code="CANCELLATION_REQUESTED",
+                reason_summary=f"cancellation requested while {record.status}",
+                from_status=record.status,
+                to_status=record.status,
             )
             uow.commit()
             return updated
@@ -485,6 +605,29 @@ class WorkflowRunService:
                 raise ConflictError(str(refusal)) from refusal
 
             decided_at = datetime.now(timezone.utc)
+            # The run row keeps one decision; the checkpoint keeps every one, so a run with two
+            # gates can still say who approved the first. A run with no checkpoint (opened
+            # through `open_gate` directly) has nothing to append to.
+            checkpoint_after = None
+            if record.checkpoint:
+                try:
+                    checkpoint = Checkpoint.from_json(
+                        record.checkpoint, snapshot_hash=record.resolution_snapshot_hash
+                    )
+                except CheckpointMismatch:
+                    checkpoint = None
+                pending = None if checkpoint is None else checkpoint.pending_gate
+                if pending and pending.get("gate") == request.gate:
+                    checkpoint_after = checkpoint.with_decision(
+                        GateRecord(
+                            stage_index=int(pending["stage_index"]),
+                            gate=request.gate,
+                            decision=request.decision,
+                            decided_by=actor.actor.subject_id,
+                            decided_at=decided_at.isoformat(),
+                            reason=request.reason,
+                        )
+                    ).to_json()
             updated = uow.workflows.update_run(
                 public_id,
                 WorkflowRunUpdate(
@@ -507,8 +650,25 @@ class WorkflowRunService:
                         if decision.approved
                         else f"rejected at {request.gate}: {request.reason}"
                     ),
+                    checkpoint=checkpoint_after,
                 ),
                 expected_row_version=record.row_version,
+            )
+            if decision.approved:
+                # The job that brought the run here ended when the run started waiting; this one
+                # carries it on from the approved gate.
+                self._continue_after(uow, updated, actor.actor, f"gate:{request.gate}")
+            AuditWriter(uow).append(
+                actor=actor.actor,
+                action="workflow.gate.decide",
+                outcome="succeeded",
+                entity_type="workflow_run",
+                entity_public_id=public_id,
+                correlation_id=record.correlation_id,
+                reason_code=request.decision.upper(),
+                reason_summary=f"{request.decision} at {request.gate}: {request.reason}",
+                from_status=record.status,
+                to_status=str(next_status),
             )
             uow.commit()
             return updated

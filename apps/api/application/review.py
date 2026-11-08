@@ -199,14 +199,9 @@ def build_review(run: WorkflowRunRecord, usage: list[UsageRecord]) -> RunReview:
         for stage in snapshot.get("stages", [])
     )
 
-    # Usage is attributed by resource version, which is what the snapshot recorded per node.
-    by_version: dict[str, list[UsageRecord]] = {}
-    for record in usage:
-        by_version.setdefault(record.version_public_id, []).append(record)
-
     capabilities: list[CapabilityUse] = []
     for node in snapshot.get("nodes", []):
-        records = by_version.get(node["resource_version_id"], [])
+        records = _rows_for_node(node, usage)
         # The `resolve` row created with the run is bookkeeping, not an execution; counting it
         # as a use would report every capability as used once even if the run never started.
         executions = [record for record in records if record.action != "resolve"]
@@ -248,6 +243,19 @@ def build_review(run: WorkflowRunRecord, usage: list[UsageRecord]) -> RunReview:
     if any(item.failed for item in capabilities):
         notes.append("有执行失败；失败的能力见 capabilities.failed。")
 
+    # What only the checkpoint knows: a stage that finished degraded, and every gate decision
+    # (the run row keeps the latest one only).
+    checkpoint = run.checkpoint or {}
+    for stage in checkpoint.get("stages", []):
+        if stage.get("status") == "degraded":
+            failed = [node["node_id"] for node in stage.get("nodes", []) if node.get("status") != "succeeded"]
+            notes.append(
+                f"阶段 {stage.get('stage_id')} 降级完成：可选能力 {', '.join(failed)} 执行失败，运行按定义继续。"
+            )
+    for gate in checkpoint.get("gates", []):
+        verb = "批准" if gate.get("decision") == "approve" else "驳回"
+        notes.append(f"审批门 {gate.get('gate')} 由 {gate.get('decided_by')} {verb}：{gate.get('reason')}")
+
     return RunReview(
         run_id=run.public_id,
         workflow_definition_id=run.workflow_definition_id,
@@ -272,3 +280,23 @@ def build_review(run: WorkflowRunRecord, usage: list[UsageRecord]) -> RunReview:
         usage_rows=len(usage),
         notes=tuple(notes),
     )
+
+
+def _rows_for_node(node: dict, usage: list[UsageRecord]) -> list[UsageRecord]:
+    """The usage rows that belong to one node of the snapshot.
+
+    Rows written for a run carry the node id, and that is what attributes them: the same
+    capability can be pinned in two stages, and attributing by version alone counted each
+    execution once for every stage that pinned it. Rows without a node id (written before the
+    executor existed) fall back to the version.
+    """
+
+    node_id = node["node_id"]
+    attributed = [record for record in usage if (record.metrics or {}).get("node_id") == node_id]
+    legacy = [
+        record
+        for record in usage
+        if not (record.metrics or {}).get("node_id")
+        and record.version_public_id == node["resource_version_id"]
+    ]
+    return attributed + legacy

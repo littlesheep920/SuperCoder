@@ -20,6 +20,8 @@ from dataclasses import fields, replace
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
+from apps.api.domain.errors import PreconditionFailedError
+
 from .db_constraints import check_workflow_definition, check_workflow_run
 
 from apps.api.repositories.contracts import (
@@ -36,8 +38,12 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-class ConditionalUpdateFailed(RuntimeError):
-    """A conditional write was attempted against a stale row version."""
+class ConditionalUpdateFailed(PreconditionFailedError):
+    """A conditional write was attempted against a stale row version.
+
+    A `PreconditionFailedError`, as in the SQL repository: code that retries on a stale write
+    must see the same exception from both, or the fake would test a path production never takes.
+    """
 
     def __init__(self, public_id: str, expected: int, actual: int) -> None:
         self.public_id = public_id
@@ -198,17 +204,14 @@ class MemoryWorkflowRepository(WorkflowRepository):
 
         # An explicit clear is the only way to set a field to None: omitting a field means
         # "leave it alone", which for an answered gate would leave it looking unanswered.
+        #
+        # Any field the record has can be cleared, as in the SQL repository (`hasattr`). This
+        # used to be an allow-list that silently ignored `approved_at`, so a clear the database
+        # performs was skipped here; whether the cleared row is valid is the constraint check's
+        # job, below.
+        present = {item.name for item in fields(current)}
         for name in update.clear_fields:
-            if name in (
-                "output",
-                "output_hash",
-                "checkpoint",
-                "approval_gate",
-                "approval_reason",
-                "approved_by",
-                "error_code",
-                "error_summary",
-            ):
+            if name in present:
                 changes[name] = None
 
         # The record is a slots dataclass, so it is rebuilt field by field rather than by

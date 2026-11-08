@@ -16,6 +16,7 @@ from .application.diffs import DiffService
 from .application.export import ExportService
 from .application.review import ReviewService
 from .application.workflow_runs import WorkflowRunService
+from .application.workflow_executor import WorkflowExecutor
 from .application.governance import GovernanceService
 from .application.job_service import JobService
 from .application.resource_commands import ResourceCommandService
@@ -110,6 +111,9 @@ class Container:
     #: Builds a review of one run from its snapshot and usage rows. Needs persistence, so it
     #: is absent without MySQL and the endpoint fails closed.
     review: object | None = None
+    #: Advances workflow runs for the worker. Needs persistence, so it is absent without MySQL
+    #: and the worker then leaves the workflow queue alone.
+    workflow_executor: object | None = None
     mysql_engine: object = None
 
 
@@ -210,6 +214,9 @@ def build_container(settings: Settings | None = None) -> Container:
             None if not settings.mysql.enabled else WorkflowRunService(uow_factory)
         ),
         review=None if not settings.mysql.enabled else ReviewService(uow_factory),
+        workflow_executor=(
+            None if not settings.mysql.enabled else WorkflowExecutor(uow_factory)
+        ),
     )
 
 

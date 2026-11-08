@@ -29,6 +29,7 @@ from apps.api.domain.models import (
     new_ulid,
 )
 from apps.api.application.helpers import now_utc
+from apps.api.domain.workflow_execution import RUN_JOB_KIND, WORKFLOW_QUEUE
 from apps.api.repositories.contracts import JobClaim, JobUpdate
 from apps.api.schemas.resources import LifecycleTransitionRequest
 
@@ -52,12 +53,26 @@ class Worker:
         self._worker_id = worker_id or f"worker-{new_ulid()[:8]}"
 
     def poll_once(self) -> bool:
+        worked = self._claim_and_execute("validation")
+        # The workflow queue is polled only when runs can be executed at all (MySQL enabled);
+        # otherwise the validation path behaves exactly as it did before workflows existed.
+        executor = getattr(self._container, "workflow_executor", None)
+        if executor is not None:
+            worked = self._claim_and_execute(WORKFLOW_QUEUE) or worked
+            try:
+                # A run waiting at a gate has no job, so this is what ends it at its deadline.
+                executor.expire_overdue()
+            except Exception as error:  # noqa: BLE001 - the sweep must not stop the worker
+                print(f"[worker] overdue sweep failed: {error}", file=sys.stderr)
+        return worked
+
+    def _claim_and_execute(self, queue_name: str) -> bool:
         container = self._container
         settings = container.settings
         now = now_utc()
         lease_token = new_ulid()
         claim = JobClaim(
-            queue_name="validation",
+            queue_name=queue_name,
             worker_id=self._worker_id,
             lease_token_hash=ArtifactHash(sha256_digest(lease_token.encode("utf-8"))),
             now=now,
@@ -79,7 +94,15 @@ class Worker:
         try:
             running = self._transition(job, JobState.RUNNING, started_at=now, event_type="running")
             current = running
-            if running.job_kind == "resource_validation":
+            executor = getattr(container, "workflow_executor", None)
+            if running.job_kind == RUN_JOB_KIND and executor is not None:
+                # Advance the run until it waits at a gate or finishes. Retrying this job is
+                # safe: the run resumes from its checkpoint, and a stage is recorded whole.
+                outcome = executor.advance(
+                    str(running.payload["workflow_run_id"]), job_public_id=running.public_id
+                )
+                self._finish_success(running, outcome.to_result())
+            elif running.job_kind == "resource_validation":
                 result = self._validate(running)
                 self._finish_success(running, result)
             else:
