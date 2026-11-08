@@ -106,5 +106,44 @@ class ClientTests(unittest.TestCase):
                 self.assertIn(name, types)
 
 
+
+class ExecutionControlsTests(unittest.TestCase):
+    """The controls a run needs once the worker actually executes it."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.view = VIEW.read_text(encoding="utf-8")
+        cls.client = CLIENT.read_text(encoding="utf-8")
+
+    def test_only_runtimes_the_server_accepts_are_offered(self) -> None:
+        """`agent-skills` and `dsh` were offered and refused by the database."""
+
+        for runtime in ("claude-code", "cursor", "kiro", "dify", "openai-compatible-agent-runtime"):
+            self.assertIn(f'"{runtime}"', self.view)
+        self.assertNotIn("agent-skills", self.view)
+        self.assertNotIn('value="dsh"', self.view)
+
+    def test_the_gate_buttons_follow_the_capability(self) -> None:
+        self.assertIn('can("workflow:approve")', self.view)
+        self.assertIn('"workflow:approve"', TYPES.read_text(encoding="utf-8"))
+
+    def test_approving_your_own_run_is_not_offered(self) -> None:
+        self.assertIn('deciding || isOwnRun', self.view)
+        self.assertIn("批准需要另一位审核者", self.view)
+
+    def test_a_decision_carries_a_reason_and_the_current_row_version(self) -> None:
+        self.assertIn("请填写审批理由", self.view)
+        self.assertIn("row_version: run.row_version", self.view)
+        self.assertIn("api.getRun(run.run_id)", self.view)
+
+    def test_a_run_can_be_cancelled_from_the_console(self) -> None:
+        self.assertIn("cancelRun", self.client)
+        self.assertIn("/cancel", self.client)
+        self.assertIn("api.cancelRun", self.view)
+
+    def test_a_failed_run_says_why(self) -> None:
+        self.assertIn("selectedRun.error_summary", self.view)
+
+
 if __name__ == "__main__":
     unittest.main()

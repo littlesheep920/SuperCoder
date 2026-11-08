@@ -423,4 +423,14 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  /**
+   * Ask for a run to stop. The server answers 202: the worker owns the move to `cancelled`,
+   * so the caller keeps reading the run until it reaches a terminal state.
+   */
+  cancelRun: (runId: string) =>
+    request<WorkflowRunSummary>(`/workflow-runs/${runId}/cancel`, {
+      method: "POST",
+      headers: { "Idempotency-Key": `console-cancel-${runId}-${Date.now()}` },
+    }),
+
 };

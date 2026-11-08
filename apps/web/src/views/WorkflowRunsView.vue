@@ -9,9 +9,16 @@
  * 2. A review shows what was recorded. A capability with no executions shows zero uses and
  *    says so; it is never shown as successful by default.
  */
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { WorkflowDefinition, WorkflowRunReview, WorkflowRunSummary } from "../api/types";
+import { useCapabilities } from "../composables/useCapabilities";
+
+const { can, identity } = useCapabilities();
+
+/** The runtimes the server accepts for a run (the frozen data model's list). */
+const RUNTIMES = ["claude-code", "cursor", "kiro", "dify", "openai-compatible-agent-runtime"] as const;
+const FINISHED = ["succeeded", "failed", "cancelled", "timed_out"];
 
 const definitions = ref<WorkflowDefinition[]>([]);
 const runs = ref<WorkflowRunSummary[]>([]);
@@ -22,7 +29,22 @@ const error = ref("");
 const notice = ref("");
 
 const chosenDefinition = ref("");
-const runtime = ref("agent-skills");
+const runtime = ref<string>("claude-code");
+const decisionReason = ref("");
+const deciding = ref(false);
+
+/**
+ * Whether to offer the gate buttons. The server decides; this only avoids a button it would
+ * refuse. Approving your own run is refused there too, so the button says why instead of failing.
+ */
+const canDecide = computed(() => can("workflow:approve"));
+const isOwnRun = computed(
+  () => !!selectedRun.value && identity.value?.subject_id === selectedRun.value.requested_by,
+);
+
+function isFinished(status: string): boolean {
+  return FINISHED.includes(status);
+}
 const timeoutSeconds = ref(600);
 
 /** A short, readable form for a digest; the full value stays in the title attribute. */
@@ -79,10 +101,57 @@ async function openRun(run: WorkflowRunSummary) {
   review.value = null;
   error.value = "";
   try {
+    // The list can be stale, and a decision must carry the run's current row version.
+    selectedRun.value = await api.getRun(run.run_id);
     review.value = await api.getRunReview(run.run_id);
   } catch (e) {
     // A review needs usage records; a run that has not executed has an empty one, which the
     // server still returns. Any other failure is shown rather than hidden behind the run view.
+    error.value = e instanceof Error ? e.message : String(e);
+  }
+}
+
+async function decide(decision: "approve" | "reject") {
+  const run = selectedRun.value;
+  if (!run || !run.approval_gate) return;
+  const reason = decisionReason.value.trim();
+  if (!reason) {
+    error.value = "请填写审批理由：它会和决定一起记入审计记录。";
+    return;
+  }
+  deciding.value = true;
+  error.value = "";
+  notice.value = "";
+  try {
+    const updated = await api.decideRunApproval(run.run_id, {
+      gate: run.approval_gate,
+      decision,
+      reason,
+      row_version: run.row_version,
+    });
+    notice.value =
+      decision === "approve"
+        ? `已批准 ${run.approval_gate}，运行将由 Worker 从该阶段继续。`
+        : `已驳回 ${run.approval_gate}，运行已结束。`;
+    decisionReason.value = "";
+    await load();
+    await openRun(updated);
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    deciding.value = false;
+  }
+}
+
+async function cancel(run: WorkflowRunSummary) {
+  error.value = "";
+  notice.value = "";
+  try {
+    await api.cancelRun(run.run_id);
+    notice.value = `已请求取消 ${run.run_id}。Worker 处理后状态会变为 cancelled。`;
+    await load();
+    if (selectedRun.value?.run_id === run.run_id) await openRun(run);
+  } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   }
 }
@@ -95,6 +164,7 @@ onMounted(load);
     <div class="row" style="margin-bottom: var(--space-4)">
       <h2>工作流运行</h2>
       <span class="faint" v-if="!loading">{{ runs.length }} 次运行</span>
+      <button class="link" @click="load">刷新</button>
     </div>
 
     <p v-if="error" class="error">{{ error }} <button class="link" @click="load">重试</button></p>
@@ -105,7 +175,8 @@ onMounted(load);
       <div v-if="definitions.length === 0" class="empty-state">
         <p class="title">还没有可运行的工作流</p>
         <p class="hint">
-          工作流定义来自一个 `workflow` 类型的已发布资源。先登记并发布一个工作流定义。
+          发布一个 workflow 类型的资源后，平台会把它编译成可运行的定义。目前只支持从输入到输出的单链流程，
+          不含 condition 节点；不能编译的原因记在审计日志的 workflow.compile 事件里。
         </p>
       </div>
       <template v-else>
@@ -115,10 +186,8 @@ onMounted(load);
               {{ definition.definition.title ?? definition.workflow_id }}
             </option>
           </select>
-          <select v-model="runtime" style="width: 180px" aria-label="运行环境">
-            <option value="agent-skills">agent-skills</option>
-            <option value="claude-code">claude-code</option>
-            <option value="dsh">dsh</option>
+          <select v-model="runtime" style="width: 240px" aria-label="运行环境">
+            <option v-for="name in RUNTIMES" :key="name" :value="name">{{ name }}</option>
           </select>
           <button class="primary" @click="startRun">创建运行</button>
         </div>
@@ -143,19 +212,34 @@ onMounted(load);
           <th style="width: 110px">发起人</th>
           <th style="width: 150px">快照哈希</th>
           <th style="width: 180px">创建时间</th>
-          <th style="width: 100px"></th>
+          <th style="width: 130px"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="run in runs" :key="run.run_id">
           <td class="mono">{{ run.run_id }}</td>
-          <td><span class="badge" :class="run.status">{{ run.status }}</span></td>
+          <td>
+            <span class="badge" :class="run.status">{{ run.status }}</span>
+            <span v-if="run.status === 'awaiting_approval' && run.approval_gate" class="faint small">
+              {{ run.approval_gate }}
+            </span>
+          </td>
           <td class="muted">{{ run.requested_by }}</td>
           <td class="mono muted" :title="run.resolution_snapshot_hash">
             {{ shortHash(run.resolution_snapshot_hash) }}
           </td>
           <td class="faint">{{ new Date(run.created_at).toLocaleString() }}</td>
-          <td><button class="link" @click="openRun(run)">复盘</button></td>
+          <td>
+            <button class="link" @click="openRun(run)">复盘</button>
+            <button
+              v-if="!isFinished(run.status) && identity?.subject_id === run.requested_by"
+              class="link"
+              style="margin-left: var(--space-2)"
+              @click="cancel(run)"
+            >
+              取消
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -166,6 +250,41 @@ onMounted(load);
         <h3 style="margin: 0">复盘 {{ selectedRun.run_id }}</h3>
         <button class="link" @click="selectedRun = null; review = null">关闭</button>
       </div>
+
+      <p class="small" style="margin-top: var(--space-2)">
+        状态 <span class="badge" :class="selectedRun.status">{{ selectedRun.status }}</span>
+      </p>
+      <p v-if="selectedRun.error_summary" class="error small">
+        {{ selectedRun.error_code }}：{{ selectedRun.error_summary }}
+      </p>
+
+      <!-- A run waiting at a gate continues only after a reviewer decides. -->
+      <section
+        v-if="selectedRun.status === 'awaiting_approval' && selectedRun.approval_gate"
+        class="card"
+        style="margin: var(--space-3) 0"
+        aria-label="审批"
+      >
+        <h4 style="margin: 0 0 var(--space-2)">等待审批：{{ selectedRun.approval_gate }}</h4>
+        <p class="faint small">批准后运行从这一阶段继续；驳回会结束运行。决定和理由都会记入审计记录。</p>
+        <template v-if="canDecide">
+          <textarea
+            v-model="decisionReason"
+            rows="2"
+            style="width: 100%"
+            aria-label="审批理由"
+            placeholder="写下你核对了什么，例如：发布检查清单全部通过"
+          ></textarea>
+          <div class="row" style="margin-top: var(--space-2)">
+            <button class="primary" :disabled="deciding || isOwnRun" @click="decide('approve')">
+              批准并继续
+            </button>
+            <button :disabled="deciding" @click="decide('reject')">驳回并结束运行</button>
+          </div>
+          <p v-if="isOwnRun" class="warn small">这是你发起的运行：你可以驳回，但批准需要另一位审核者。</p>
+        </template>
+        <p v-else class="muted small">你的账号没有审批权限（workflow:approve），请联系审核者处理。</p>
+      </section>
 
       <p v-if="!review" class="muted">加载复盘中…</p>
       <template v-else>

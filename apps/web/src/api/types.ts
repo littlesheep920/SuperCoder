@@ -226,7 +226,8 @@ export type Capability =
   | "lifecycle:reverse_deprecation"
   | "lifecycle:review"
   | "job:cancel"
-  | "job:retry";
+  | "job:retry"
+  | "workflow:approve";
 
 /** Response of GET /v1/auth/me. */
 export interface CallerIdentity {
