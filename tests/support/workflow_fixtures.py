@@ -48,6 +48,7 @@ def register_capability(
     status: str = "published",
     artifact_hash: str | None = None,
     owner_team: str = "platform",
+    manifest_extra: dict | None = None,
 ) -> ResourceRecord:
     """Register a resource with one version, optionally published."""
 
@@ -84,7 +85,12 @@ def register_capability(
                 aliases=(),
                 inputs=(),
                 outputs=(),
-                manifest={"apiVersion": "supercoder/v1", "kind": kind, "name": slug},
+                manifest={
+                    "apiVersion": "supercoder/v1",
+                    "kind": kind,
+                    "name": slug,
+                    **(manifest_extra or {}),
+                },
                 type_spec={},
                 artifact_hash=artifact,
                 manifest_snapshot_hash="sha256:manifest",
@@ -181,3 +187,38 @@ def sha256_of(text: str) -> str:
 
 def graph_digest(definition: dict) -> str:
     return sha256_of(json.dumps(definition, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+
+
+def only_version(uow_factory, resource: ResourceRecord):
+    """The single version a fixture resource was registered with."""
+
+    scope = VisibilityScope(actor_id="user-owner", organization_member=True)
+    with uow_factory() as uow:
+        page = uow.versions.list_for_resource(resource.public_id, scope=scope)
+        uow.commit()
+    (version,) = page.items
+    return version
+
+
+def move_version(uow_factory, version_public_id: str, target: str):
+    """Move a version to ``target`` through the same conditional update the API uses."""
+
+    now = _now()
+    with uow_factory() as uow:
+        current = uow.versions.get(version_public_id)
+        updated = uow.versions.transition_lifecycle(
+            LifecycleUpdate(
+                version_public_id=version_public_id,
+                expected_row_version=current.row_version,
+                expected_status=current.status,
+                expected_artifact_hash=current.artifact_hash,
+                expected_manifest_snapshot_hash=current.manifest_snapshot_hash,
+                target_status=LifecycleState(target),
+                changed_at=now,
+                changed_by="user-owner",
+                reason="fixture",
+                manifest_snapshot_hash_after=current.manifest_snapshot_hash,
+            )
+        )
+        uow.commit()
+    return updated

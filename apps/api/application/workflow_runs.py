@@ -32,6 +32,7 @@ from ..domain.errors import (
 )
 from ..domain.models import ActorIdentity
 from ..domain.workflow_resolution import (
+    EXECUTABLE_STATES,
     CandidateVersion,
     DeclaredDependency,
     ResolutionError,
@@ -177,10 +178,27 @@ class WorkflowRunService:
         return record
 
     def list_definitions(self) -> tuple[WorkflowDefinitionRecord, ...]:
+        """Definitions a run can be created from.
+
+        API_CONTRACT §4.5: the list holds only definitions whose workflow version is
+        executable. A definition stays in the table when its version is retired, because
+        historical runs point at it, but offering it for a new run would be offering a run the
+        create path then refuses.
+        """
+
         with self._uow_factory() as uow:
-            records = uow.workflows.list_definitions()
+            records = tuple(
+                record
+                for record in uow.workflows.list_definitions()
+                if self._workflow_version_executable(uow, record)
+            )
             uow.commit()
         return records
+
+    @staticmethod
+    def _workflow_version_executable(uow, record: WorkflowDefinitionRecord) -> bool:
+        version = uow.versions.get(record.version_public_id)
+        return version is not None and str(version.status) in EXECUTABLE_STATES
 
     # ---------------------------------------------------------------- runs
 
@@ -215,6 +233,14 @@ class WorkflowRunService:
             if replay is not None:
                 uow.commit()
                 return replay
+
+            # Checked after the replay: a run created while the workflow was executable is still
+            # that run, and replaying its request must keep returning it.
+            if not self._workflow_version_executable(uow, definition_record):
+                raise ValidationError(
+                    "this workflow version is not executable",
+                    detail="only a published or deprecated workflow version can start a run",
+                )
 
             try:
                 definition = parse_definition(definition_record.definition)

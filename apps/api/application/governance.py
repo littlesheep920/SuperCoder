@@ -40,6 +40,7 @@ from ..repositories.contracts import (
 )
 from ..schemas.resources import CreateResourceReviewRequest, LifecycleTransitionRequest
 from .helpers import AuditWriter, Clock, now_utc
+from .workflow_compilation import compile_published_version
 
 __all__ = ["GovernanceService", "TransitionResult"]
 
@@ -139,6 +140,17 @@ class GovernanceService:
                 manifest_snapshot_hash_after=manifest_snapshot_hash_after,
                 evidence_refs=tuple(request.evidence_refs),
             )
+            if target is LifecycleState.PUBLISHED:
+                # Publishing a workflow version is what makes it runnable: its graph is compiled
+                # into an executable definition in this same transaction, or the refusal is
+                # audited with every reason. Any other kind returns at once.
+                compile_published_version(
+                    uow,
+                    updated,
+                    actor=actor,
+                    correlation_id=correlation_id,
+                    request_id=request_id,
+                )
             uow.commit()
             return TransitionResult(version=updated, job=job, audit_id=audit.public_id)
 
