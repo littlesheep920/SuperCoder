@@ -262,8 +262,22 @@ class SqlWorkflowRepository:
             ).where(_WorkflowDefinitionReference.public_id == workflow_definition_id)
         if status is not None:
             statement = statement.where(_WorkflowRunReference.status == status)
-        rows = self._session.execute(statement.limit(limit)).scalars()
-        return tuple(self._to_run_record(row) for row in rows)
+        rows = list(self._session.execute(statement.limit(limit)).scalars())
+        # One query for every definition on the page rather than one per run.
+        definition_ids = {row.workflow_definition_id for row in rows}
+        public_ids: dict[int, str] = {}
+        if definition_ids:
+            public_ids = {
+                internal: public
+                for internal, public in self._session.execute(
+                    select(
+                        _WorkflowDefinitionReference.id, _WorkflowDefinitionReference.public_id
+                    ).where(_WorkflowDefinitionReference.id.in_(definition_ids))
+                ).all()
+            }
+        return tuple(
+            self._to_run_record(row, public_ids.get(row.workflow_definition_id)) for row in rows
+        )
 
     # ---------------------------------------------------------------- mapping
 
@@ -288,10 +302,26 @@ class SqlWorkflowRepository:
             row_version=row.row_version,
         )
 
-    def _to_run_record(self, row: _WorkflowRunReference) -> WorkflowRunRecord:
+    def _definition_public_id(self, definition_id: int) -> str:
+        return self._session.execute(
+            select(_WorkflowDefinitionReference.public_id).where(
+                _WorkflowDefinitionReference.id == definition_id
+            )
+        ).scalar_one()
+
+    def _to_run_record(
+        self, row: _WorkflowRunReference, definition_public_id: str | None = None
+    ) -> WorkflowRunRecord:
         return WorkflowRunRecord(
             public_id=row.public_id,
-            workflow_definition_id=str(row.workflow_definition_id),
+            # The column is the internal BIGINT foreign key. Returning `str()` of it put a value
+            # like "3" into the API's `workflow_id`, which no endpoint accepts and which exposes
+            # an internal key. The in-memory repository always returned the public id, which is
+            # why no test noticed.
+            workflow_definition_id=(
+                definition_public_id
+                or self._definition_public_id(row.workflow_definition_id)
+            ),
             definition_graph_hash=row.definition_graph_hash,
             resolution_snapshot=dict(row.resolution_snapshot_json),
             resolution_snapshot_hash=row.resolution_snapshot_hash,

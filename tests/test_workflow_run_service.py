@@ -283,6 +283,25 @@ class CancellationTests(RunServiceFixture):
 
 
 
+class RunIdentityTests(RunServiceFixture):
+    """A run names its definition by the identifier the API accepts.
+
+    The SQL repository once returned the internal foreign key here, so `workflow_id` read
+    "3" and could not be passed back to `GET /workflows/{id}`. This states the invariant every
+    repository must satisfy; the end-to-end script checks it against MySQL.
+    """
+
+    def test_the_run_names_its_definition_by_public_id(self) -> None:
+        run = self.service.create_run(actor(), self.request())
+        self.assertEqual(run.workflow_definition_id, self.definition.public_id)
+        resolved = self.service.get_definition(actor().actor, run.workflow_definition_id)
+        self.assertEqual(resolved.public_id, self.definition.public_id)
+
+    def test_a_listed_run_names_its_definition_the_same_way(self) -> None:
+        self.service.create_run(actor(), self.request())
+        (listed,) = self.service.list_runs(actor().actor)
+        self.assertEqual(listed.workflow_definition_id, self.definition.public_id)
+
 class CreateRunGuardTests(RunServiceFixture):
     """Values MySQL would refuse are refused by the service first, with a reason.
 
