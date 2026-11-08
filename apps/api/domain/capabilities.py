@@ -99,6 +99,12 @@ class Capability(StrEnum):
     JOB_CANCEL = "job:cancel"
     JOB_RETRY = "job:retry"
 
+    # Workflow runs: deciding a human-approval gate. A separate capability from
+    # `lifecycle:review` because the two approvals mean different things (API_CONTRACT §4.5:
+    # a gate decision cannot stand in for a resource review), even though the same role holds
+    # both today.
+    WORKFLOW_APPROVE = "workflow:approve"
+
     # Read-only surfaces, granted to any authenticated caller
     RESOURCE_READ = "resource:read"
     SEARCH = "search:use"
@@ -143,6 +149,7 @@ def capabilities_for(auth: _RoleHolder) -> frozenset[Capability]:
 
     if is_reviewer(auth):
         granted.add(Capability.LIFECYCLE_REVIEW)
+        granted.add(Capability.WORKFLOW_APPROVE)
 
     # Deprecation reversal demands owner *and* publisher simultaneously; holding
     # only one of them is not enough, so this is not implied by either branch.
@@ -179,6 +186,7 @@ class GatedOperation(StrEnum):
     CREATE_REVIEW = "op:create_review"
     CANCEL_JOB = "op:cancel_job"
     RETRY_JOB = "op:retry_job"
+    DECIDE_WORKFLOW_GATE = "op:decide_workflow_gate"
 
 
 _OPERATION_CAPABILITY: dict[GatedOperation, Capability] = {
@@ -197,6 +205,10 @@ _OPERATION_CAPABILITY: dict[GatedOperation, Capability] = {
     GatedOperation.CREATE_REVIEW: Capability.LIFECYCLE_REVIEW,
     GatedOperation.CANCEL_JOB: Capability.JOB_CANCEL,
     GatedOperation.RETRY_JOB: Capability.JOB_RETRY,
+    # The capability says who may decide a gate at all. Whether *this* caller may approve
+    # *this* run is a further rule (not the requester), enforced by the run service, because it
+    # depends on the run and so cannot be known before one is chosen.
+    GatedOperation.DECIDE_WORKFLOW_GATE: Capability.WORKFLOW_APPROVE,
 }
 
 

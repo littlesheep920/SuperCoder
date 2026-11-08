@@ -134,6 +134,9 @@ class RunGateState:
     #: Who recorded the current gate decision, when one has been recorded. Used to tell a
     #: repeated decision from a decision at a gate that never opened.
     decided_by: str | None = None
+    #: Who asked for the run. SECURITY_AND_CONFIGURATION.md §10: whoever requested a
+    #: high-impact operation may not approve it, and a workflow gate is listed as one.
+    requested_by: str | None = None
 
 
 def check_gate_decision(
@@ -195,6 +198,19 @@ def check_gate_decision(
 
     if not decision.actor_id.strip():
         raise ApprovalRefused("actor_required", "a gate decision requires an actor")
+
+    if (
+        decision.approved
+        and state.requested_by is not None
+        and decision.actor_id == state.requested_by
+    ):
+        # Approval is refused, rejection is not: rejecting your own run only makes the outcome
+        # more conservative, and the requester could cancel it anyway. Approving it would make
+        # the gate a formality that the person it is meant to check can pass alone.
+        raise ApprovalRefused(
+            "self_approval",
+            "the person who requested a run cannot approve its gate; ask another reviewer",
+        )
 
 
 def next_status_after_gate(state: RunGateState, decision: GateDecision) -> RunStatus:

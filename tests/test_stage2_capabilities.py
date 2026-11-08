@@ -31,6 +31,7 @@ from apps.api.domain.capabilities import (
     capability_required_by,
     is_owner,
     is_publisher,
+    is_reviewer,
     is_validator,
 )
 
@@ -80,6 +81,9 @@ def _server_allows(caller: _Caller, operation: GatedOperation) -> bool:
         return is_owner(caller)
     if operation is GatedOperation.RETRY_JOB:
         return is_owner(caller) or is_publisher(caller)
+    if operation is GatedOperation.DECIDE_WORKFLOW_GATE:
+        # WorkflowRunService.decide checks this predicate before applying a decision.
+        return is_reviewer(caller)
     raise AssertionError(f"unmapped operation {operation}")
 
 

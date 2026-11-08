@@ -21,10 +21,12 @@ from datetime import datetime, timezone
 
 from ..domain.models import ResourceKind, new_ulid
 from ..auth import AuthContext
+from ..domain.capabilities import is_reviewer
 from ..domain.errors import (
     ConflictError,
     ErrorCode,
     NotFoundError,
+    PermissionDeniedError,
     PreconditionFailedError,
     ValidationError,
 )
@@ -412,7 +414,18 @@ class WorkflowRunService:
 
         Every refusal is a `ConflictError` naming the specific mistake, because "conflict"
         alone leaves a reviewer unable to tell an expired page from a gate already decided.
+
+        Who may decide is checked first. Deciding a gate needs the reviewer role — the same
+        predicate `capabilities_for` uses to grant `workflow:approve`, so the console's button
+        and this check cannot disagree — and the person who requested the run may not approve
+        it (SECURITY_AND_CONFIGURATION.md §10). Both refusals are 403: they are about the
+        caller, not about the state of the run.
         """
+
+        if not is_reviewer(actor):
+            raise PermissionDeniedError(
+                message="deciding a workflow gate requires the reviewer role (workflow:approve)"
+            )
 
         with self._uow_factory() as uow:
             record = uow.workflows.get_run(public_id, for_update=True)
@@ -424,6 +437,7 @@ class WorkflowRunService:
                 approval_gate=record.approval_gate,
                 row_version=record.row_version,
                 decided_by=record.approved_by,
+                requested_by=record.requested_by,
             )
             decision = GateDecision(
                 gate=request.gate,
@@ -436,6 +450,8 @@ class WorkflowRunService:
                 check_gate_decision(state, decision, expected_row_version=request.row_version)
                 next_status = next_status_after_gate(state, decision)
             except ApprovalRefused as refusal:
+                if refusal.code == "self_approval":
+                    raise PermissionDeniedError(message=str(refusal)) from refusal
                 # `stale` is a precondition failure, not a conflict: the client's copy of the
                 # run is out of date rather than the request being wrong.
                 if refusal.code == "stale":

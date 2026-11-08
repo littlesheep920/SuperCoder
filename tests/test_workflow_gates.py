@@ -20,19 +20,27 @@ from apps.api.application.workflow_runs import (
     WorkflowRunService,
 )
 from apps.api.auth import AuthContext
-from apps.api.domain.errors import ConflictError, NotFoundError, PreconditionFailedError
+from apps.api.domain.errors import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+)
 from apps.api.domain.models import ActorIdentity
 from tests.support.memory import MemoryStore, make_uow_factory
 from tests.support.workflow_fixtures import publish_capability, register_workflow
 
 
-def actor(name: str = "user-reviewer") -> AuthContext:
+def actor(name: str = "user-reviewer", roles: frozenset[str] = frozenset({"reviewer"})) -> AuthContext:
+    """A caller. Deciding a gate needs the reviewer role, so that is the default here."""
+
     return AuthContext(
         actor=ActorIdentity(subject_id=name, actor_type="user", display_name=name),
         grants=(),
         teams=frozenset(),
         ui_roles_by_team={},
         organization_member=True,
+        governance_roles=roles,
     )
 
 
@@ -54,23 +62,23 @@ class GateFixture(unittest.TestCase):
         )
         publish_capability(self.uow_factory, "skill", "review", "1.0.0")
 
-    def create_run(self):
+    def create_run(self, requester: str = "user-owner"):
         return self.service.create_run(
-            actor("user-owner"),
+            actor(requester),
             RunCreationRequest(
                 workflow_definition_id=self.definition.public_id,
                 runtime="claude-code",
                 input={"ticket": "PROJ-2"},
                 timeout_seconds=600,
-                idempotency_key="gate-key",
+                idempotency_key=f"gate-key-{requester}",
                 correlation_id="corr-gate",
             ),
         )
 
-    def run_at_gate(self, gate: str = "review-approval"):
+    def run_at_gate(self, gate: str = "review-approval", requester: str = "user-owner"):
         """A run that has reached a gate, as the worker would leave it."""
 
-        run = self.create_run()
+        run = self.create_run(requester)
         # Move it through the real state machine rather than writing a status directly, so the
         # test cannot set up a state the machine would refuse.
         with self.uow_factory() as uow:
@@ -152,6 +160,53 @@ class DecideTests(GateFixture):
         run = self.run_at_gate()
         decided = self.service.decide(actor(), run.public_id, self.decision(run))
         self.assertIsNone(decided.finished_at)
+
+    def test_a_caller_without_the_reviewer_role_cannot_decide(self) -> None:
+        """Any authenticated identity could approve before; the read-only member included."""
+
+        run = self.run_at_gate()
+        with self.assertRaises(PermissionDeniedError):
+            self.service.decide(
+                actor("user-member", roles=frozenset()), run.public_id, self.decision(run)
+            )
+        with self.uow_factory() as uow:
+            unchanged = uow.workflows.get_run(run.public_id)
+            uow.commit()
+        self.assertEqual(unchanged.status, "awaiting_approval")
+        self.assertIsNone(unchanged.approved_by)
+
+    def test_an_owner_or_publisher_is_not_a_reviewer(self) -> None:
+        run = self.run_at_gate()
+        for roles in (frozenset({"owner"}), frozenset({"owner", "publisher"}), frozenset({"validator"})):
+            with self.subTest(roles=sorted(roles)):
+                with self.assertRaises(PermissionDeniedError):
+                    self.service.decide(actor("user-x", roles=roles), run.public_id, self.decision(run))
+
+    def test_the_requester_cannot_approve_their_own_run(self) -> None:
+        """SECURITY_AND_CONFIGURATION.md §10, even when the requester is a reviewer."""
+
+        run = self.run_at_gate(requester="user-reviewer")
+        with self.assertRaises(PermissionDeniedError):
+            self.service.decide(actor("user-reviewer"), run.public_id, self.decision(run))
+        with self.uow_factory() as uow:
+            unchanged = uow.workflows.get_run(run.public_id)
+            uow.commit()
+        self.assertEqual(unchanged.status, "awaiting_approval")
+
+    def test_the_requester_may_reject_their_own_run(self) -> None:
+        """Rejecting only makes the outcome more conservative; it is not self-approval."""
+
+        run = self.run_at_gate(requester="user-reviewer")
+        decided = self.service.decide(
+            actor("user-reviewer"), run.public_id, self.decision(run, decision="reject")
+        )
+        self.assertEqual(decided.status, "failed")
+
+    def test_another_reviewer_can_approve(self) -> None:
+        run = self.run_at_gate(requester="user-reviewer")
+        decided = self.service.decide(actor("user-reviewer-2"), run.public_id, self.decision(run))
+        self.assertEqual(decided.status, "running")
+        self.assertEqual(decided.approved_by, "user-reviewer-2")
 
     def test_rejection_ends_the_run(self) -> None:
         run = self.run_at_gate()
