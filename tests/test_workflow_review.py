@@ -71,7 +71,7 @@ class ReviewFixture(unittest.TestCase):
             actor(),
             RunCreationRequest(
                 workflow_definition_id=self.definition.public_id,
-                runtime="agent-skills",
+                runtime="claude-code",
                 input={"ticket": "PROJ-9"},
                 timeout_seconds=600,
                 idempotency_key="review-key",
@@ -170,21 +170,21 @@ class ReviewContentTests(ReviewFixture):
 
     def test_produced_outputs_are_listed(self) -> None:
         run = self.create_run()
-        self.record_execution(run, 0, status="succeeded", output_hash="sha256:aaa")
-        self.record_execution(run, 0, status="succeeded", output_hash="sha256:bbb")
+        self.record_execution(run, 0, status="succeeded", output_hash="sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        self.record_execution(run, 0, status="succeeded", output_hash="sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
         review = self.reviews.review_run(run.public_id)
         item = next(entry for entry in review.capabilities if entry.slug == "review")
-        self.assertEqual(item.output_hashes, ("sha256:aaa", "sha256:bbb"))
+        self.assertEqual(item.output_hashes, ("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
 
     def test_a_repeated_output_hash_is_listed_once(self) -> None:
         """Distinct outputs are what matter, not how many times each was produced."""
 
         run = self.create_run()
-        self.record_execution(run, 0, status="succeeded", output_hash="sha256:same")
-        self.record_execution(run, 0, status="succeeded", output_hash="sha256:same")
+        self.record_execution(run, 0, status="succeeded", output_hash="sha256:5555555555555555555555555555555555555555555555555555555555555555")
+        self.record_execution(run, 0, status="succeeded", output_hash="sha256:5555555555555555555555555555555555555555555555555555555555555555")
         review = self.reviews.review_run(run.public_id)
         item = next(entry for entry in review.capabilities if entry.slug == "review")
-        self.assertEqual(item.output_hashes, ("sha256:same",))
+        self.assertEqual(item.output_hashes, ("sha256:5555555555555555555555555555555555555555555555555555555555555555",))
 
     def test_the_approval_fields_are_reported(self) -> None:
         run = self.create_run()
@@ -235,7 +235,7 @@ class ReviewIsolationTests(ReviewFixture):
             actor("user-other"),
             RunCreationRequest(
                 workflow_definition_id=self.definition.public_id,
-                runtime="agent-skills",
+                runtime="claude-code",
                 input={},
                 timeout_seconds=60,
                 idempotency_key="other-key",

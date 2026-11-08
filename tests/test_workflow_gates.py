@@ -59,7 +59,7 @@ class GateFixture(unittest.TestCase):
             actor("user-owner"),
             RunCreationRequest(
                 workflow_definition_id=self.definition.public_id,
-                runtime="agent-skills",
+                runtime="claude-code",
                 input={"ticket": "PROJ-2"},
                 timeout_seconds=600,
                 idempotency_key="gate-key",
@@ -138,6 +138,20 @@ class DecideTests(GateFixture):
         run = self.run_at_gate()
         decided = self.service.decide(actor(), run.public_id, self.decision(run))
         self.assertIsNone(decided.approval_gate)
+
+    def test_a_rejection_records_when_the_run_finished(self) -> None:
+        """A finished run says when it finished; MySQL refuses one that does not."""
+
+        run = self.run_at_gate()
+        decided = self.service.decide(
+            actor(), run.public_id, self.decision(run, decision="reject")
+        )
+        self.assertIsNotNone(decided.finished_at)
+
+    def test_an_approval_leaves_the_run_unfinished(self) -> None:
+        run = self.run_at_gate()
+        decided = self.service.decide(actor(), run.public_id, self.decision(run))
+        self.assertIsNone(decided.finished_at)
 
     def test_rejection_ends_the_run(self) -> None:
         run = self.run_at_gate()

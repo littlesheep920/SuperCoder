@@ -525,6 +525,11 @@ class _MemoryMetadataRepository:
         # Stored rather than echoed: the review aggregation reads this collection, and an
         # implementation that returned the record without keeping it would make those tests
         # pass against an empty table.
+        from dataclasses import fields as _fields
+
+        from .db_constraints import check_usage
+
+        check_usage({item.name: getattr(usage, item.name) for item in _fields(usage)})
         self._s.usage.append(usage)
         return usage
 

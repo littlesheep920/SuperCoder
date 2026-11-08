@@ -36,6 +36,7 @@ from ..domain.workflow_resolution import (
     resolve_definition,
 )
 from ..domain.workflow_runs import (
+    RUN_RUNTIMES,
     ApprovalRefused,
     GateDecision,
     RunGateState,
@@ -190,6 +191,16 @@ class WorkflowRunService:
 
         if not request.idempotency_key.strip():
             raise ValidationError("Idempotency-Key is required to create a run")
+        if not request.correlation_id.strip():
+            # The router fills this from the request context, so an empty value means a caller
+            # bypassed it. MySQL refuses an empty correlation id on both the run and its usage
+            # rows; refusing here says why instead of surfacing an integrity error as a 500.
+            raise ValidationError("a correlation id is required to create a run")
+        if request.runtime not in RUN_RUNTIMES:
+            raise ValidationError(
+                f"runtime {request.runtime!r} is not supported",
+                detail=f"choose one of: {', '.join(sorted(RUN_RUNTIMES))}",
+            )
 
         with self._uow_factory() as uow:
             definition_record = uow.workflows.get_definition(request.workflow_definition_id)
@@ -431,13 +442,18 @@ class WorkflowRunService:
                     raise PreconditionFailedError(str(refusal)) from refusal
                 raise ConflictError(str(refusal)) from refusal
 
+            decided_at = datetime.now(timezone.utc)
             updated = uow.workflows.update_run(
                 public_id,
                 WorkflowRunUpdate(
                     status=str(next_status),
                     row_version=record.row_version,
                     approved_by=actor.actor.subject_id,
-                    approved_at=datetime.now(timezone.utc),
+                    approved_at=decided_at,
+                    # A rejection ends the run, and a finished run must say when it finished:
+                    # MySQL refuses a terminal row without `finished_at`
+                    # (`ck_workflow_run_terminal_time`). An approval leaves the run running.
+                    finished_at=None if decision.approved else decided_at,
                     approval_reason=request.reason,
                     # An approved gate is cleared so a later decision cannot be matched against
                     # one that has already been answered; a rejected run keeps the gate name as

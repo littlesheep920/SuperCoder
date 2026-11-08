@@ -20,6 +20,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from apps.api.domain.workflow_runs import RUN_RUNTIMES
 from apps.api.application.workflow_runs import (
     RESOLVER_VERSION,
     RunCreationRequest,
@@ -66,7 +67,7 @@ class RunServiceFixture(unittest.TestCase):
     def request(self, **overrides) -> RunCreationRequest:
         base = dict(
             workflow_definition_id=self.definition.public_id,
-            runtime="agent-skills",
+            runtime="claude-code",
             input={"ticket": "PROJ-1"},
             timeout_seconds=600,
             idempotency_key="key-1",
@@ -279,6 +280,35 @@ class CancellationTests(RunServiceFixture):
     def test_cancelling_an_unknown_run_is_refused(self) -> None:
         with self.assertRaises(NotFoundError):
             self.service.request_cancellation(actor(), "nope")
+
+
+
+class CreateRunGuardTests(RunServiceFixture):
+    """Values MySQL would refuse are refused by the service first, with a reason.
+
+    Both of these reached the database before: the console sent no correlation id and a
+    runtime outside the frozen list, and the only signal was a 500 from an integrity error.
+    """
+
+    def test_an_empty_correlation_id_is_refused_and_nothing_is_written(self) -> None:
+        with self.assertRaises(ValidationError):
+            self.service.create_run(actor(), self.request(correlation_id="   "))
+        self.assertEqual(self.store.workflows.runs, {})
+
+    def test_a_runtime_outside_the_frozen_list_is_refused(self) -> None:
+        with self.assertRaises(ValidationError) as caught:
+            self.service.create_run(actor(), self.request(runtime="agent-skills"))
+        # The refusal names the allowed values, so the caller can correct the request.
+        self.assertIn("claude-code", caught.exception.detail or "")
+        self.assertEqual(self.store.workflows.runs, {})
+
+    def test_every_runtime_the_database_allows_is_accepted(self) -> None:
+        for index, runtime in enumerate(sorted(RUN_RUNTIMES)):
+            with self.subTest(runtime=runtime):
+                run = self.service.create_run(
+                    actor(), self.request(runtime=runtime, idempotency_key=f"rt-{index}")
+                )
+                self.assertEqual(run.runtime, runtime)
 
 
 if __name__ == "__main__":

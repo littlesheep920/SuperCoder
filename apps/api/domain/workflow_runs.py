@@ -22,7 +22,17 @@ immediately would be a lie the worker could contradict a second later.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import StrEnum
+
+#: The runtimes a run may name. This is the frozen data model's list
+#: (`ck_workflow_run_runtime`, `ck_resource_usage_runtime`), restated here so the service can
+#: refuse an unknown runtime with a 422 that names the allowed values. Without the check the
+#: refusal came from the database as an integrity error, which the API reported as a 500; the
+#: console's default (`agent-skills`) was one of the values it refused.
+RUN_RUNTIMES = frozenset(
+    {"kiro", "claude-code", "cursor", "dify", "openai-compatible-agent-runtime"}
+)
 
 
 class RunStatus(StrEnum):

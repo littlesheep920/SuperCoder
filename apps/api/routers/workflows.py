@@ -24,7 +24,7 @@ from ..application.workflow_runs import (
     WorkflowRunService,
 )
 from ..auth import AuthContext
-from ..dependencies import Container, get_auth, get_container
+from ..dependencies import Container, get_auth, get_container, get_context
 from ..domain.errors import PreconditionFailedError, ServiceUnavailableError
 
 router = APIRouter(tags=["Workflows"])
@@ -151,8 +151,14 @@ def create_workflow_run(
     idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=1, max_length=128),
     container: Container = Depends(get_container),
     auth: AuthContext = Depends(get_auth),
+    context=Depends(get_context),
 ) -> dict:
     """Resolve the definition and enqueue a run, or refuse without writing anything."""
+
+    # Every other router takes the correlation id from the request context, which the
+    # middleware always fills. This one used `body.correlation_id or ""`, and the console never
+    # sends the body field, so every run it started carried an empty id that MySQL refuses.
+    correlation_id = (body.correlation_id or "").strip() or context.correlation_id
 
     run = _service(container).create_run(
         auth,
@@ -162,7 +168,7 @@ def create_workflow_run(
             input=body.input,
             timeout_seconds=body.timeout_seconds,
             idempotency_key=idempotency_key,
-            correlation_id=body.correlation_id or "",
+            correlation_id=correlation_id,
             random_seed=body.random_seed,
         ),
     )

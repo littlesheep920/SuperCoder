@@ -16,9 +16,11 @@ has happened in this repository, so the checks are duplicated here on purpose.
 from __future__ import annotations
 
 import copy
-from dataclasses import replace
+from dataclasses import fields, replace
 from datetime import datetime, timezone
 from typing import Any, Mapping
+
+from .db_constraints import check_workflow_definition, check_workflow_run
 
 from apps.api.repositories.contracts import (
     NewWorkflowDefinition,
@@ -77,6 +79,13 @@ class MemoryWorkflowRepository(WorkflowRepository):
                 f"a workflow definition already exists for version {definition.version_public_id}"
             )
 
+        check_workflow_definition(
+            {
+                "graph_hash": definition.graph_hash,
+                "definition_schema_version": definition.definition_schema_version,
+                "definition": definition.definition,
+            }
+        )
         now = _now()
         record = WorkflowDefinitionRecord(
             public_id=self._next_id(),
@@ -139,6 +148,8 @@ class MemoryWorkflowRepository(WorkflowRepository):
             updated_at=now,
             row_version=1,
         )
+        # Checked as the row would be stored, so a value MySQL refuses is refused here too.
+        check_workflow_run(_as_row(record))
         self._store.runs[record.public_id] = record
         self._store.run_by_idempotency[key] = record.public_id
         return record
@@ -203,6 +214,7 @@ class MemoryWorkflowRepository(WorkflowRepository):
         # The record is a slots dataclass, so it is rebuilt field by field rather than by
         # splatting a `__dict__` it does not have.
         updated = replace(current, **changes)
+        check_workflow_run(_as_row(updated))
         self._store.runs[public_id] = updated
         return updated
 
@@ -221,3 +233,9 @@ class MemoryWorkflowRepository(WorkflowRepository):
         ]
         selected.sort(key=lambda run: (run.created_at, run.public_id), reverse=True)
         return tuple(selected[:limit])
+
+
+def _as_row(record: WorkflowRunRecord) -> dict[str, Any]:
+    """The record as a column mapping, for the constraint checks."""
+
+    return {item.name: getattr(record, item.name) for item in fields(record)}

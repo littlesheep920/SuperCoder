@@ -90,10 +90,10 @@ class UsageRecordingTests(unittest.TestCase):
         self.assertEqual(self.store.usage[0].workflow_run_public_id, "run-1")
 
     def test_the_hashes_are_stored(self) -> None:
-        self.service.record(self.entry(input_hash="sha256:in", output_hash="sha256:out"))
+        self.service.record(self.entry(input_hash="sha256:1111111111111111111111111111111111111111111111111111111111111111", output_hash="sha256:2222222222222222222222222222222222222222222222222222222222222222"))
         record = self.store.usage[0]
-        self.assertEqual(record.input_hash, "sha256:in")
-        self.assertEqual(record.output_hash, "sha256:out")
+        self.assertEqual(record.input_hash, "sha256:1111111111111111111111111111111111111111111111111111111111111111")
+        self.assertEqual(record.output_hash, "sha256:2222222222222222222222222222222222222222222222222222222222222222")
 
     def test_metrics_are_stored(self) -> None:
         self.service.record(self.entry(metrics={"tokens": 42}))
@@ -136,7 +136,7 @@ class RunResolutionUsageTests(unittest.TestCase):
             actor(),
             RunCreationRequest(
                 workflow_definition_id=self.definition.public_id,
-                runtime="agent-skills",
+                runtime="claude-code",
                 input={},
                 timeout_seconds=60,
                 idempotency_key="usage-key",

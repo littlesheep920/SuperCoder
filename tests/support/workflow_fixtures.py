@@ -10,7 +10,9 @@ identifier and hash here is generated from the slug and version it belongs to.
 
 from __future__ import annotations
 
+import hashlib
 import itertools
+import json
 from datetime import datetime, timezone
 
 from apps.api.domain.models import LifecycleState, ResourceKind, VersionIdentifier
@@ -160,10 +162,22 @@ def register_workflow(
                 version_public_id=versions.items[0].public_id,
                 definition_schema_version="workflow/v1",
                 definition=definition_body,
-                graph_hash=graph_hash or f"sha256:graph-{slug}-{version}",
+                # A real digest of the body: MySQL refuses anything that is not
+                # `sha256:<64 hex>`, and a fixture the database would refuse proves nothing.
+                graph_hash=graph_hash or graph_digest(definition_body),
                 is_deterministic=True,
                 compiler_version="workflow-compiler/1",
             )
         )
         uow.commit()
     return record
+
+
+def sha256_of(text: str) -> str:
+    """A well-formed digest for fixtures that need a hash-shaped value."""
+
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def graph_digest(definition: dict) -> str:
+    return sha256_of(json.dumps(definition, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
