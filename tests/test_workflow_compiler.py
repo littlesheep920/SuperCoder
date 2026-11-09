@@ -37,6 +37,8 @@ from apps.api.domain.workflow_compiler import (
 )
 from apps.api.domain.workflows import parse_definition
 from tests.support.memory import MemoryStore, make_uow_factory
+sys.path.insert(0, str(ROOT / "scripts"))
+from e2e_fixtures import leftover_fixtures  # noqa: E402
 from tests.support.workflow_fixtures import (
     move_version,
     only_version,
@@ -303,6 +305,23 @@ class RefusalTests(unittest.TestCase):
                     compile_workflow(case)
 
 
+def leftover_hint() -> str:
+    """Name end-to-end fixtures that a run left in resources/, the usual cause of a failure here.
+
+    `scripts/check_workflow_e2e.py` publishes a linear workflow. A run that was interrupted, or
+    started with `--keep-fixtures`, leaves it in resources/workflows/, where it compiles and makes
+    the set above one larger. Saying so turns a puzzling diff into a one-line fix.
+    """
+
+    found = leftover_fixtures(ROOT)
+    if not found:
+        return ""
+    return (
+        "resources/ holds end-to-end fixtures left by an interrupted or --keep-fixtures run; "
+        "they are untracked, delete them and rerun: " + ", ".join(found)
+    )
+
+
 class RealResourceTests(unittest.TestCase):
     """The repository's own workflow resources: data nobody shaped for this test."""
 
@@ -341,6 +360,7 @@ class RealResourceTests(unittest.TestCase):
                 "example-patch-approval-flow",
                 "example-release-pipeline",
             },
+            leftover_hint(),
         )
 
     def test_a_compiled_resource_keeps_its_node_order(self) -> None:

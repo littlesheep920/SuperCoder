@@ -17,25 +17,37 @@ What it does, as the people who would do it:
    in the audit log;
 7. a reviewer who started a run cannot approve it, and can cancel it.
 
-Requires the compose stack with MySQL enabled, the worker running, and a writable checkout:
+Requires MySQL, the API and the worker, all reading the same checkout. With the compose stack,
+fixtures are written through the API container (the default):
 
     docker compose up -d --build
     python scripts/check_workflow_e2e.py
+
+Without Docker, run MySQL, the API and the worker on this machine against this checkout, then:
+
+    python scripts/check_workflow_e2e.py --fixtures local
+
+The fixtures are removed when the check ends, whatever its outcome (see scripts/e2e_fixtures.py);
+`--keep-fixtures` leaves them for inspection. Rows written to MySQL stay: this is a development
+database, and the audit trail of a check is part of what it checks.
 """
 
 from __future__ import annotations
 
-import base64
-import hashlib
+import argparse
 import json
 import pathlib
 import re
-import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+from e2e_fixtures import Fixtures, add_arguments, artifact  # noqa: E402
+
 BASE = "http://localhost:8000/v1"
 TOKENS = {
     "owner": "dev-owner-token",
@@ -45,7 +57,6 @@ TOKENS = {
     "member": "dev-member-token",
 }
 HASH = re.compile(r"^sha256:[0-9a-f]{64}$")
-DIRECTORY = {"skill": "skills", "workflow": "workflows"}
 ENTRY = {"skill": "SKILL.md", "workflow": "WORKFLOW.md"}
 
 
@@ -76,26 +87,15 @@ def wait_health(timeout: float = 90.0) -> dict:
     raise SystemExit("API not healthy")
 
 
-def materialise(kind: str, slug: str, manifest: dict, body: str) -> list[dict]:
+def materialise(fixtures: Fixtures, kind: str, slug: str, manifest: dict, body: str) -> list[dict]:
     """Write the resource into the checkout the API and the worker read."""
 
-    folder = f"/app/resources/{DIRECTORY[kind]}/{slug}"
-    subprocess.run(
-        ["docker", "compose", "exec", "-T", "api", "sh", "-c", f"rm -rf {folder} && mkdir -p {folder}"],
-        cwd=str(ROOT), capture_output=True,
-    )
-    for name, content in (("resource.yaml", json.dumps(manifest, indent=2) + "\n"), (ENTRY[kind], body)):
-        encoded = base64.b64encode(content.encode()).decode()
-        subprocess.run(
-            ["docker", "compose", "exec", "-T", "api", "sh", "-c", f"echo {encoded} | base64 -d > {folder}/{name}"],
-            cwd=str(ROOT), capture_output=True,
-        )
-    return [{
-        "path": ENTRY[kind],
-        "digest": "sha256:" + hashlib.sha256(body.encode()).hexdigest(),
-        "size_bytes": len(body.encode()),
-        "media_type": "text/markdown",
-    }]
+    entry = body.encode("utf-8")
+    fixtures.write(kind, slug, {
+        "resource.yaml": (json.dumps(manifest, indent=2) + "\n").encode("utf-8"),
+        ENTRY[kind]: entry,
+    })
+    return [artifact(ENTRY[kind], entry)]
 
 
 def manifest_for(kind: str, slug: str, name: str, extra: dict | None = None) -> dict:
@@ -143,10 +143,10 @@ def transition(version: dict, target: str, acting_as: str, reason: str) -> tuple
     )
 
 
-def publish(kind: str, slug: str, manifest: dict, body: str) -> dict:
+def publish(fixtures: Fixtures, kind: str, slug: str, manifest: dict, body: str) -> dict:
     """Create, validate, review, approve and publish one resource. Raises on any refusal."""
 
-    artifacts = materialise(kind, slug, manifest, body)
+    artifacts = materialise(fixtures, kind, slug, manifest, body)
     status, created = call("/resources", method="POST",
                            body={"manifest": manifest, "artifacts": artifacts, "reason": "workflow e2e"})
     if status != 201:
@@ -227,17 +227,29 @@ def decide(run: dict, decision: str, acting_as: str) -> tuple[int, dict]:
     )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Workflow end to end against MySQL, the real routes and the worker.")
+    add_arguments(parser)
+    args = parser.parse_args(argv)
+
     health = wait_health()
     if not health["components"]["mysql"]["enabled"]:
-        raise SystemExit("MySQL is not enabled; this check needs the compose stack with MySQL")
+        raise SystemExit("MySQL is not enabled; this check needs an API running with MySQL")
 
+    fixtures = Fixtures(ROOT, args.fixtures, keep=args.keep_fixtures)
+    try:
+        return run(fixtures)
+    finally:
+        fixtures.close()
+
+
+def run(fixtures: Fixtures) -> int:
     suffix = int(time.time()) % 100000
     first, second, flow = f"example-e2e-plan-{suffix}", f"example-e2e-notes-{suffix}", f"example-e2e-flow-{suffix}"
     checks: dict[str, bool] = {}
 
-    publish("skill", first, manifest_for("skill", first, "E2E Plan"), "# E2E Plan\n\nExample resource.\n")
-    publish("skill", second, manifest_for("skill", second, "E2E Notes"), "# E2E Notes\n\nExample resource.\n")
+    publish(fixtures, "skill", first, manifest_for("skill", first, "E2E Plan"), "# E2E Plan\n\nExample resource.\n")
+    publish(fixtures, "skill", second, manifest_for("skill", second, "E2E Notes"), "# E2E Notes\n\nExample resource.\n")
     graph = {
         "nodes": [
             {"id": "start", "type": "input"},
@@ -256,7 +268,7 @@ def main() -> int:
         "approval_gates": ["approve"],
     }
     workflow_version = publish(
-        "workflow", flow, manifest_for("workflow", flow, "E2E Flow", {"workflow": graph}),
+        fixtures, "workflow", flow, manifest_for("workflow", flow, "E2E Flow", {"workflow": graph}),
         "# E2E Flow\n\nExample workflow: plan, approve, write notes.\n",
     )
 

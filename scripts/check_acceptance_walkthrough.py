@@ -4,20 +4,27 @@ Every earlier stage was verified on its own path. This runs the whole sequence t
 a team would, switching identity where the server requires it, and asserts the state
 at each step. It is the acceptance test for the finished front-to-back loop.
 
-Requires the compose stack with MySQL enabled and a writable checkout.
+Requires MySQL and an API with a writable checkout. With the compose stack, fixtures are
+written through the API container (the default); without Docker, run the API on this machine
+against this checkout and pass `--fixtures local`. The fixture directory is removed when the
+walkthrough ends, whatever its outcome; `--keep-fixtures` leaves it (scripts/e2e_fixtures.py).
 """
 
 from __future__ import annotations
 
-import hashlib
+import argparse
 import json
 import pathlib
-import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+from e2e_fixtures import Fixtures, add_arguments, artifact  # noqa: E402
+
 BASE = "http://localhost:8000/v1"
 TOKENS = {
     "owner": "dev-owner-token",
@@ -57,27 +64,13 @@ def wait_health(timeout: float = 90.0) -> dict:
     raise SystemExit("API not healthy")
 
 
-def materialise(slug: str, manifest: dict, body: str) -> list[dict]:
-    subprocess.run(
-        ["docker", "compose", "exec", "-T", "api", "sh", "-c",
-         f"rm -rf /app/resources/skills/{slug} && mkdir -p /app/resources/skills/{slug}"],
-        cwd=str(ROOT), capture_output=True,
-    )
-    import base64
-
-    for name, content in (("resource.yaml", json.dumps(manifest, indent=2) + "\n"), ("SKILL.md", body)):
-        encoded = base64.b64encode(content.encode()).decode()
-        subprocess.run(
-            ["docker", "compose", "exec", "-T", "api", "sh", "-c",
-             f"echo {encoded} | base64 -d > /app/resources/skills/{slug}/{name}"],
-            cwd=str(ROOT), capture_output=True,
-        )
-    return [{
-        "path": "SKILL.md",
-        "digest": "sha256:" + hashlib.sha256(body.encode()).hexdigest(),
-        "size_bytes": len(body.encode()),
-        "media_type": "text/markdown",
-    }]
+def materialise(fixtures: Fixtures, slug: str, manifest: dict, body: str) -> list[dict]:
+    entry = body.encode("utf-8")
+    fixtures.write("skill", slug, {
+        "resource.yaml": (json.dumps(manifest, indent=2) + "\n").encode("utf-8"),
+        "SKILL.md": entry,
+    })
+    return [artifact("SKILL.md", entry)]
 
 
 def wait_job(job_id: str, timeout: float = 60.0) -> dict:
@@ -91,10 +84,22 @@ def wait_job(job_id: str, timeout: float = 60.0) -> dict:
     return final
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Full platform walkthrough against a running API.")
+    add_arguments(parser)
+    args = parser.parse_args(argv)
+
     health = wait_health()
     print(f"mysql={health['components']['mysql']['enabled']} git_read_only={health['components']['git']['read_only']}")
 
+    fixtures = Fixtures(ROOT, args.fixtures, keep=args.keep_fixtures)
+    try:
+        return run(fixtures)
+    finally:
+        fixtures.close()
+
+
+def run(fixtures: Fixtures) -> int:
     slug = f"example-acceptance-{int(time.time()) % 100000}"
     manifest = {
         "schema_version": "1",
@@ -120,7 +125,7 @@ def main() -> int:
     checks: dict[str, bool] = {}
 
     # 1. create
-    artifacts = materialise(slug, manifest, body_v1)
+    artifacts = materialise(fixtures, slug, manifest, body_v1)
     status, created = call("/resources", method="POST",
                            body={"manifest": manifest, "artifacts": artifacts, "reason": "acceptance"})
     checks["1. owner creates a resource"] = status == 201
