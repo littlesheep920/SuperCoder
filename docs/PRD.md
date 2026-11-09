@@ -734,8 +734,8 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 | 检查 | 命令 | 结果 |
 |---|---|---|
 | 契约校验 | `python scripts/validate_stage0.py --root .` | PASS |
-| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 套件共 981 项测试；Stage 4 交接环境缺依赖，全量结果待补（HOLD） |
-| 工作流端到端 | `python scripts/check_workflow_e2e.py` | 16 项通过（用户本机 2026-11-08：MySQL 8.0.28，未经 Docker，夹具本地写入）；compose 路径未运行（HOLD） |
+| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 套件共 981 项测试；完整依赖环境中全部通过（2026-11-09） |
+| 工作流端到端 | `python scripts/check_workflow_e2e.py` | 16 项通过（用户本机 2026-11-08：MySQL 8.0.28，未经 Docker，夹具本地写入；2026-11-09 完整依赖环境复测：MySQL 8.0.46，未经 Docker）；compose 路径未运行（HOLD） |
 | 前端类型 | `cd apps/web && npx vue-tsc --noEmit` | 通过 |
 | 容器冒烟 | CI `compose` job | 通过 |
 | 检索评测 | `python scripts/run_retrieval_eval.py --profile hybrid` | 可复现 |
@@ -745,7 +745,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 | 提交路径端到端 | `python scripts/check_commit_e2e.py` | 需 MySQL 与可写 Git；8 项检查通过 |
 | 界面实测 | Chrome DevTools 驱动 | 差异渲染、确认门禁、拒绝提示均验证 |
 | 重复资源识别评测 | `python scripts/run_duplicate_eval.py --check-baseline` | 与归档基线逐对一致；测试集 F1 0.538 |
-| 全流程验收 | `scripts/check_acceptance_walkthrough.py` | 创建→编辑→校验→审核→发布→审计→检索，15 项通过 |
+| 全流程验收 | `scripts/check_acceptance_walkthrough.py` | 创建→编辑→校验→审核→发布→审计→检索，15 项通过（2026-11-09 复测：第 3 步正文编辑曾返回 500，修复后 15 项通过） |
 | 界面全覆盖 | Chrome DevTools 驱动 | 8 个界面全部渲染，导航完整 |
 
 ---

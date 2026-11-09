@@ -2,7 +2,7 @@
 
 ## 1. 结论
 
-本阶段把工作流从"能创建、不能执行"推进到"发布即可编译、Worker 逐阶段执行、人工审批门可决策、复盘有真实执行记录"。领域层与应用层规则全部有单元测试和变异测试。MySQL 端到端检查由用户于 2026-11-08 在本机运行，16 项全部通过（第 5.2 节：MySQL 8.0.28，未经 Docker）。compose 路径（镜像、nginx、MySQL 8.0.40）仍未运行；第 6 节只列真正没有运行过的项目。
+本阶段把工作流从"能创建、不能执行"推进到"发布即可编译、Worker 逐阶段执行、人工审批门可决策、复盘有真实执行记录"。领域层与应用层规则全部有单元测试和变异测试。MySQL 端到端检查由用户于 2026-11-08 在本机运行，16 项全部通过（第 5.2 节：MySQL 8.0.28，未经 Docker）。2026-11-09 在完整依赖环境中独立复测（第 5.3 节：MySQL 8.0.46，未经 Docker），16 项再次全部通过；同一次复测中全流程验收发现了正文编辑返回 500 的缺陷，已修复。compose 路径（镜像、nginx、MySQL 8.0.40）与浏览器仍未运行；第 6 节只列真正没有运行过的项目。
 
 | 范围 | 单元测试 | MySQL 端到端 | 说明 |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | 人工审批门 | **PASS** | **PASS**（W8–W10、W15） | 需 `workflow:approve`；发起人不能批准自己的运行 |
 | 取消与超时 | **PASS** | 取消 **PASS**（W16）；超时 **NOT RUN** | 超时只有单元测试：端到端脚本不等待运行到期 |
 | 复盘 | **PASS** | **PASS**（W13、W14） | 按节点归属用量；降级阶段与全部审批决定写入 notes |
-| 控制台 | **PASS** | **NOT RUN** | 源码断言通过；`vue-tsc` 与浏览器未运行 |
+| 控制台 | **PASS** | **NOT RUN** | 源码断言、`vue-tsc` 与 `npm run build` 通过（第 5.3 节）；浏览器未运行 |
 
 ## 2. 范围
 
@@ -93,15 +93,28 @@
 
 **同一次验证发现的三个问题**，均已修复：端到端夹具留在工作树里，使下一次单测失败（`scripts/e2e_fixtures.py`）；设置 `PYTHONIOENCODING=utf-8` 而不加 `-X utf8` 时子进程输出解码失败（`tests/test_subprocess_encoding.py`）；资源页把单页条数显示成总数（`apps/web/src/views/ResourceListView.vue`）。
 
+### 5.3 完整依赖环境复测（2026-11-09）
+
+环境：Ubuntu 24.04，Python 3.12.3，按 `requirements-stage1.lock.txt` 与 `requirements-test.txt` 安装的完整依赖，Node 22。MySQL 为 8.0.46（Ubuntu 软件包；锁定版本为 8.0.40），用 `infra/migrations` 的两个迁移初始化空库，再运行 `scripts/seed_demo_resources.py`。API（uvicorn）与 Worker 直接在本机运行，读取同一检出；未经 Docker。
+
+| 检查 | 命令 | 结果 |
+|---|---|---|
+| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | **PASS**：981 项，跳过 1 项 |
+| 校验器与门禁 | `validate_stage0`、`validate_stage1` 与六个门禁 | **PASS**（Stage 1 基础设施项仍为 HOLD） |
+| 前端 | `cd apps/web && npx vue-tsc --noEmit && npm run build` | **PASS** |
+| 工作流端到端 | `python scripts/check_workflow_e2e.py --fixtures local` | **PASS**：W1–W16 全部通过，夹具在结束时删除 |
+| 全流程验收 | `python scripts/check_acceptance_walkthrough.py --fixtures local` | **PASS**：15 项全部通过（修复后；修复前第 3 步返回 500） |
+| 发现通道端到端 | `python scripts/check_discovery_e2e.py` | **HOLD**：需要 `SUPERCODER_LLM_API_KEY` |
+
+**全流程验收发现的缺陷。** 契约提交 `5372079` 给 `PUT /v1/resource-versions/{id}/body` 声明了响应模型 `EditedDraftResponse`，而路由返回的是 `previous_version_id`，没有契约要求的 `audit_id`。此后每一次成功的正文编辑都在编辑已经生效之后返回 500。PRD 中"全流程验收 15 项通过"的记录早于这次提交。已按契约修复，并新增 `tests/test_body_edit_api.py` 经 HTTP 驱动这条路由；对修复前的代码，这些测试全部失败。
+
+**偏差的影响。** 与第 5.2 节相同：未经 Docker，镜像构建、nginx 反向代理与绑定挂载没有被覆盖。MySQL 8.0.46 与锁定的 8.0.40 同属 8.0 系列。
+
 ## 6. HOLD 项与补齐方法
 
 | 项 | 缺少什么 | 补齐命令 |
 |---|---|---|
-| 全量测试 | 完整 Python 依赖 | `python -m unittest discover -s tests -p "test_*.py"`，须 981 项全部通过 |
-| 契约漂移门禁 | fastapi | `python scripts/check_doc_drift.py` |
-| Stage 0/1 校验 | jsonschema、完整依赖 | `python scripts/validate_stage0.py --root .`、`python scripts/validate_stage1.py` |
-| 前端类型与构建 | node_modules | `cd apps/web && npx vue-tsc --noEmit && npm run build` |
-| compose 路径 | Docker | `docker compose up -d --build` 后运行 `python scripts/check_workflow_e2e.py`，16 项检查须全部通过；本机路径已通过（5.2 节） |
+| compose 路径 | Docker | `docker compose up -d --build` 后运行 `python scripts/check_workflow_e2e.py`，16 项检查须全部通过；本机路径已通过（5.2、5.3 节） |
 | 控制台实测 | 浏览器 | 在 `/workflows` 创建运行、审批、取消、查看复盘 |
 
 超时没有端到端检查：脚本不等待运行到期，只有单元测试覆盖，记为 **NOT RUN**。
