@@ -76,7 +76,7 @@
 
 | 项 | 缺少什么 | 补齐命令 |
 |---|---|---|
-| 全量测试 | 完整 Python 依赖 | `python -m unittest discover -s tests -p "test_*.py"`，须 940 项全部通过 |
+| 全量测试 | 完整 Python 依赖 | `python -m unittest discover -s tests -p "test_*.py"`，须 942 项全部通过 |
 | 契约漂移门禁 | fastapi | `python scripts/check_doc_drift.py` |
 | Stage 0/1 校验 | jsonschema、完整依赖 | `python scripts/validate_stage0.py --root .`、`python scripts/validate_stage1.py` |
 | 前端类型与构建 | node_modules | `cd apps/web && npx vue-tsc --noEmit && npm run build` |

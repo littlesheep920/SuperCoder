@@ -2,29 +2,42 @@
 /**
  * The resource inventory.
  *
- * Two changes from the first version, both about finding things:
+ * The page reads `GET /v1/resources` page by page. It used to request one page of the
+ * server's default 25 and stop, while the header said "25 项" as if that were the whole
+ * inventory: the other resources could not be reached from here, and the status counts and the
+ * filter box silently covered those 25 only. Now:
  *
- * 1. A filter box. A corpus of hundreds of resources cannot be browsed by scrolling, and
- *    the page previously offered only type and status dropdowns. The box filters what is
- *    already loaded, so typing is instant; the dropdowns still narrow the server query.
+ * 1. Pages of 100 (the server's maximum) are requested with the cursor the previous page
+ *    returned; "加载更多" fetches the next one until the server says there is none.
+ * 2. A total ("共 N 项") is stated only when every page is loaded. Otherwise the header says
+ *    how many are loaded and that more exist, and the counts and the filter say they cover the
+ *    loaded part only.
+ * 3. Changing a dropdown restarts from the first page. A response that arrives after the query
+ *    changed is dropped, so a slow first page can never overwrite a newer one.
  *
- * 2. Counts, not just rows. Seeing "工具 · 草稿 25" tells a reader what the inventory looks
- *    like; 25 identical-looking rows do not.
- *
- * The three per-row links (版本/审核/依赖) were repeated on every row and competed with the
- * resource name for attention. They now appear as a single secondary action, because the
+ * The filter box filters what is loaded, so typing is instant; the dropdowns narrow the
+ * server query. The per-row links (版本/审核/依赖) appear on the detail page instead: the
  * row's purpose is to open the resource.
  */
 import { computed, onMounted, ref } from "vue";
 import { api } from "../api/client";
 import type { ResourceSummary } from "../api/types";
 
+/** The largest page `GET /v1/resources` accepts (`limit` ≤ 100). */
+const PAGE_SIZE = 100;
+
 const items = ref<ResourceSummary[]>([]);
+const nextCursor = ref<string | null>(null);
 const loading = ref(false);
+const loadingMore = ref(false);
 const error = ref("");
+const moreError = ref("");
 const kind = ref("");
 const status = ref("");
 const query = ref("");
+
+/** Bumped by every new query; a response carrying an older value is discarded. */
+let generation = 0;
 
 const KINDS = ["skill", "mcp", "prompt", "agent", "workflow", "tool"];
 const STATUSES = [
@@ -37,6 +50,8 @@ const STATUSES = [
   "retired",
 ];
 
+const hasMore = computed(() => nextCursor.value !== null);
+
 /** Case-insensitive match over slug and team: the two fields a reader scans by. */
 const visible = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -48,7 +63,7 @@ const visible = computed(() => {
   );
 });
 
-/** Counts per status, shown above the table so the shape of the inventory is visible. */
+/** Counts per status over the loaded resources, shown above the table. */
 const statusCounts = computed(() => {
   const counts = new Map<string, number>();
   for (const item of items.value) {
@@ -58,19 +73,52 @@ const statusCounts = computed(() => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 });
 
+function pageParams(cursor: string | null): Record<string, string> {
+  const params: Record<string, string> = { limit: String(PAGE_SIZE) };
+  if (kind.value) params.kind = kind.value;
+  if (status.value) params.status = status.value;
+  if (cursor) params.cursor = cursor;
+  return params;
+}
+
+/** Start over from the first page with the current dropdown values. */
 async function load() {
+  const mine = ++generation;
   loading.value = true;
+  loadingMore.value = false;
   error.value = "";
+  moreError.value = "";
   try {
-    const params: Record<string, string> = {};
-    if (kind.value) params.kind = kind.value;
-    if (status.value) params.status = status.value;
-    const response = await api.listResources(params);
+    const response = await api.listResources(pageParams(null));
+    if (mine !== generation) return;
     items.value = response.items;
+    nextCursor.value = response.page?.next_cursor ?? null;
   } catch (e) {
+    if (mine !== generation) return;
+    items.value = [];
+    nextCursor.value = null;
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
-    loading.value = false;
+    if (mine === generation) loading.value = false;
+  }
+}
+
+/** Append the next page. Keeps what is loaded if the request fails. */
+async function loadMore() {
+  if (!nextCursor.value || loadingMore.value) return;
+  const mine = generation;
+  loadingMore.value = true;
+  moreError.value = "";
+  try {
+    const response = await api.listResources(pageParams(nextCursor.value));
+    if (mine !== generation) return;
+    items.value = [...items.value, ...response.items];
+    nextCursor.value = response.page?.next_cursor ?? null;
+  } catch (e) {
+    if (mine !== generation) return;
+    moreError.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    if (mine === generation) loadingMore.value = false;
   }
 }
 
@@ -88,7 +136,10 @@ onMounted(load);
   <div>
     <div class="row" style="margin-bottom: var(--space-4)">
       <h2>能力资产中心</h2>
-      <span class="faint" v-if="!loading">{{ items.length }} 项</span>
+      <template v-if="!loading && !error">
+        <span v-if="hasMore" class="faint">已加载 {{ items.length }} 项，还有更多</span>
+        <span v-else class="faint">共 {{ items.length }} 项</span>
+      </template>
     </div>
 
     <div class="row" style="margin-bottom: var(--space-3)">
@@ -123,19 +174,29 @@ onMounted(load);
           <span class="label">{{ name }}</span>
         </div>
       </div>
+      <p v-if="hasMore && statusCounts.length" class="faint" style="margin-bottom: var(--space-3)">
+        以上计数和筛选只覆盖已加载的 {{ items.length }} 项。
+      </p>
 
       <div v-if="items.length === 0" class="card empty-state">
         <p class="title">还没有资源</p>
         <p class="hint">
           先在“登记草稿”页用自然语言描述一个能力，或在“资源登记”页直接登记清单。
         </p>
-        <router-link to="/register/draft" class="small">去登记草稿 →</router-link>
+        <router-link to="/register/draft" class="small">去登记草稿</router-link>
       </div>
 
       <div v-else-if="visible.length === 0" class="card empty-state">
-        <p class="title">没有匹配「{{ query }}」的资源</p>
-        <p class="hint">当前筛选下有 {{ items.length }} 项，换个关键词试试。</p>
-        <button @click="reset">清除筛选</button>
+        <p class="title" v-if="hasMore">已加载的 {{ items.length }} 项中没有匹配「{{ query }}」的资源</p>
+        <p class="title" v-else>没有匹配「{{ query }}」的资源</p>
+        <p class="hint" v-if="hasMore">还有资源没有加载。加载更多后，筛选会继续覆盖新加载的部分。</p>
+        <p class="hint" v-else>当前筛选下有 {{ items.length }} 项，换个关键词试试。</p>
+        <div class="row">
+          <button v-if="hasMore" @click="loadMore" :disabled="loadingMore">
+            {{ loadingMore ? "加载中…" : "加载更多" }}
+          </button>
+          <button @click="reset">清除筛选</button>
+        </div>
       </div>
 
       <table v-else>
@@ -166,6 +227,17 @@ onMounted(load);
           </tr>
         </tbody>
       </table>
+
+      <div v-if="hasMore && visible.length > 0" class="row" style="margin-top: var(--space-3)">
+        <button @click="loadMore" :disabled="loadingMore">
+          {{ loadingMore ? "加载中…" : "加载更多" }}
+        </button>
+        <span class="faint">每次 {{ PAGE_SIZE }} 项</span>
+      </div>
+      <p v-if="moreError" class="error">
+        加载下一页失败：{{ moreError }}
+        <button class="link" @click="loadMore">重试</button>
+      </p>
     </template>
   </div>
 </template>

@@ -49,8 +49,35 @@ class InventoryTests(unittest.TestCase):
         self.assertIn("statusCounts", self.source)
         self.assertIn('class="stat"', self.source)
 
-    def test_the_total_is_shown(self) -> None:
-        self.assertIn("{{ items.length }} 项", self.source)
+    def test_every_page_can_be_reached_through_the_cursor(self) -> None:
+        """The page loaded the server's first 25 and stopped; the rest were unreachable here."""
+
+        self.assertIn("const PAGE_SIZE = 100;", self.source)
+        self.assertIn("limit: String(PAGE_SIZE)", self.source)
+        self.assertIn("params.cursor = cursor", self.source)
+        self.assertIn("nextCursor.value = response.page?.next_cursor ?? null", self.source)
+        self.assertIn('@click="loadMore"', self.source)
+        self.assertIn("加载更多", self.source)
+        # A response to an older query is dropped instead of overwriting a newer one.
+        self.assertIn("if (mine !== generation) return;", self.source)
+
+    def test_a_total_is_stated_only_when_no_page_is_left(self) -> None:
+        """"25 项" read as the size of the inventory. It was the size of one page.
+
+        The test this replaces asserted exactly that label, which held the defect in place.
+        """
+
+        self.assertNotIn('<span class="faint" v-if="!loading">{{ items.length }} 项</span>', self.source)
+        more = '<span v-if="hasMore" class="faint">已加载 {{ items.length }} 项，还有更多</span>'
+        total = '<span v-else class="faint">共 {{ items.length }} 项</span>'
+        self.assertIn(more, self.source)
+        self.assertIn(total, self.source)
+        self.assertLess(self.source.index(more), self.source.index(total), "the total must be the v-else branch")
+
+    def test_counts_and_the_filter_say_when_they_cover_only_the_loaded_part(self) -> None:
+        self.assertIn("以上计数和筛选只覆盖已加载的 {{ items.length }} 项", self.source)
+        self.assertIn('v-if="hasMore && statusCounts.length"', self.source)
+        self.assertIn("已加载的 {{ items.length }} 项中没有匹配", self.source)
 
     def test_an_empty_result_explains_itself(self) -> None:
         """A blank table is indistinguishable from a failed load."""
