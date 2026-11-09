@@ -320,9 +320,9 @@ MySQL 只保存正文的哈希（`artifact_hash`），正文本身只存在于 G
 |---|---|---|
 | 工作流定义与校验 | P0 | 已实现并验证 |
 | 依赖解析与版本固定 | P0 | 已实现并验证 |
-| 发布时编译为可执行定义 | P0 | 部分实现（单元测试通过；MySQL 端到端待验证） |
-| 运行创建与执行 | P0 | 部分实现（单元测试通过；MySQL 端到端待验证） |
-| 人工审批节点 | P0 | 部分实现（单元测试通过；MySQL 端到端待验证） |
+| 发布时编译为可执行定义 | P0 | 已实现并验证（compose 路径未验证） |
+| 运行创建与执行 | P0 | 已实现并验证（compose 路径未验证） |
+| 人工审批节点 | P0 | 已实现并验证（compose 路径未验证） |
 | 使用记录与复盘聚合 | P0 | 已实现并验证（`GET /v1/workflow-runs/{id}/review`） |
 | 表单化节点编辑 | P0 | 未开始 |
 | 拖拽式画布 | P1 | 未开始 |
@@ -697,7 +697,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 | 审计日志界面（`/audit`） | 已实现并验证 | 按操作人、动作、实体、结果筛选；逐页校验哈希链 |
 | 任务重试与实时事件流 | 已实现并验证 | 重试仅对失败/死信开放；SSE 断线由浏览器带 Last-Event-ID 重连 |
 | 工作流定义与依赖解析 | 已实现并验证 | 定义 Schema 与精确版本解析；约束见 §5.5 |
-| 工作流编译、执行与审批门 | 部分实现 | 单元测试与变异测试通过；MySQL 端到端待验证，见 [`STAGE4_ACCEPTANCE_REPORT.md`](STAGE4_ACCEPTANCE_REPORT.md) |
+| 工作流编译、执行与审批门 | 已实现并验证（compose 路径未验证） | 单元测试与变异测试通过；MySQL 端到端 16/16（用户本机 2026-11-08，MySQL 8.0.28，未经 Docker），见 [`STAGE4_ACCEPTANCE_REPORT.md`](STAGE4_ACCEPTANCE_REPORT.md) |
 | 平台评测接口 | 未开始 | 与离线评测脚本不同 |
 | 运行环境适配器 | 已实现并验证 | Claude Code / DeepSeek Harness / ChatGPT 三者共用 Agent Skills 格式，差异仅在目录；仅导出已发布版本；有损项随产物返回。见 [`ADAPTERS.md`](ADAPTERS.md) |
 | 生产身份认证 | 未开始 | 当前为开发令牌 |
@@ -733,7 +733,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 |---|---|---|
 | 契约校验 | `python scripts/validate_stage0.py --root .` | PASS |
 | 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 套件共 942 项测试；Stage 4 交接环境缺依赖，全量结果待补（HOLD） |
-| 工作流端到端 | `python scripts/check_workflow_e2e.py` | 需 MySQL 与 Worker；16 项检查；未运行（HOLD） |
+| 工作流端到端 | `python scripts/check_workflow_e2e.py` | 16 项通过（用户本机 2026-11-08：MySQL 8.0.28，未经 Docker，夹具本地写入）；compose 路径未运行（HOLD） |
 | 前端类型 | `cd apps/web && npx vue-tsc --noEmit` | 通过 |
 | 容器冒烟 | CI `compose` job | 通过 |
 | 检索评测 | `python scripts/run_retrieval_eval.py --profile hybrid` | 可复现 |
@@ -757,7 +757,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 >
 > 能力发现通道在真实 MySQL 与真实模型下端到端验证通过：可回答问题给出带理由与内容哈希的推荐，无关问题被拒绝并列出全部已检查候选。登记草稿在真实模型下可生成通过 schema 校验的 manifest，提交需显式确认。
 >
-> 工作流在发布时编译为可执行定义，由 Worker 逐阶段执行并在人工审批门停下（MySQL 端到端验证待完成）；运行环境适配器支持 Claude Code、DeepSeek Harness、ChatGPT。平台评测接口与生产身份认证尚未开始。
+> 工作流在发布时编译为可执行定义，由 Worker 逐阶段执行并在人工审批门停下（已在本机 MySQL 上端到端验证，容器部署路径未验证）；运行环境适配器支持 Claude Code、DeepSeek Harness、ChatGPT。平台评测接口与生产身份认证尚未开始。
 
 ### 12.2 禁止这样说
 
