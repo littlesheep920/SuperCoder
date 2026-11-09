@@ -218,7 +218,8 @@ class DuplicateDetector:
         if not union:
             return 0.0
         default = max(self._tag_idf.values(), default=1.0)
-        weight = lambda tags: sum(self._tag_idf.get(tag, default) for tag in tags)  # noqa: E731
+        # Sorted, so the float sum does not depend on set iteration order (PYTHONHASHSEED).
+        weight = lambda tags: sum(self._tag_idf.get(tag, default) for tag in sorted(tags))  # noqa: E731
         return weight(left & right) / weight(union)
 
     def judge(self, left: ResourceText, right: ResourceText) -> DuplicateVerdict:
@@ -228,7 +229,8 @@ class DuplicateDetector:
         tags = self._tag_overlap(a.tags, b.tags)
         shared = sorted(
             (term for term in a.purpose.keys() & b.purpose.keys() | a.body.keys() & b.body.keys()),
-            key=lambda term: -(min(a.purpose.get(term, 0), b.purpose.get(term, 0)) + min(a.body.get(term, 0), b.body.get(term, 0))),
+            # Ties broken by the term itself: set order changes with PYTHONHASHSEED, verdicts must not.
+            key=lambda term: (-(min(a.purpose.get(term, 0), b.purpose.get(term, 0)) + min(a.body.get(term, 0), b.body.get(term, 0))), term),
         )[:8]
 
         reuse = right.ref in left.dependencies | left.workflow_nodes or left.ref in right.dependencies | right.workflow_nodes

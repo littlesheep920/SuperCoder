@@ -3,6 +3,8 @@
     python scripts/run_duplicate_eval.py                    # dev and test; writes a JSON report
     python scripts/run_duplicate_eval.py --split dev        # one split
     python scripts/run_duplicate_eval.py --tune             # choose thresholds on the dev split only
+    python scripts/run_duplicate_eval.py --check-baseline   # exit 1 unless every pair matches the baseline
+    python scripts/run_duplicate_eval.py --write-baseline   # rewrite the baseline (a deliberate change)
 
 The registry the detector sees is the git-tracked corpus under resources/ plus the variants in
 evals/duplicates/stage5_registry/; template segments and IDF weights are computed over that whole
@@ -31,6 +33,7 @@ from apps.api.search.duplicates import DuplicateDetector, ResourceText, classify
 from build_duplicate_dataset import LABELS, PAIRS, REGISTRY, tracked_manifests  # noqa: E402
 
 POSITIVE = {"exact_duplicate", "near_duplicate"}
+BASELINE = ROOT / "evals" / "results" / "BASELINE-stage5-duplicates.json"
 
 
 def load_registry(root: pathlib.Path = ROOT) -> dict[str, ResourceText]:
@@ -144,25 +147,17 @@ def tune(items: list[dict], registry: dict[str, ResourceText]) -> dict:
                     "to 0.5, then the middle of the remaining (threshold, floor) range"}
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Evaluate the duplicate detector on the Stage 5 dataset.")
-    parser.add_argument("--split", choices=("dev", "test", "all"), default="all")
-    parser.add_argument("--tune", action="store_true", help="choose thresholds on the dev split only")
-    parser.add_argument("--out", default=str(ROOT / "evals" / "results"), help="directory for the JSON report")
-    args = parser.parse_args(argv)
+def build_report(root: pathlib.Path = ROOT, splits: tuple[str, ...] = ("dev", "test")) -> dict:
+    """The evaluation as data: deterministic, so equal inputs give an equal report."""
 
-    registry = load_registry(ROOT)
-    items = load_items(ROOT)
-    if args.tune:
-        outcome = tune(items, registry)
-        print(json.dumps(outcome, ensure_ascii=False, indent=2))
-        return 0
-
+    registry = load_registry(root)
+    items = load_items(root)
     detector = DuplicateDetector(list(registry.values()))
-    splits = ("dev", "test") if args.split == "all" else (args.split,)
     report = {
         "evaluation": "stage5-duplicates",
-        "dataset_version": json.loads((ROOT / PAIRS).read_text(encoding="utf-8").splitlines()[0])["dataset_version"],
+        "command": "python scripts/run_duplicate_eval.py",
+        "dataset_version": json.loads((root / PAIRS).read_text(encoding="utf-8").splitlines()[0])["dataset_version"],
+        "label_status": "draft labels written by an AI assistant; not reviewed by a person",
         "registry_size": len(registry),
         "templates_removed": len(detector.templates),
         "detector": {"weights": detector.weights, "duplicate_threshold": detector.duplicate_threshold,
@@ -174,6 +169,60 @@ def main(argv: list[str] | None = None) -> int:
         predictions = predict([item for item in items if item["split"] == split], registry, detector)
         report["splits"][split] = {"metrics": score(predictions), "errors_by_slice": errors_by_slice(predictions),
                                    "predictions": predictions}
+    return report
+
+
+def baseline_differences(current: dict, baseline: dict) -> list[str]:
+    """Human-readable differences, pair by pair, between a fresh report and the archived one."""
+
+    problems = []
+    for key in ("dataset_version", "registry_size", "templates_removed", "detector"):
+        if current.get(key) != baseline.get(key):
+            problems.append(f"{key}: {baseline.get(key)!r} -> {current.get(key)!r}")
+    for split, archived in baseline["splits"].items():
+        fresh = current["splits"].get(split)
+        if fresh is None:
+            problems.append(f"{split}: missing from the current run")
+            continue
+        if fresh["metrics"] != archived["metrics"]:
+            problems.append(f"{split} metrics: {archived['metrics']} -> {fresh['metrics']}")
+        old = {item["pair_id"]: item for item in archived["predictions"]}
+        new = {item["pair_id"]: item for item in fresh["predictions"]}
+        for pair_id in sorted(old.keys() | new.keys()):
+            if old.get(pair_id) != new.get(pair_id):
+                before, after = old.get(pair_id) or {}, new.get(pair_id) or {}
+                problems.append(f"{split} {pair_id}: {before.get('predicted')} {before.get('score')} -> "
+                                f"{after.get('predicted')} {after.get('score')}")
+    return problems
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Evaluate the duplicate detector on the Stage 5 dataset.")
+    parser.add_argument("--split", choices=("dev", "test", "all"), default="all")
+    parser.add_argument("--tune", action="store_true", help="choose thresholds on the dev split only")
+    parser.add_argument("--check-baseline", action="store_true", help="compare with the archived baseline")
+    parser.add_argument("--write-baseline", action="store_true", help="overwrite the archived baseline")
+    parser.add_argument("--out", default=str(ROOT / "evals" / "results"), help="directory for the JSON report")
+    args = parser.parse_args(argv)
+
+    if args.tune:
+        print(json.dumps(tune(load_items(ROOT), load_registry(ROOT)), ensure_ascii=False, indent=2))
+        return 0
+    if args.check_baseline or args.write_baseline:
+        report = build_report(ROOT)
+        if args.write_baseline:
+            BASELINE.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"baseline written: {BASELINE.relative_to(ROOT).as_posix()}")
+            return 0
+        problems = baseline_differences(report, json.loads(BASELINE.read_text(encoding="utf-8")))
+        for problem in problems:
+            print(problem)
+        print("RESULT:", "FAIL" if problems else "PASS")
+        return 1 if problems else 0
+
+    splits = ("dev", "test") if args.split == "all" else (args.split,)
+    report = build_report(ROOT, splits)
+    for split in splits:
         metrics = report["splits"][split]["metrics"]
         print(f"{split:5s} pairs={metrics['pairs']} excluded={metrics['excluded_uncertain']} "
               f"tp={metrics['tp']} fp={metrics['fp']} fn={metrics['fn']} tn={metrics['tn']} "
@@ -182,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     target = out / f"stage5-duplicates-{args.split}-{stamp}.json"
-    target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps({**report, "generated_at": stamp}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"report: {target.relative_to(ROOT) if target.is_relative_to(ROOT) else target}")
     return 0
 

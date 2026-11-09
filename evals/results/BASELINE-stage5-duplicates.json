@@ -1,0 +1,3109 @@
+{
+  "evaluation": "stage5-duplicates",
+  "command": "python scripts/run_duplicate_eval.py",
+  "dataset_version": "0.2.0",
+  "label_status": "draft labels written by an AI assistant; not reviewed by a person",
+  "registry_size": 323,
+  "templates_removed": 65,
+  "detector": {
+    "weights": {
+      "purpose": 0.3,
+      "body": 0.5,
+      "tags": 0.2
+    },
+    "duplicate_threshold": 0.36,
+    "related_threshold": 0.12,
+    "text_floor": 0.3,
+    "template_min_resources": 5
+  },
+  "splits": {
+    "dev": {
+      "metrics": {
+        "pairs": 54,
+        "excluded_uncertain": 2,
+        "tp": 8,
+        "fp": 0,
+        "fn": 7,
+        "tn": 37,
+        "precision": 1.0,
+        "recall": 0.5333,
+        "f1": 0.6957
+      },
+      "errors_by_slice": {
+        "missed:cross-language": [
+          "dp5-commit-02",
+          "dp5-commit-04",
+          "dp5-docs-01",
+          "dp5-release-02",
+          "dp5-release-03"
+        ],
+        "missed:rewrite": [
+          "dp5-bugs-01",
+          "dp5-versions-01"
+        ],
+        "missed:variant-pair": [
+          "dp5-commit-04",
+          "dp5-release-03"
+        ]
+      },
+      "predictions": [
+        {
+          "pair_id": "dp5-bugs-01",
+          "split": "dev",
+          "left": "prompt/example-bug-report-normalizer",
+          "right": "prompt/example-bug-report-template-fill",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "related",
+          "score": 0.2709,
+          "components": {
+            "purpose": 0.3804,
+            "body": 0.2557,
+            "tags": 0.1447
+          },
+          "rules": [],
+          "shared_terms": [
+            "bug",
+            "free",
+            "report",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-bugs-02",
+          "split": "dev",
+          "left": "prompt/example-bug-report-normalizer",
+          "right": "prompt/example-reproduction-steps",
+          "gold": "uncertain",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2606,
+          "components": {
+            "purpose": 0.1987,
+            "body": 0.1951,
+            "tags": 0.5173
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "report",
+            "prompt",
+            "into",
+            "example",
+            "that",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-bugs-03",
+          "split": "dev",
+          "left": "prompt/example-bug-report-template-fill",
+          "right": "prompt/example-reproduction-steps",
+          "gold": "uncertain",
+          "slices": [
+            "sibling",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1525,
+          "components": {
+            "purpose": 0.1672,
+            "body": 0.1454,
+            "tags": 0.1481
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "steps",
+            "report",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-01",
+          "split": "dev",
+          "left": "prompt/example-commit-message",
+          "right": "prompt/example-conventional-commit-writer",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.446,
+          "components": {
+            "purpose": 0.4892,
+            "body": 0.4122,
+            "tags": 0.4658
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "conventional",
+            "summary",
+            "message",
+            "diff",
+            "a",
+            "commit"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-02",
+          "split": "dev",
+          "left": "prompt/example-commit-message",
+          "right": "prompt/example-tijiao-xinxi",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0462,
+          "components": {
+            "purpose": 0.054,
+            "body": 0.06,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "conventional"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-03",
+          "split": "dev",
+          "left": "prompt/example-commit-message",
+          "right": "skill/example-commit-message-check",
+          "gold": "related",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.3482,
+          "components": {
+            "purpose": 0.4233,
+            "body": 0.3207,
+            "tags": 0.3045
+          },
+          "rules": [],
+          "shared_terms": [
+            "message",
+            "commit",
+            "conventional",
+            "into",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-04",
+          "split": "dev",
+          "left": "prompt/example-conventional-commit-writer",
+          "right": "prompt/example-tijiao-xinxi",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language",
+            "variant-pair"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.08,
+          "components": {
+            "purpose": 0.1121,
+            "body": 0.0926,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "commits",
+            "conventional"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-05",
+          "split": "dev",
+          "left": "prompt/example-conventional-commit-writer",
+          "right": "skill/example-commit-message-check",
+          "gold": "related",
+          "slices": [
+            "lookalike",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.3574,
+          "components": {
+            "purpose": 0.3112,
+            "body": 0.4161,
+            "tags": 0.2798
+          },
+          "rules": [],
+          "shared_terms": [
+            "message",
+            "commits",
+            "conventional",
+            "commit",
+            "subject",
+            "type",
+            "scope",
+            "the"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-06",
+          "split": "dev",
+          "left": "prompt/example-pr-description",
+          "right": "skill/example-pull-request-writeup",
+          "gold": "near_duplicate",
+          "slices": [
+            "kind-change"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.4046,
+          "components": {
+            "purpose": 0.4309,
+            "body": 0.2905,
+            "tags": 0.6504
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "pull",
+            "request",
+            "description",
+            "change",
+            "motivation",
+            "and",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-07",
+          "split": "dev",
+          "left": "prompt/example-commit-message",
+          "right": "prompt/example-pr-description",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1644,
+          "components": {
+            "purpose": 0.0929,
+            "body": 0.0939,
+            "tags": 0.4482
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "prompt",
+            "example",
+            "that",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-commit-08",
+          "split": "dev",
+          "left": "prompt/example-conventional-commit-writer",
+          "right": "prompt/example-pr-description",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0596,
+          "components": {
+            "purpose": 0.0694,
+            "body": 0.0165,
+            "tags": 0.1528
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "drafts",
+            "a",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-csv-01",
+          "split": "dev",
+          "left": "tool/example-csv-diff",
+          "right": "tool/example-table-row-diff",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.6665,
+          "components": {
+            "purpose": 0.2531,
+            "body": 1.0,
+            "tags": 0.4529
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "csv",
+            "column",
+            "diff",
+            "two",
+            "b",
+            "reader",
+            "key",
+            "set"
+          ]
+        },
+        {
+          "pair_id": "dp5-csv-02",
+          "split": "dev",
+          "left": "tool/example-csv-diff",
+          "right": "tool/example-csv-schema-diff",
+          "gold": "related",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.3015,
+          "components": {
+            "purpose": 0.4165,
+            "body": 0.1687,
+            "tags": 0.461
+          },
+          "rules": [],
+          "shared_terms": [
+            "csv",
+            "added",
+            "removed",
+            "two",
+            "rows",
+            "diff",
+            "reports",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-csv-03",
+          "split": "dev",
+          "left": "tool/example-csv-schema-diff",
+          "right": "tool/example-table-row-diff",
+          "gold": "related",
+          "slices": [
+            "lookalike",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.2608,
+          "components": {
+            "purpose": 0.2773,
+            "body": 0.1687,
+            "tags": 0.4664
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "csv",
+            "two",
+            "row",
+            "compares",
+            "diff",
+            "and",
+            "added",
+            "removed"
+          ]
+        },
+        {
+          "pair_id": "dp5-csv-04",
+          "split": "dev",
+          "left": "tool/example-csv-column-extract",
+          "right": "tool/example-csv-diff",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2546,
+          "components": {
+            "purpose": 0.2498,
+            "body": 0.1647,
+            "tags": 0.4866
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "csv",
+            "column",
+            "row",
+            "text",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-csv-05",
+          "split": "dev",
+          "left": "tool/example-csv-column-extract",
+          "right": "tool/example-table-row-diff",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2534,
+          "components": {
+            "purpose": 0.2417,
+            "body": 0.1647,
+            "tags": 0.4927
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "csv",
+            "row",
+            "column",
+            "text",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-data-quality-01",
+          "split": "dev",
+          "left": "prompt/example-data-quality-report",
+          "right": "prompt/example-quality-report",
+          "gold": "near_duplicate",
+          "slices": [
+            "corpus"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.8377,
+          "components": {
+            "purpose": 0.9886,
+            "body": 0.6821,
+            "tags": 1.0
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "report",
+            "quality",
+            "counts",
+            "checks",
+            "samples",
+            "data",
+            "summarises",
+            "into"
+          ]
+        },
+        {
+          "pair_id": "dp5-data-quality-02",
+          "split": "dev",
+          "left": "mcp/example-data-quality-dashboard",
+          "right": "prompt/example-quality-report",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.3021,
+          "components": {
+            "purpose": 0.389,
+            "body": 0.2817,
+            "tags": 0.2226
+          },
+          "rules": [],
+          "shared_terms": [
+            "quality",
+            "data",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-demo-01",
+          "split": "dev",
+          "left": "skill/demo-code-review",
+          "right": "workflow/demo-review-flow",
+          "gold": "related",
+          "slices": [
+            "reuse",
+            "stage0"
+          ],
+          "predicted": "related",
+          "score": 0.3273,
+          "components": {
+            "purpose": 0.3138,
+            "body": 0.2965,
+            "tags": 0.4249
+          },
+          "rules": [
+            "reuse"
+          ],
+          "shared_terms": [
+            "code",
+            "review",
+            "demo",
+            "or",
+            "not",
+            "clearly",
+            "demonstration",
+            "labeled"
+          ]
+        },
+        {
+          "pair_id": "dp5-demo-02",
+          "split": "dev",
+          "left": "agent/demo-planner",
+          "right": "prompt/demo-bugfix",
+          "gold": "related",
+          "slices": [
+            "stage0"
+          ],
+          "predicted": "related",
+          "score": 0.2384,
+          "components": {
+            "purpose": 0.2423,
+            "body": 0.2729,
+            "tags": 0.1462
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "context",
+            "bounded",
+            "or",
+            "is",
+            "0",
+            "clearly",
+            "demo",
+            "demonstration"
+          ]
+        },
+        {
+          "pair_id": "dp5-demo-03",
+          "split": "dev",
+          "left": "mcp/demo-local-catalog",
+          "right": "tool/demo-text-stats",
+          "gold": "not_duplicate",
+          "slices": [
+            "stage0"
+          ],
+          "predicted": "related",
+          "score": 0.2124,
+          "components": {
+            "purpose": 0.3025,
+            "body": 0.1159,
+            "tags": 0.3186
+          },
+          "rules": [],
+          "shared_terms": [
+            "0",
+            "demo",
+            "only",
+            "not",
+            "production",
+            "clearly",
+            "demonstration",
+            "labeled"
+          ]
+        },
+        {
+          "pair_id": "dp5-demo-04",
+          "split": "dev",
+          "left": "prompt/demo-bugfix",
+          "right": "skill/demo-code-review",
+          "gold": "related",
+          "slices": [
+            "stage0"
+          ],
+          "predicted": "related",
+          "score": 0.3274,
+          "components": {
+            "purpose": 0.281,
+            "body": 0.4219,
+            "tags": 0.1608
+          },
+          "rules": [],
+          "shared_terms": [
+            "evidence",
+            "or",
+            "code",
+            "not",
+            "is",
+            "a",
+            "it",
+            "clearly"
+          ]
+        },
+        {
+          "pair_id": "dp5-docs-01",
+          "split": "dev",
+          "left": "agent/example-chanpin-wendang-wenda",
+          "right": "agent/example-docs-answerer",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-docs-02",
+          "split": "dev",
+          "left": "agent/example-docs-answerer",
+          "right": "agent/example-onboarding-guide",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.3102,
+          "components": {
+            "purpose": 0.3916,
+            "body": 0.201,
+            "tags": 0.461
+          },
+          "rules": [],
+          "shared_terms": [
+            "documentation",
+            "questions",
+            "agent",
+            "the",
+            "answers",
+            "from",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-docs-03",
+          "split": "dev",
+          "left": "agent/example-chanpin-wendang-wenda",
+          "right": "agent/example-onboarding-guide",
+          "gold": "related",
+          "slices": [
+            "sibling",
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-identifiers-01",
+          "split": "dev",
+          "left": "tool/example-uuid-check",
+          "right": "tool/example-uuid-validator",
+          "gold": "exact_duplicate",
+          "slices": [
+            "copy"
+          ],
+          "predicted": "exact_duplicate",
+          "score": 0.9696,
+          "components": {
+            "purpose": 0.8987,
+            "body": 1.0,
+            "tags": 1.0
+          },
+          "rules": [
+            "same-description-and-body"
+          ],
+          "shared_terms": [
+            "uuid",
+            "variant",
+            "string",
+            "validates",
+            "its",
+            "version",
+            "reports",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-logs-01",
+          "split": "dev",
+          "left": "skill/example-log-scrubbing",
+          "right": "tool/example-log-redactor",
+          "gold": "near_duplicate",
+          "slices": [
+            "kind-change"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.378,
+          "components": {
+            "purpose": 0.4565,
+            "body": 0.2106,
+            "tags": 0.6788
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "log",
+            "values",
+            "credential",
+            "shaped",
+            "lines",
+            "before",
+            "from",
+            "password"
+          ]
+        },
+        {
+          "pair_id": "dp5-logs-02",
+          "split": "dev",
+          "left": "tool/example-log-level-filter",
+          "right": "tool/example-log-redactor",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.1454,
+          "components": {
+            "purpose": 0.2959,
+            "body": 0.0555,
+            "tags": 0.1445
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "log",
+            "sharing",
+            "lines",
+            "before",
+            "only",
+            "a",
+            "the",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-logs-03",
+          "split": "dev",
+          "left": "skill/example-log-scrubbing",
+          "right": "tool/example-log-level-filter",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1749,
+          "components": {
+            "purpose": 0.1889,
+            "body": 0.2212,
+            "tags": 0.0383
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "log",
+            "lines",
+            "before",
+            "or",
+            "the",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-logs-04",
+          "split": "dev",
+          "left": "agent/example-secret-response-agent",
+          "right": "tool/example-log-redactor",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0797,
+          "components": {
+            "purpose": 0.0168,
+            "body": 0.051,
+            "tags": 0.2457
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "example",
+            "that",
+            "must",
+            "be",
+            "a",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-logs-05",
+          "split": "dev",
+          "left": "agent/example-secret-response-agent",
+          "right": "skill/example-log-scrubbing",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0834,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0685,
+            "tags": 0.2456
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "secret",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-01",
+          "split": "dev",
+          "left": "prompt/example-release-notes-writer",
+          "right": "prompt/example-release-notes",
+          "gold": "exact_duplicate",
+          "slices": [
+            "copy"
+          ],
+          "predicted": "exact_duplicate",
+          "score": 0.9893,
+          "components": {
+            "purpose": 0.9642,
+            "body": 1.0,
+            "tags": 1.0
+          },
+          "rules": [
+            "same-description-and-body"
+          ],
+          "shared_terms": [
+            "notes",
+            "release",
+            "audience",
+            "user",
+            "change",
+            "facing",
+            "merged",
+            "touches"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-02",
+          "split": "dev",
+          "left": "prompt/example-fabu-shuoming",
+          "right": "prompt/example-release-notes",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0427,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0854,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "audience",
+            "changes"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-03",
+          "split": "dev",
+          "left": "prompt/example-fabu-shuoming",
+          "right": "prompt/example-release-notes-writer",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language",
+            "variant-pair"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0427,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0854,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "audience",
+            "changes"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-04",
+          "split": "dev",
+          "left": "prompt/example-release-notes-store",
+          "right": "prompt/example-release-notes",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2705,
+          "components": {
+            "purpose": 0.3915,
+            "body": 0.1051,
+            "tags": 0.5024
+          },
+          "rules": [],
+          "shared_terms": [
+            "notes",
+            "release",
+            "prompt",
+            "writes",
+            "that",
+            "example",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-05",
+          "split": "dev",
+          "left": "prompt/example-release-notes-store",
+          "right": "prompt/example-release-notes-writer",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2611,
+          "components": {
+            "purpose": 0.3603,
+            "body": 0.1051,
+            "tags": 0.5024
+          },
+          "rules": [],
+          "shared_terms": [
+            "notes",
+            "release",
+            "writes",
+            "that",
+            "prompt",
+            "example",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-06",
+          "split": "dev",
+          "left": "agent/example-release-announcer",
+          "right": "prompt/example-release-notes",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1448,
+          "components": {
+            "purpose": 0.1455,
+            "body": 0.1025,
+            "tags": 0.2492
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "release",
+            "the",
+            "that",
+            "example",
+            "for",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-07",
+          "split": "dev",
+          "left": "skill/example-release-readiness",
+          "right": "skill/example-ship-checklist-review",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.3735,
+          "components": {
+            "purpose": 0.2928,
+            "body": 0.4905,
+            "tags": 0.2021
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "gate",
+            "waived",
+            "or",
+            "evidence",
+            "checklist",
+            "operator",
+            "rehearsed",
+            "satisfied"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-08",
+          "split": "dev",
+          "left": "skill/example-release-readiness",
+          "right": "workflow/example-release-readiness-gate",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "related",
+          "score": 0.2074,
+          "components": {
+            "purpose": 0.3509,
+            "body": 0.1227,
+            "tags": 0.2038
+          },
+          "rules": [
+            "reuse"
+          ],
+          "shared_terms": [
+            "gate",
+            "release",
+            "readiness",
+            "checklist",
+            "the",
+            "run",
+            "for",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-09",
+          "split": "dev",
+          "left": "skill/example-ship-checklist-review",
+          "right": "workflow/example-release-readiness-gate",
+          "gold": "related",
+          "slices": [
+            "reuse",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.2921,
+          "components": {
+            "purpose": 0.2912,
+            "body": 0.3155,
+            "tags": 0.235
+          },
+          "rules": [],
+          "shared_terms": [
+            "gate",
+            "release",
+            "the",
+            "checklist",
+            "states",
+            "is",
+            "run",
+            "of"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-10",
+          "split": "dev",
+          "left": "agent/example-release-conductor",
+          "right": "skill/example-release-readiness",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2361,
+          "components": {
+            "purpose": 0.3516,
+            "body": 0.1819,
+            "tags": 0.1985
+          },
+          "rules": [],
+          "shared_terms": [
+            "gate",
+            "release",
+            "any",
+            "checklist",
+            "walks",
+            "a",
+            "waived",
+            "never"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-11",
+          "split": "dev",
+          "left": "agent/example-release-conductor",
+          "right": "skill/example-ship-checklist-review",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.3103,
+          "components": {
+            "purpose": 0.2407,
+            "body": 0.3851,
+            "tags": 0.2279
+          },
+          "rules": [],
+          "shared_terms": [
+            "gate",
+            "release",
+            "checklist",
+            "waived",
+            "approve",
+            "the",
+            "test",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-12",
+          "split": "dev",
+          "left": "skill/example-mobile-release-checklist",
+          "right": "skill/example-release-readiness",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1451,
+          "components": {
+            "purpose": 0.3027,
+            "body": 0.0211,
+            "tags": 0.2189
+          },
+          "rules": [],
+          "shared_terms": [
+            "release",
+            "checklist",
+            "walks",
+            "the",
+            "a",
+            "for",
+            "and",
+            "reports"
+          ]
+        },
+        {
+          "pair_id": "dp5-release-13",
+          "split": "dev",
+          "left": "skill/example-mobile-release-checklist",
+          "right": "skill/example-ship-checklist-review",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2118,
+          "components": {
+            "purpose": 0.2362,
+            "body": 0.1046,
+            "tags": 0.4433
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "checklist",
+            "release",
+            "for",
+            "the",
+            "and",
+            "list",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-tokens-01",
+          "split": "dev",
+          "left": "tool/example-token-counter",
+          "right": "tool/example-token-expiry-check",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.2338,
+          "components": {
+            "purpose": 0.2096,
+            "body": 0.1522,
+            "tags": 0.4744
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "token",
+            "tool",
+            "and",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-tokens-02",
+          "split": "dev",
+          "left": "tool/example-jwt-shape-inspect",
+          "right": "tool/example-token-expiry-check",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.218,
+          "components": {
+            "purpose": 0.0994,
+            "body": 0.1907,
+            "tags": 0.4642
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "of",
+            "it",
+            "reports",
+            "the",
+            "tool",
+            "and",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-a-01",
+          "split": "dev",
+          "left": "prompt/example-threat-model",
+          "right": "tool/example-base64-tool",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0152,
+          "components": {
+            "purpose": 0.0058,
+            "body": 0.0123,
+            "tags": 0.0368
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-a-02",
+          "split": "dev",
+          "left": "prompt/example-dataset-card",
+          "right": "tool/example-mttr-calculator",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.012,
+          "components": {
+            "purpose": 0.013,
+            "body": 0,
+            "tags": 0.0405
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "and",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-a-03",
+          "split": "dev",
+          "left": "mcp/example-feature-flags",
+          "right": "prompt/example-support-macro",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0393,
+          "components": {
+            "purpose": 0.0229,
+            "body": 0.0495,
+            "tags": 0.0385
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "a",
+            "that",
+            "only",
+            "example",
+            "the"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-a-04",
+          "split": "dev",
+          "left": "agent/example-crash-analyst",
+          "right": "tool/example-duration-formatter",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0268,
+          "components": {
+            "purpose": 0.0169,
+            "body": 0.0282,
+            "tags": 0.0379
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-a-05",
+          "split": "dev",
+          "left": "mcp/example-billing-api-reader",
+          "right": "prompt/example-adr-writer",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0468,
+          "components": {
+            "purpose": 0.0329,
+            "body": 0.059,
+            "tags": 0.037
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "example",
+            "that",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-versions-01",
+          "split": "dev",
+          "left": "tool/example-semver-compare",
+          "right": "tool/example-version-compare",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "related",
+          "score": 0.2324,
+          "components": {
+            "purpose": 0.3398,
+            "body": 0.1919,
+            "tags": 0.1724
+          },
+          "rules": [],
+          "shared_terms": [
+            "version",
+            "semantic",
+            "compare",
+            "newer",
+            "two",
+            "the",
+            "and",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-versions-02",
+          "split": "dev",
+          "left": "tool/example-semver-compare",
+          "right": "tool/example-semver-range-check",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2896,
+          "components": {
+            "purpose": 0.0932,
+            "body": 0.1232,
+            "tags": 1.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "version",
+            "reports",
+            "comparison",
+            "example",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-versions-03",
+          "split": "dev",
+          "left": "tool/example-semver-range-check",
+          "right": "tool/example-version-compare",
+          "gold": "related",
+          "slices": [
+            "sibling",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1373,
+          "components": {
+            "purpose": 0.1153,
+            "body": 0.1364,
+            "tags": 0.1724
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "version",
+            "tool",
+            "whether",
+            "example"
+          ]
+        }
+      ]
+    },
+    "test": {
+      "metrics": {
+        "pairs": 57,
+        "excluded_uncertain": 0,
+        "tp": 7,
+        "fp": 3,
+        "fn": 9,
+        "tn": 38,
+        "precision": 0.7,
+        "recall": 0.4375,
+        "f1": 0.5385
+      },
+      "errors_by_slice": {
+        "false_alarm:lookalike": [
+          "dp5-acceptance-02"
+        ],
+        "false_alarm:sibling": [
+          "dp5-api-errors-02",
+          "dp5-sql-04"
+        ],
+        "missed:corpus": [
+          "dp5-coverage-01"
+        ],
+        "missed:cross-language": [
+          "dp5-acceptance-01",
+          "dp5-flaky-01",
+          "dp5-sql-02",
+          "dp5-sql-03"
+        ],
+        "missed:kind-change": [
+          "dp5-incident-03"
+        ],
+        "missed:rewrite": [
+          "dp5-dependencies-01",
+          "dp5-incident-01",
+          "dp5-sql-01"
+        ],
+        "missed:variant-pair": [
+          "dp5-incident-03",
+          "dp5-sql-03"
+        ]
+      },
+      "predictions": [
+        {
+          "pair_id": "dp5-acceptance-01",
+          "split": "test",
+          "left": "prompt/example-acceptance-criteria",
+          "right": "prompt/example-yanshou-biaozhun",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-acceptance-02",
+          "split": "test",
+          "left": "prompt/example-acceptance-criteria",
+          "right": "prompt/example-acceptance-test-review",
+          "gold": "related",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.3725,
+          "components": {
+            "purpose": 0.464,
+            "body": 0.2667,
+            "tags": 0.4998
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "criteria",
+            "acceptance",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-acceptance-03",
+          "split": "test",
+          "left": "prompt/example-acceptance-test-review",
+          "right": "prompt/example-yanshou-biaozhun",
+          "gold": "related",
+          "slices": [
+            "lookalike",
+            "variant-pair"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-acceptance-04",
+          "split": "test",
+          "left": "prompt/example-acceptance-criteria",
+          "right": "prompt/example-user-story-split",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1784,
+          "components": {
+            "purpose": 0.0964,
+            "body": 0.1062,
+            "tags": 0.4821
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "prompt",
+            "into",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-api-errors-01",
+          "split": "test",
+          "left": "prompt/example-api-error-catalog",
+          "right": "prompt/example-api-error-message",
+          "gold": "related",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.2623,
+          "components": {
+            "purpose": 0.3219,
+            "body": 0.1402,
+            "tags": 0.4783
+          },
+          "rules": [],
+          "shared_terms": [
+            "api",
+            "error",
+            "can",
+            "an",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-api-errors-02",
+          "split": "test",
+          "left": "prompt/example-api-error-message",
+          "right": "prompt/example-error-message-rewrite",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.3617,
+          "components": {
+            "purpose": 0.4174,
+            "body": 0.2915,
+            "tags": 0.4536
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "message",
+            "rewrites",
+            "prompt",
+            "into",
+            "a",
+            "error",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-api-errors-03",
+          "split": "test",
+          "left": "prompt/example-api-error-catalog",
+          "right": "prompt/example-error-message-rewrite",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0855,
+          "components": {
+            "purpose": 0.1029,
+            "body": 0.0418,
+            "tags": 0.1687
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "the",
+            "error",
+            "and",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-coverage-01",
+          "split": "test",
+          "left": "agent/example-coverage-gap-agent",
+          "right": "skill/example-test-coverage-gap",
+          "gold": "near_duplicate",
+          "slices": [
+            "corpus"
+          ],
+          "predicted": "related",
+          "score": 0.2665,
+          "components": {
+            "purpose": 0.3052,
+            "body": 0.1255,
+            "tags": 0.5609
+          },
+          "rules": [],
+          "shared_terms": [
+            "branches",
+            "coverage",
+            "a",
+            "gap",
+            "that",
+            "change",
+            "reports",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-coverage-02",
+          "split": "test",
+          "left": "agent/example-coverage-gap-agent",
+          "right": "mcp/example-test-report-reader",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0947,
+          "components": {
+            "purpose": 0.0516,
+            "body": 0.076,
+            "tags": 0.206
+          },
+          "rules": [
+            "below-text-floor",
+            "reuse"
+          ],
+          "shared_terms": [
+            "reports",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-dependencies-01",
+          "split": "test",
+          "left": "skill/example-dependency-upgrade",
+          "right": "skill/example-upgrade-impact-review",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "related",
+          "score": 0.2348,
+          "components": {
+            "purpose": 0.2365,
+            "body": 0.2343,
+            "tags": 0.2335
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "breaking",
+            "changes",
+            "upgrade",
+            "the",
+            "this",
+            "call",
+            "before",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-dependencies-02",
+          "split": "test",
+          "left": "skill/example-dependency-upgrade",
+          "right": "workflow/example-dependency-upgrade-plan",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "related",
+          "score": 0.3231,
+          "components": {
+            "purpose": 0.4238,
+            "body": 0.2938,
+            "tags": 0.2456
+          },
+          "rules": [
+            "reuse"
+          ],
+          "shared_terms": [
+            "upgrade",
+            "dependency",
+            "the",
+            "changelog",
+            "plans",
+            "plan",
+            "target",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-dependencies-03",
+          "split": "test",
+          "left": "skill/example-upgrade-impact-review",
+          "right": "workflow/example-dependency-upgrade-plan",
+          "gold": "related",
+          "slices": [
+            "reuse",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1397,
+          "components": {
+            "purpose": 0.2046,
+            "body": 0.1427,
+            "tags": 0.0349
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "the",
+            "upgrade",
+            "and",
+            "before",
+            "is",
+            "version",
+            "change",
+            "it"
+          ]
+        },
+        {
+          "pair_id": "dp5-dependencies-04",
+          "split": "test",
+          "left": "agent/example-dependency-auditor",
+          "right": "skill/example-dependency-upgrade",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.1035,
+          "components": {
+            "purpose": 0.1498,
+            "body": 0.0188,
+            "tags": 0.2459
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "dependency",
+            "that",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-flaky-01",
+          "split": "test",
+          "left": "agent/example-buwending-ceshi",
+          "right": "agent/example-flaky-test-hunter",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-flaky-02",
+          "split": "test",
+          "left": "agent/example-flaky-test-hunter",
+          "right": "skill/example-flaky-test-triage",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1765,
+          "components": {
+            "purpose": 0.2723,
+            "body": 0.0996,
+            "tags": 0.2252
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "flaky",
+            "test",
+            "from",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-flaky-03",
+          "split": "test",
+          "left": "agent/example-flaky-test-hunter",
+          "right": "prompt/example-test-flakiness-report",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2057,
+          "components": {
+            "purpose": 0.2521,
+            "body": 0.1671,
+            "tags": 0.233
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "flaky",
+            "test",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-flaky-04",
+          "split": "test",
+          "left": "agent/example-buwending-ceshi",
+          "right": "skill/example-flaky-test-triage",
+          "gold": "related",
+          "slices": [
+            "sibling",
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-incident-01",
+          "split": "test",
+          "left": "skill/example-incident-intake-note",
+          "right": "skill/example-incident-triage",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "related",
+          "score": 0.2829,
+          "components": {
+            "purpose": 0.1947,
+            "body": 0.3647,
+            "tags": 0.2106
+          },
+          "rules": [],
+          "shared_terms": [
+            "next",
+            "incident",
+            "note",
+            "and",
+            "single",
+            "the",
+            "diagnostic",
+            "owner"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-02",
+          "split": "test",
+          "left": "prompt/example-incident-triage-note",
+          "right": "skill/example-incident-triage",
+          "gold": "near_duplicate",
+          "slices": [
+            "kind-change"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.5028,
+          "components": {
+            "purpose": 0.7159,
+            "body": 0.369,
+            "tags": 0.5177
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "incident",
+            "blast",
+            "radius",
+            "diagnostic",
+            "next",
+            "step",
+            "timeline",
+            "note"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-03",
+          "split": "test",
+          "left": "prompt/example-incident-triage-note",
+          "right": "skill/example-incident-intake-note",
+          "gold": "near_duplicate",
+          "slices": [
+            "kind-change",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.2213,
+          "components": {
+            "purpose": 0.274,
+            "body": 0.1795,
+            "tags": 0.2471
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "note",
+            "next",
+            "incident",
+            "diagnostic",
+            "timeline",
+            "and",
+            "alert",
+            "step"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-04",
+          "split": "test",
+          "left": "skill/example-incident-triage",
+          "right": "workflow/example-incident-intake-flow",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "related",
+          "score": 0.2057,
+          "components": {
+            "purpose": 0.2507,
+            "body": 0.1745,
+            "tags": 0.2162
+          },
+          "rules": [
+            "below-text-floor",
+            "reuse"
+          ],
+          "shared_terms": [
+            "incident",
+            "note",
+            "triage",
+            "the",
+            "and",
+            "first",
+            "alert"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-05",
+          "split": "test",
+          "left": "skill/example-incident-intake-note",
+          "right": "workflow/example-incident-intake-flow",
+          "gold": "related",
+          "slices": [
+            "reuse",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.2041,
+          "components": {
+            "purpose": 0.3639,
+            "body": 0.0968,
+            "tags": 0.2328
+          },
+          "rules": [],
+          "shared_terms": [
+            "to",
+            "incident",
+            "note",
+            "intake",
+            "the",
+            "alert",
+            "and",
+            "is"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-06",
+          "split": "test",
+          "left": "prompt/example-incident-summary",
+          "right": "skill/example-incident-triage",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2477,
+          "components": {
+            "purpose": 0.2279,
+            "body": 0.2744,
+            "tags": 0.2106
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "incident",
+            "timeline",
+            "note",
+            "an",
+            "owner",
+            "who",
+            "than",
+            "impact"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-07",
+          "split": "test",
+          "left": "prompt/example-incident-summary",
+          "right": "skill/example-incident-intake-note",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1525,
+          "components": {
+            "purpose": 0.1976,
+            "body": 0.0958,
+            "tags": 0.2264
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "incident",
+            "note",
+            "timeline",
+            "owner",
+            "it",
+            "what",
+            "the",
+            "is"
+          ]
+        },
+        {
+          "pair_id": "dp5-incident-08",
+          "split": "test",
+          "left": "agent/example-incident-lookup-agent",
+          "right": "mcp/example-incident-history",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "related",
+          "score": 0.5237,
+          "components": {
+            "purpose": 0.494,
+            "body": 0.5014,
+            "tags": 0.6237
+          },
+          "rules": [
+            "weighted-similarity",
+            "reuse-is-not-duplication"
+          ],
+          "shared_terms": [
+            "similar",
+            "symptoms",
+            "past",
+            "incidents",
+            "incident",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-markdown-01",
+          "split": "test",
+          "left": "tool/example-markdown-mulu",
+          "right": "tool/example-markdown-toc",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.594,
+          "components": {
+            "purpose": 0.1639,
+            "body": 1.0,
+            "tags": 0.224
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "markdown",
+            "match",
+            "title",
+            "heading",
+            "re",
+            "level",
+            "anchor",
+            "lines"
+          ]
+        },
+        {
+          "pair_id": "dp5-markdown-02",
+          "split": "test",
+          "left": "tool/example-markdown-heading-lint",
+          "right": "tool/example-markdown-toc",
+          "gold": "related",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.2637,
+          "components": {
+            "purpose": 0.2248,
+            "body": 0.2005,
+            "tags": 0.4803
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "markdown",
+            "headings",
+            "heading",
+            "level",
+            "that",
+            "not",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-markdown-03",
+          "split": "test",
+          "left": "tool/example-markdown-heading-lint",
+          "right": "tool/example-markdown-mulu",
+          "gold": "related",
+          "slices": [
+            "lookalike",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1849,
+          "components": {
+            "purpose": 0.1409,
+            "body": 0.2005,
+            "tags": 0.2119
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "markdown",
+            "heading",
+            "level",
+            "headings",
+            "not",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-markdown-04",
+          "split": "test",
+          "left": "tool/example-markdown-link-check",
+          "right": "tool/example-markdown-toc",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.179,
+          "components": {
+            "purpose": 0.172,
+            "body": 0.0565,
+            "tags": 0.4955
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "markdown",
+            "offline",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-network-01",
+          "split": "test",
+          "left": "tool/example-ip-in-subnet",
+          "right": "tool/example-ip-range-check",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.3872,
+          "components": {
+            "purpose": 0.3752,
+            "body": 0.3674,
+            "tags": 0.4545
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "address",
+            "cidr",
+            "whether",
+            "an",
+            "ip",
+            "tool",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-network-02",
+          "split": "test",
+          "left": "tool/example-cidr-overlap",
+          "right": "tool/example-ip-range-check",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1803,
+          "components": {
+            "purpose": 0.2712,
+            "body": 0,
+            "tags": 0.4947
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "cidr",
+            "check",
+            "whether",
+            "reports",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-network-03",
+          "split": "test",
+          "left": "tool/example-cidr-overlap",
+          "right": "tool/example-ip-in-subnet",
+          "gold": "related",
+          "slices": [
+            "sibling",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.1467,
+          "components": {
+            "purpose": 0.1952,
+            "body": 0,
+            "tags": 0.4408
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "cidr",
+            "whether"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-01",
+          "split": "test",
+          "left": "tool/example-json-canonicalizer",
+          "right": "tool/example-json-normalizer",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.4814,
+          "components": {
+            "purpose": 0.3518,
+            "body": 0.5788,
+            "tags": 0.4325
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "json",
+            "keys",
+            "indent",
+            "sorted",
+            "with",
+            "so",
+            "str",
+            "and"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-02",
+          "split": "test",
+          "left": "tool/example-json-guifanhua",
+          "right": "tool/example-json-normalizer",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.583,
+          "components": {
+            "purpose": 0.1346,
+            "body": 1.0,
+            "tags": 0.213
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "json",
+            "indent",
+            "8",
+            "0",
+            "keys",
+            "no",
+            "str",
+            "return"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-03",
+          "split": "test",
+          "left": "tool/example-json-canonicalizer",
+          "right": "tool/example-json-guifanhua",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language",
+            "variant-pair"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.367,
+          "components": {
+            "purpose": 0.119,
+            "body": 0.5788,
+            "tags": 0.2097
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "json",
+            "indent",
+            "keys",
+            "str",
+            "ascii",
+            "dumps",
+            "ensure",
+            "loads"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-04",
+          "split": "test",
+          "left": "tool/example-json-normalizer",
+          "right": "tool/example-line-ending-normalizer",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "related",
+          "score": 0.127,
+          "components": {
+            "purpose": 0.321,
+            "body": 0.0046,
+            "tags": 0.1418
+          },
+          "rules": [],
+          "shared_terms": [
+            "diffs",
+            "reviewable",
+            "normalizer",
+            "so",
+            "are",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-05",
+          "split": "test",
+          "left": "tool/example-json-canonicalizer",
+          "right": "tool/example-line-ending-normalizer",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0462,
+          "components": {
+            "purpose": 0.0544,
+            "body": 0.0039,
+            "tags": 0.1396
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "so",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-normalize-06",
+          "split": "test",
+          "left": "tool/example-line-ending-normalizer",
+          "right": "tool/example-unicode-normalizer",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.2626,
+          "components": {
+            "purpose": 0.2173,
+            "body": 0.2219,
+            "tags": 0.4324
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "chosen",
+            "so",
+            "normalizer",
+            "tool",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-schema-01",
+          "split": "test",
+          "left": "mcp/example-database-schema-reader",
+          "right": "mcp/example-db-schema-reader",
+          "gold": "exact_duplicate",
+          "slices": [
+            "copy"
+          ],
+          "predicted": "exact_duplicate",
+          "score": 0.96,
+          "components": {
+            "purpose": 0.8665,
+            "body": 1.0,
+            "tags": 1.0
+          },
+          "rules": [
+            "same-description-and-body"
+          ],
+          "shared_terms": [
+            "definitions",
+            "reading",
+            "returns",
+            "table",
+            "row",
+            "without",
+            "mcp",
+            "server"
+          ]
+        },
+        {
+          "pair_id": "dp5-schema-02",
+          "split": "test",
+          "left": "mcp/example-database-schema-reader",
+          "right": "mcp/example-schema-catalog",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.3228,
+          "components": {
+            "purpose": 0.4363,
+            "body": 0.1909,
+            "tags": 0.4822
+          },
+          "rules": [],
+          "shared_terms": [
+            "row",
+            "data",
+            "table",
+            "mcp",
+            "returns",
+            "schema",
+            "server",
+            "only"
+          ]
+        },
+        {
+          "pair_id": "dp5-schema-03",
+          "split": "test",
+          "left": "mcp/example-db-schema-reader",
+          "right": "mcp/example-schema-catalog",
+          "gold": "related",
+          "slices": [
+            "sibling",
+            "variant-pair"
+          ],
+          "predicted": "related",
+          "score": 0.3142,
+          "components": {
+            "purpose": 0.4076,
+            "body": 0.1909,
+            "tags": 0.4822
+          },
+          "rules": [],
+          "shared_terms": [
+            "row",
+            "data",
+            "table",
+            "returns",
+            "schema",
+            "mcp",
+            "server",
+            "only"
+          ]
+        },
+        {
+          "pair_id": "dp5-schema-04",
+          "split": "test",
+          "left": "agent/example-schema-guide-agent",
+          "right": "mcp/example-database-schema-reader",
+          "gold": "related",
+          "slices": [
+            "reuse"
+          ],
+          "predicted": "related",
+          "score": 0.2022,
+          "components": {
+            "purpose": 0.2113,
+            "body": 0.1725,
+            "tags": 0.263
+          },
+          "rules": [
+            "below-text-floor",
+            "reuse"
+          ],
+          "shared_terms": [
+            "table",
+            "schema",
+            "example",
+            "that",
+            "only"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-01",
+          "split": "test",
+          "left": "prompt/example-query-result-explainer",
+          "right": "prompt/example-sql-explanation",
+          "gold": "near_duplicate",
+          "slices": [
+            "rewrite"
+          ],
+          "predicted": "related",
+          "score": 0.2919,
+          "components": {
+            "purpose": 0.2581,
+            "body": 0.2374,
+            "tags": 0.4789
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql",
+            "it",
+            "returns",
+            "without",
+            "query",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-02",
+          "split": "test",
+          "left": "prompt/example-chaxun-shuoming",
+          "right": "prompt/example-sql-explanation",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0654,
+          "components": {
+            "purpose": 0.1341,
+            "body": 0.0503,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-03",
+          "split": "test",
+          "left": "prompt/example-chaxun-shuoming",
+          "right": "prompt/example-query-result-explainer",
+          "gold": "near_duplicate",
+          "slices": [
+            "cross-language",
+            "variant-pair"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0377,
+          "components": {
+            "purpose": 0.0621,
+            "body": 0.0381,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-04",
+          "split": "test",
+          "left": "prompt/example-explain-plan",
+          "right": "prompt/example-sql-explanation",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "near_duplicate",
+          "score": 0.3666,
+          "components": {
+            "purpose": 0.3793,
+            "body": 0.314,
+            "tags": 0.4789
+          },
+          "rules": [
+            "weighted-similarity"
+          ],
+          "shared_terms": [
+            "explains",
+            "query",
+            "prompt",
+            "explanation",
+            "example",
+            "that",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-05",
+          "split": "test",
+          "left": "prompt/example-query-analysis",
+          "right": "prompt/example-sql-explanation",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.1199,
+          "components": {
+            "purpose": 0.1708,
+            "body": 0.0762,
+            "tags": 0.1525
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "prompt",
+            "query",
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-06",
+          "split": "test",
+          "left": "prompt/example-sql-explanation",
+          "right": "skill/example-query-review",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.19,
+          "components": {
+            "purpose": 0.2573,
+            "body": 0.2095,
+            "tags": 0.0399
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql",
+            "query",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-07",
+          "split": "test",
+          "left": "prompt/example-sql-explanation",
+          "right": "tool/example-sql-formatter",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1833,
+          "components": {
+            "purpose": 0.266,
+            "body": 0.0916,
+            "tags": 0.2886
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql",
+            "it",
+            "example",
+            "that",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-08",
+          "split": "test",
+          "left": "prompt/example-explain-plan",
+          "right": "prompt/example-query-result-explainer",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1448,
+          "components": {
+            "purpose": 0.1279,
+            "body": 0.0429,
+            "tags": 0.425
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "in",
+            "query",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-09",
+          "split": "test",
+          "left": "prompt/example-query-result-explainer",
+          "right": "skill/example-query-review",
+          "gold": "related",
+          "slices": [
+            "sibling"
+          ],
+          "predicted": "related",
+          "score": 0.1651,
+          "components": {
+            "purpose": 0.2271,
+            "body": 0.0893,
+            "tags": 0.2615
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "sql",
+            "result",
+            "query",
+            "and",
+            "a"
+          ]
+        },
+        {
+          "pair_id": "dp5-sql-10",
+          "split": "test",
+          "left": "prompt/example-chaxun-shuoming",
+          "right": "prompt/example-query-analysis",
+          "gold": "not_duplicate",
+          "slices": [
+            "lookalike",
+            "cross-language"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0,
+          "components": {
+            "purpose": 0.0,
+            "body": 0.0,
+            "tags": 0.0
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": []
+        },
+        {
+          "pair_id": "dp5-unrelated-b-01",
+          "split": "test",
+          "left": "mcp/example-dns-record-reader",
+          "right": "tool/example-readability-score",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0162,
+          "components": {
+            "purpose": 0.027,
+            "body": 0,
+            "tags": 0.0405
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "for",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-b-02",
+          "split": "test",
+          "left": "skill/example-paywall-review",
+          "right": "tool/example-retry-schedule",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0196,
+          "components": {
+            "purpose": 0.0398,
+            "body": 0,
+            "tags": 0.0383
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "for",
+            "a",
+            "and",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-b-03",
+          "split": "test",
+          "left": "agent/example-issue-triager",
+          "right": "tool/example-class-balance",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0428,
+          "components": {
+            "purpose": 0.1151,
+            "body": 0,
+            "tags": 0.0412
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "label",
+            "for",
+            "and",
+            "a",
+            "example"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-b-04",
+          "split": "test",
+          "left": "mcp/example-model-card-reader",
+          "right": "prompt/example-runbook-writer",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.031,
+          "components": {
+            "purpose": 0.0222,
+            "body": 0.0335,
+            "tags": 0.0381
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "example",
+            "that"
+          ]
+        },
+        {
+          "pair_id": "dp5-unrelated-b-05",
+          "split": "test",
+          "left": "skill/example-i18n-readiness",
+          "right": "tool/example-transition-matrix",
+          "gold": "not_duplicate",
+          "slices": [
+            "unrelated"
+          ],
+          "predicted": "not_duplicate",
+          "score": 0.0137,
+          "components": {
+            "purpose": 0.0183,
+            "body": 0,
+            "tags": 0.0411
+          },
+          "rules": [
+            "below-text-floor"
+          ],
+          "shared_terms": [
+            "and",
+            "a",
+            "example"
+          ]
+        }
+      ]
+    }
+  }
+}

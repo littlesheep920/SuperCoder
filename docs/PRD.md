@@ -732,7 +732,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 | 检查 | 命令 | 结果 |
 |---|---|---|
 | 契约校验 | `python scripts/validate_stage0.py --root .` | PASS |
-| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 套件共 964 项测试；Stage 4 交接环境缺依赖，全量结果待补（HOLD） |
+| 全量测试 | `python -m unittest discover -s tests -p "test_*.py"` | 套件共 970 项测试；Stage 4 交接环境缺依赖，全量结果待补（HOLD） |
 | 工作流端到端 | `python scripts/check_workflow_e2e.py` | 16 项通过（用户本机 2026-11-08：MySQL 8.0.28，未经 Docker，夹具本地写入）；compose 路径未运行（HOLD） |
 | 前端类型 | `cd apps/web && npx vue-tsc --noEmit` | 通过 |
 | 容器冒烟 | CI `compose` job | 通过 |
@@ -751,7 +751,7 @@ SUPERCODER_SEARCH_API_KEY=<从环境注入，禁止提交>
 
 ### 12.1 可以这样说
 
-> SuperCoder 是面向企业研发的 AI 能力资产治理平台。已实现六类能力资源的登记、版本管理、七状态生命周期、权限隔离、审核发布与回滚；实现混合检索（关键词 + 语义 + 融合 + 精排）；提供能力发现与自然语言登记两条 Agent 通道（后者含差异预演与人工确认提交）；Git 内容与 MySQL 治理元数据分离；容器化一键启动，测试套件共 964 项。
+> SuperCoder 是面向企业研发的 AI 能力资产治理平台。已实现六类能力资源的登记、版本管理、七状态生命周期、权限隔离、审核发布与回滚；实现混合检索（关键词 + 语义 + 融合 + 精排）；提供能力发现与自然语言登记两条 Agent 通道（后者含差异预演与人工确认提交）；Git 内容与 MySQL 治理元数据分离；容器化一键启动，测试套件共 970 项。
 >
 > 在 290 项示例资源、301 条中文业务查询的评测上，混合检索 Hit@5 为 0.944、MRR@10 为 0.856，纯关键词仅 0.100。检索 P95 延迟 523 毫秒。
 >
