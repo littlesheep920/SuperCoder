@@ -36,7 +36,8 @@ TOKEN = "dev-owner-token"
 
 def git(*args: str) -> str:
     return subprocess.run(
-        ["git", *args], cwd=str(ROOT), capture_output=True, text=True, check=False
+        ["git", *args], cwd=str(ROOT), capture_output=True, text=True,
+        encoding="utf-8", errors="replace", check=False,
     ).stdout.strip()
 
 

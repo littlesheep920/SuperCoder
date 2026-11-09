@@ -14,6 +14,7 @@ perfect Hit@5. That exact mistake happened during development and is now a test.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -25,11 +26,16 @@ SCRIPT = ROOT / "scripts" / "run_retrieval_eval.py"
 
 
 def _run(profile: str, out_dir: Path) -> dict:
+    # The script prints non-ASCII (an em dash in its offline-baseline note). With
+    # PYTHONIOENCODING=utf-8 inherited and no -X utf8, the parent used to decode those UTF-8
+    # bytes with the locale codec (cp936 on a Chinese Windows) and every test here errored.
     completed = subprocess.run(
         [sys.executable, str(SCRIPT), "--profile", profile, "--out", str(out_dir)],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
         timeout=300,
     )
     if completed.returncode != 0:

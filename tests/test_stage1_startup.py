@@ -117,11 +117,15 @@ class SeedScriptTests(unittest.TestCase):
         ):
             env.pop(key, None)
         env.update(env_overrides)
+        # The child writes UTF-8 whatever the console's code page, and the parent decodes UTF-8.
+        # Leaving either side to the locale breaks on a Chinese Windows console (cp936).
+        env["PYTHONIOENCODING"] = "utf-8"
         return subprocess.run(
             [sys.executable, str(ROOT / "scripts/seed_demo_resources.py")],
             cwd=str(ROOT),
             capture_output=True,
             text=True,
+            encoding="utf-8",
             env=env,
             timeout=120,
         )
