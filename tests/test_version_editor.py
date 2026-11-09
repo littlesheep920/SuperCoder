@@ -37,7 +37,7 @@ class FakeCommands:
         self.fail = fail
         self.calls: list[dict] = []
 
-    def update_draft(self, **kwargs):
+    def update_draft_recorded(self, **kwargs):
         self.calls.append(kwargs)
         if self.fail:
             raise ConflictError(message="row version is stale")
@@ -47,7 +47,11 @@ class FakeCommands:
             identifier = "1.0.1"
             artifact_hash = "sha256:" + "b" * 64
 
-        return Updated()
+        class Recorded:
+            version = Updated()
+            audit_id = "06GVZ00000000000000000AUD1"
+
+        return Recorded()
 
 
 class FakeVersion:

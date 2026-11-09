@@ -53,6 +53,7 @@ class EditedVersion:
     body_path: str
     body_written: bool
     previous_version_id: str
+    audit_id: str
 
 
 class VersionEditorService:
@@ -165,7 +166,7 @@ class VersionEditorService:
                     raise ValidationError(message=f"entrypoint {entrypoint!r} vanished after writing")
                 artifacts = [artifact_reference_for(entrypoint, current)]
 
-            updated = self._commands.update_draft(
+            recorded = self._commands.update_draft_recorded(
                 actor=actor,
                 version_public_id=version.public_id,
                 # The caller's expectation, not the record's own value: passing the
@@ -179,6 +180,7 @@ class VersionEditorService:
                 manifest_patch=manifest_patch,
                 artifacts=artifacts,
             )
+            updated = recorded.version
         except Exception:
             # Restore the previous body so the checkout keeps matching the recorded
             # digest of the version that still exists.
@@ -196,6 +198,7 @@ class VersionEditorService:
             body_path=entrypoint,
             body_written=written_body,
             previous_version_id=str(version.public_id),
+            audit_id=recorded.audit_id,
         )
 
     def _read_body(self, kind: ResourceKind, slug: str, entrypoint: str) -> str | None:

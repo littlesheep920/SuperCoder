@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from ..domain.errors import (
     ConflictError,
     ErrorCode,
@@ -31,6 +33,14 @@ from .helpers import AuditWriter, Clock, now_utc
 from .snapshots import SnapshotService
 
 __all__ = ["ResourceCommandService"]
+
+
+@dataclass(frozen=True, slots=True)
+class DraftUpdate:
+    """A draft update and the audit event that records it."""
+
+    version: VersionRecord
+    audit_id: str
 
 
 class ResourceCommandService:
@@ -175,6 +185,31 @@ class ResourceCommandService:
         manifest_patch: dict[str, object] | None = None,
         artifacts: list[ArtifactReference] | None = None,
     ) -> VersionRecord:
+        return self.update_draft_recorded(
+            actor=actor, version_public_id=version_public_id, row_version=row_version, reason=reason,
+            correlation_id=correlation_id, request_id=request_id, manifest_patch=manifest_patch,
+            artifacts=artifacts,
+        ).version
+
+    def update_draft_recorded(
+        self,
+        *,
+        actor: ActorIdentity,
+        version_public_id: str,
+        row_version: int,
+        reason: str,
+        correlation_id: str,
+        request_id: str | None = None,
+        manifest_patch: dict[str, object] | None = None,
+        artifacts: list[ArtifactReference] | None = None,
+    ) -> "DraftUpdate":
+        """`update_draft`, also returning the id of the audit event it wrote.
+
+        `PUT /resource-versions/{id}/body` must answer with that id (API contract,
+        `EditedDraftResponse.audit_id`); reading "the latest audit event" afterwards
+        could pick up someone else's.
+        """
+
         from ..domain.patching import apply_json_merge_patch
 
         with self._uow_factory() as uow:
@@ -286,7 +321,7 @@ class ResourceCommandService:
                 reason="draft content changed",
                 expected_artifact_hash=current.artifact_hash,
             )
-            AuditWriter(uow).append(
+            audit = AuditWriter(uow).append(
                 actor=actor,
                 action="version.update_draft",
                 outcome="succeeded",
@@ -300,7 +335,7 @@ class ResourceCommandService:
                 artifact_hash=loaded.artifact_hash,
             )
             uow.commit()
-            return version
+            return DraftUpdate(version=version, audit_id=str(audit.public_id))
 
     def _derived_columns(self, loaded) -> dict[str, object]:
         """Columns that mirror manifest fields, for an in-place draft update.

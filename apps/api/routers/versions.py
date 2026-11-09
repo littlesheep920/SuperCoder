@@ -210,7 +210,11 @@ def edit_draft_body(
         ).model_dump(),
         "body_path": edited.body_path,
         "body_written": edited.body_written,
-        "previous_version_id": edited.previous_version_id,
+        # EditedDraftResponse (frozen contract) has exactly these four fields. This dict
+        # used to carry `previous_version_id` instead of `audit_id`, so once the response
+        # model was declared every successful edit answered 500 after the edit had been
+        # applied. tests/test_body_edit_api.py now drives this route over HTTP.
+        "audit_id": edited.audit_id,
     }
 
 
