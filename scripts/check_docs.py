@@ -38,6 +38,7 @@ EXPECTED_DOCS = [
     "docs/DOCUMENTATION_STANDARD.md",
     "docs/STAGE3_ACCEPTANCE_REPORT.md",
     "docs/STAGE4_ACCEPTANCE_REPORT.md",
+    "docs/STAGE5_ACCEPTANCE_REPORT.md",
 ]
 
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")

@@ -104,6 +104,25 @@ def errors_by_slice(predictions: list[dict]) -> dict[str, list[str]]:
     return dict(sorted(grouped.items()))
 
 
+def by_slice(predictions: list[dict]) -> dict[str, dict[str, int]]:
+    """Per slice: gold positives and how many were found; gold negatives and how many were flagged."""
+
+    table: dict[str, dict[str, int]] = {}
+    for item in predictions:
+        if item["gold"] == "uncertain":
+            continue
+        gold, flagged = item["gold"] in POSITIVE, item["predicted"] in POSITIVE
+        for name in item["slices"] or ["none"]:
+            row = table.setdefault(name, {"positives": 0, "found": 0, "negatives": 0, "false_alarms": 0})
+            if gold:
+                row["positives"] += 1
+                row["found"] += flagged
+            else:
+                row["negatives"] += 1
+                row["false_alarms"] += flagged
+    return dict(sorted(table.items()))
+
+
 def tune(items: list[dict], registry: dict[str, ResourceText]) -> dict:
     """Grid search on the dev split. Test labels are never read here."""
 
@@ -202,6 +221,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tune", action="store_true", help="choose thresholds on the dev split only")
     parser.add_argument("--check-baseline", action="store_true", help="compare with the archived baseline")
     parser.add_argument("--write-baseline", action="store_true", help="overwrite the archived baseline")
+    parser.add_argument("--by-slice", action="store_true", help="also print found/missed per slice")
     parser.add_argument("--out", default=str(ROOT / "evals" / "results"), help="directory for the JSON report")
     args = parser.parse_args(argv)
 
@@ -227,6 +247,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{split:5s} pairs={metrics['pairs']} excluded={metrics['excluded_uncertain']} "
               f"tp={metrics['tp']} fp={metrics['fp']} fn={metrics['fn']} tn={metrics['tn']} "
               f"P={metrics['precision']:.3f} R={metrics['recall']:.3f} F1={metrics['f1']:.4f}")
+        if args.by_slice:
+            for name, row in by_slice(report["splits"][split]["predictions"]).items():
+                print(f"      {name:16s} positives {row['found']}/{row['positives']} found   "
+                      f"negatives {row['false_alarms']}/{row['negatives']} flagged")
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")

@@ -61,7 +61,11 @@ def main() -> int:
         ),
         "平台评测接口": any("/evaluations" in path for _, path in implemented),
         "生产身份认证": "oidc" in sources.lower() or "saml" in sources.lower(),
-        "重复资源识别": "detect_duplicate" in sources,
+        # The detector is a search-domain module and is not wired into a route yet, so the
+        # evidence is the module and its class. (The earlier marker, "detect_duplicate", named a
+        # function that was never written and would have matched a comment as easily.)
+        "重复资源识别": (ROOT / "apps/api/search/duplicates.py").exists()
+        and "class DuplicateDetector" in sources,
     }
 
     problems: list[str] = []

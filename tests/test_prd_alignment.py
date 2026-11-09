@@ -217,3 +217,24 @@ class DocumentShapeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DuplicateMetricTests(unittest.TestCase):
+    """The duplicate-detection F1 quoted in the PRD is the archived test-split figure, with its caveat."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = PRD.read_text(encoding="utf-8")
+        archive = ROOT / "evals" / "results" / "BASELINE-stage5-duplicates.json"
+        cls.f1 = json.loads(archive.read_text(encoding="utf-8"))["splits"]["test"]["metrics"]["f1"]
+
+    def test_the_quoted_f1_is_the_archived_test_f1(self) -> None:
+        row = next(line for line in self.text.splitlines() if line.startswith("| 重复资源识别 F1 |"))
+        self.assertIn(format(self.f1, ".3f"), row)
+
+    def test_the_figure_says_its_labels_are_unreviewed_and_the_target_unmet(self) -> None:
+        row = next(line for line in self.text.splitlines() if line.startswith("| 重复资源识别 F1 |"))
+        self.assertIn("未经人工复核", row)
+        self.assertIn("未达标", row)
+        report = (ROOT / "docs" / "STAGE5_ACCEPTANCE_REPORT.md").read_text(encoding="utf-8")
+        self.assertIn(format(self.f1, ".4f"), report)
