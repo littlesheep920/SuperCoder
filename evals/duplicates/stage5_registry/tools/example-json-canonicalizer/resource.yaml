@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-json-canonicalizer",
+  "name": "JSON Canonicalizer",
+  "version": "1.0.0",
+  "description": "Produces canonical JSON, with keys in sorted order and a fixed indent, so two documents differ only where their data differs. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "json",
+    "canonical"
+  ],
+  "categories": [
+    "developer-tools/data"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "backend-api",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "indent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

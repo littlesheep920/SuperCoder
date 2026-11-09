@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-buwending-ceshi",
+  "name": "不稳定测试排查",
+  "version": "1.0.0",
+  "description": "根据已存储的测试报告找出不稳定的测试，并给出建议隔离的候选。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "测试",
+    "排查"
+  ],
+  "categories": [
+    "software-development/testing"
+  ],
+  "runtimes": [
+    "claude-code",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-test-report-reader",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "agent": {
+    "role": "根据已存储的测试报告找出不稳定的测试，并给出建议隔离的候选。",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-test-report-reader"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-yanshou-biaozhun",
+  "name": "验收标准改写",
+  "version": "1.0.0",
+  "description": "把含糊的需求改写成可测试的验收标准。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "需求",
+    "写作"
+  ],
+  "categories": [
+    "product/planning"
+  ],
+  "runtimes": [
+    "dify",
+    "openai-compatible-agent-runtime"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

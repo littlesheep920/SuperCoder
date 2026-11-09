@@ -1,0 +1,71 @@
+{
+  "schema_version": "1",
+  "kind": "tool",
+  "slug": "example-log-level-filter",
+  "name": "Log Level Filter",
+  "version": "1.0.0",
+  "description": "Keeps only the log lines at or above a given level before sharing; it does not change the content of any line. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "tool",
+    "logs",
+    "filter"
+  ],
+  "categories": [
+    "security/logging"
+  ],
+  "runtimes": [
+    "kiro",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "tool.py",
+  "status": "draft",
+  "owner_team": "sre",
+  "tool": {
+    "execution_mode": "python",
+    "parameters_schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "returns_schema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    "deterministic": true,
+    "timeout_seconds": 5
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "kind": "agent",
+  "slug": "example-chanpin-wendang-wenda",
+  "name": "产品文档问答",
+  "version": "1.0.0",
+  "description": "只依据已发布的产品文档回答产品问题。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "文档",
+    "支持"
+  ],
+  "categories": [
+    "developer-tools/documentation"
+  ],
+  "runtimes": [
+    "dify",
+    "kiro"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [
+    {
+      "kind": "mcp",
+      "slug": "example-docs-site-search",
+      "version": "^1.0.0"
+    }
+  ],
+  "entrypoint": "AGENT.md",
+  "status": "draft",
+  "owner_team": "product-ops",
+  "agent": {
+    "role": "只依据已发布的产品文档回答产品问题。",
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-sonnet"
+    },
+    "tools": [
+      "example-docs-site-search"
+    ],
+    "context_strategy": "retrieval-augmented"
+  }
+}

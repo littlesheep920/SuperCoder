@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-release-readiness-gate",
+  "name": "Release Readiness Gate",
+  "version": "1.0.0",
+  "description": "Runs the release readiness checklist and pauses for human approval before the release is recorded as ready. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "release",
+    "approval"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "release-engineering",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "plan",
+        "type": "resource",
+        "resource": {
+          "kind": "skill",
+          "slug": "example-release-readiness",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "record",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "plan"
+      },
+      {
+        "from": "plan",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "record"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

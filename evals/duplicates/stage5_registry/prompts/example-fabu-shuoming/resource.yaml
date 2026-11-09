@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-fabu-shuoming",
+  "name": "发布说明撰写",
+  "version": "1.0.0",
+  "description": "把已合并的变更描述整理成面向用户的发布说明。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "发布",
+    "写作"
+  ],
+  "categories": [
+    "operations/release"
+  ],
+  "runtimes": [
+    "dify",
+    "claude-code"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "changes",
+        "description": "Merged change descriptions.",
+        "required": true,
+        "type": "text"
+      },
+      {
+        "name": "audience",
+        "description": "Who reads these notes.",
+        "required": true,
+        "type": "text"
+      }
+    ],
+    "models": [
+      "gpt-4o-mini",
+      "claude-3-5-sonnet"
+    ]
+  }
+}

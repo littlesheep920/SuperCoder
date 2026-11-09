@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "kind": "workflow",
+  "slug": "example-incident-intake-flow",
+  "name": "Incident Intake Flow",
+  "version": "1.0.0",
+  "description": "Produces the incident triage note and asks the incident commander to approve it before it is posted. Illustrative sample content for the SuperCoder protocol, not a reviewed enterprise asset.",
+  "aliases": [],
+  "tags": [
+    "example",
+    "workflow",
+    "incident",
+    "approval"
+  ],
+  "categories": [
+    "operations/incident"
+  ],
+  "runtimes": [
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "WORKFLOW.md",
+  "status": "draft",
+  "owner_team": "sre",
+  "workflow": {
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input"
+      },
+      {
+        "id": "plan",
+        "type": "resource",
+        "resource": {
+          "kind": "skill",
+          "slug": "example-incident-triage",
+          "version": "^1.0.0"
+        }
+      },
+      {
+        "id": "approve",
+        "type": "approval"
+      },
+      {
+        "id": "record",
+        "type": "output"
+      }
+    ],
+    "edges": [
+      {
+        "from": "start",
+        "to": "plan"
+      },
+      {
+        "from": "plan",
+        "to": "approve"
+      },
+      {
+        "from": "approve",
+        "to": "record"
+      }
+    ],
+    "retry_policy": {
+      "max_attempts": 2,
+      "backoff": "exponential"
+    },
+    "approval_gates": [
+      "approve"
+    ]
+  }
+}

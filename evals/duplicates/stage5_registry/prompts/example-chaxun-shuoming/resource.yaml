@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-chaxun-shuoming",
+  "name": "SQL 查询结果说明",
+  "version": "1.0.0",
+  "description": "在不执行的前提下，说明一条 SQL 查询会返回哪些数据。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "数据库",
+    "说明"
+  ],
+  "categories": [
+    "developer-tools/data"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "data-platform",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}

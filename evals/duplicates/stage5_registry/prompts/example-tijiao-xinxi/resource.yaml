@@ -1,0 +1,57 @@
+{
+  "schema_version": "1",
+  "kind": "prompt",
+  "slug": "example-tijiao-xinxi",
+  "name": "提交信息生成",
+  "version": "1.0.0",
+  "description": "根据代码变更摘要，生成符合 Conventional Commits 规范的提交信息。示例内容，并非经过审核的企业资产。",
+  "aliases": [],
+  "tags": [
+    "示例",
+    "提交信息",
+    "写作"
+  ],
+  "categories": [
+    "software-development/workflow"
+  ],
+  "runtimes": [
+    "kiro",
+    "cursor"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "type": "text",
+      "required": true,
+      "description": "Caller-supplied input for this example resource."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "text",
+      "required": true,
+      "description": "Result produced by this example resource."
+    }
+  ],
+  "permissions": [],
+  "dependencies": [],
+  "entrypoint": "PROMPT.md",
+  "status": "draft",
+  "owner_team": "mobile",
+  "prompt": {
+    "prompt_type": "template",
+    "variables": [
+      {
+        "name": "input",
+        "type": "text",
+        "required": true,
+        "description": "The material to transform."
+      }
+    ],
+    "models": [
+      "claude-3-5-sonnet",
+      "gpt-4o"
+    ]
+  }
+}
