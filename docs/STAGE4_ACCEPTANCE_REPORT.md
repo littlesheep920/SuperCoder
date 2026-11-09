@@ -41,6 +41,7 @@
 | 空输出、非对象输出、超限输出判节点失败 | **PASS** | 同上 |
 | 可选节点失败使阶段降级、运行继续 | **PASS** | 同上 |
 | 取消优先于其他步骤；超时（含等待审批）以 `timed_out` 结束 | **PASS** | 同上，变异测试 9/9 检出 |
+| 只有发起人或审核者能请求取消，其他人得到 403 | **PASS** | `tests/test_workflow_run_service.py`；去掉该检查后 4 项断言失败 |
 | checkpoint 绑定快照哈希，不匹配即失败 | **PASS** | 同上 |
 | 审批需 reviewer 角色；发起人不能批准、可以驳回 | **PASS** | `tests/test_workflow_gates.py`、`tests/test_stage2_capabilities.py` |
 | 上述规则在 MySQL、真实路由与真实 Worker 上成立 | **PASS** | `scripts/check_workflow_e2e.py` 16/16，用户本机 2026-11-08（第 5.2 节）；超时未在端到端中覆盖；compose 路径未运行 |
@@ -96,7 +97,7 @@
 
 | 项 | 缺少什么 | 补齐命令 |
 |---|---|---|
-| 全量测试 | 完整 Python 依赖 | `python -m unittest discover -s tests -p "test_*.py"`，须 976 项全部通过 |
+| 全量测试 | 完整 Python 依赖 | `python -m unittest discover -s tests -p "test_*.py"`，须 981 项全部通过 |
 | 契约漂移门禁 | fastapi | `python scripts/check_doc_drift.py` |
 | Stage 0/1 校验 | jsonschema、完整依赖 | `python scripts/validate_stage0.py --root .`、`python scripts/validate_stage1.py` |
 | 前端类型与构建 | node_modules | `cd apps/web && npx vue-tsc --noEmit && npm run build` |
@@ -112,7 +113,6 @@
 - **默认适配器不执行任何代码。** 它记录"哪个版本、以哪个内容哈希、交付给哪个运行环境的哪个阶段"。真实执行工具代码需要 SECURITY_AND_CONFIGURATION.md §6.6 规定的沙箱，默认关闭。
 - **交付适配器不读取 Git 正文。** 执行前核对的是治理记录中的内容哈希；按工作树正文重新计算哈希再交付，是下一步。
 - **驳回即失败。** 评测用例 `wf-rejected-decision` 期望"驳回分支"成功结束，`workflow/v1` 没有分支，属于有意差异。
-- **取消请求未做角色限制。** 服务端目前允许任何已认证身份请求取消；控制台只对发起人显示按钮。
 - **执行期未按发起人身份重新求交授权。** 当前复核版本状态与内容哈希，未复核发起人当下的可见性。
 - **Job 与 Run 通过载荷和幂等键关联。** `job.workflow_run_id` 外键尚未填充。
 - **早于本阶段发布的工作流版本不会自动补编译。** 发布新版本即可；交接时仓库中没有已发布的工作流资源。
@@ -121,5 +121,4 @@
 
 1. 在完整环境中补齐第 6 节全部 HOLD 项，并把结果回填本文件。
 2. 交付适配器按 Git 正文重新计算内容哈希，不一致即拒绝交付。
-3. 为取消请求加角色规则，并补齐对应的能力与测试。
-4. 重复资源识别（P1）：`evals/duplicates/` 数据集已就绪，目标 F1 ≥ 0.82。
+3. 重复资源识别（P1）：`evals/duplicates/` 数据集已就绪，目标 F1 ≥ 0.82。

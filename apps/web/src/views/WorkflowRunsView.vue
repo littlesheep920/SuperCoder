@@ -39,7 +39,7 @@ const deciding = ref(false);
  */
 const canDecide = computed(() => can("workflow:approve"));
 const isOwnRun = computed(
-  () => !!selectedRun.value && identity.value?.subject_id === selectedRun.value.requested_by,
+  () => !!selectedRun.value && (identity.value?.subject_id === selectedRun.value.requested_by || canDecide.value),
 );
 
 function isFinished(status: string): boolean {
@@ -232,7 +232,7 @@ onMounted(load);
           <td>
             <button class="link" @click="openRun(run)">复盘</button>
             <button
-              v-if="!isFinished(run.status) && identity?.subject_id === run.requested_by"
+              v-if="!isFinished(run.status) && (identity?.subject_id === run.requested_by || canDecide)"
               class="link"
               style="margin-left: var(--space-2)"
               @click="cancel(run)"

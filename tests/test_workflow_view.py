@@ -147,3 +147,12 @@ class ExecutionControlsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CancelButtonTests(unittest.TestCase):
+    """The console offers cancellation to exactly the callers the server accepts it from."""
+
+    def test_the_button_follows_the_server_rule(self) -> None:
+        view = (pathlib.Path(__file__).resolve().parents[1] / "apps" / "web" / "src" / "views" / "WorkflowRunsView.vue").read_text(encoding="utf-8")
+        self.assertIn('(identity?.subject_id === run.requested_by || canDecide)', view)
+        self.assertIn("(identity.value?.subject_id === selectedRun.value.requested_by || canDecide.value)", view)

@@ -29,7 +29,7 @@ from apps.api.application.workflow_runs import (
     digest,
 )
 from apps.api.auth import AuthContext
-from apps.api.domain.errors import NotFoundError, ValidationError
+from apps.api.domain.errors import NotFoundError, PermissionDeniedError, ValidationError
 from apps.api.domain.models import ActorIdentity
 from tests.support.memory import MemoryStore, make_uow_factory
 from tests.support.workflow_fixtures import publish_capability, register_workflow
@@ -280,6 +280,51 @@ class CancellationTests(RunServiceFixture):
     def test_cancelling_an_unknown_run_is_refused(self) -> None:
         with self.assertRaises(NotFoundError):
             self.service.request_cancellation(actor(), "nope")
+
+
+def with_roles(name: str, roles: frozenset[str]) -> AuthContext:
+    return AuthContext(
+        actor=ActorIdentity(subject_id=name, actor_type="user", display_name=name),
+        grants=(),
+        teams=frozenset(),
+        ui_roles_by_team={},
+        organization_member=True,
+        governance_roles=roles,
+    )
+
+
+class WhoMayCancelTests(RunServiceFixture):
+    """The requester or a reviewer may cancel a run; nobody else.
+
+    The server used to accept a cancellation from any authenticated caller, while the console
+    only showed the button to the requester (STAGE4 §7). A member could stop anyone's run.
+    """
+
+    def test_the_requester_may_cancel(self) -> None:
+        run = self.service.create_run(actor("user-owner"), self.request())
+        updated = self.service.request_cancellation(actor("user-owner"), run.public_id)
+        self.assertEqual(updated.error_code, "cancellation_requested")
+
+    def test_a_reviewer_may_cancel_someone_elses_run(self) -> None:
+        run = self.service.create_run(actor("user-owner"), self.request())
+        reviewer = with_roles("user-reviewer", frozenset({"reviewer"}))
+        updated = self.service.request_cancellation(reviewer, run.public_id)
+        self.assertEqual(updated.error_code, "cancellation_requested")
+
+    def test_a_member_who_did_not_start_the_run_is_refused_and_nothing_changes(self) -> None:
+        run = self.service.create_run(actor("user-owner"), self.request())
+        with self.assertRaises(PermissionDeniedError):
+            self.service.request_cancellation(actor("user-member"), run.public_id)
+        unchanged = self.service.get_run(actor("user-owner"), run.public_id)
+        self.assertIsNone(unchanged.error_code)
+        self.assertEqual(unchanged.row_version, run.row_version)
+
+    def test_holding_another_governance_role_is_not_enough(self) -> None:
+        run = self.service.create_run(actor("user-owner"), self.request())
+        for roles in ({"owner"}, {"publisher"}, {"validator"}):
+            with self.subTest(roles=roles):
+                with self.assertRaises(PermissionDeniedError):
+                    self.service.request_cancellation(with_roles("user-other", frozenset(roles)), run.public_id)
 
 
 

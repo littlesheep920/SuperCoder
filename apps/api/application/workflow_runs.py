@@ -474,17 +474,28 @@ class WorkflowRunService:
 
     # ---------------------------------------------------------------- state changes
 
-    def request_cancellation(self, actor: ActorIdentity, public_id: str) -> WorkflowRunRecord:
+    def request_cancellation(self, actor: AuthContext, public_id: str) -> WorkflowRunRecord:
         """Record intent to cancel.
 
         Returns the run as it is now. `cancelled` is not set here: the worker owns that
         transition, and reporting it early would be a claim the worker could contradict.
+
+        Who may cancel: the person who requested the run, or a reviewer. A reviewer can already
+        end a run by rejecting it at a gate, so stopping it gives the role no power over the
+        outcome it does not have. Anyone else is refused with 403, before the run's state is
+        looked at. The console only ever offered the button to the requester, but the server
+        used to accept the request from any authenticated caller.
         """
 
         with self._uow_factory() as uow:
             record = uow.workflows.get_run(public_id, for_update=True)
             if record is None:
                 raise NotFoundError("workflow run not found")
+            if record.requested_by != actor.actor.subject_id and not is_reviewer(actor):
+                raise PermissionDeniedError(
+                    message="cancelling a workflow run requires being its requester or holding the "
+                    "reviewer role (workflow:approve)"
+                )
 
             if RunStatus(record.status) in {
                 RunStatus.SUCCEEDED,
