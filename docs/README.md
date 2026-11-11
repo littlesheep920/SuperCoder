@@ -46,7 +46,7 @@ SuperCoder 的文档分为三层：**产品规范**、**冻结契约**、**阶�
 | [`STAGE3_ACCEPTANCE_REPORT.md`](STAGE3_ACCEPTANCE_REPORT.md) | 运行环境适配阶段验收：逐项结论、实测记录、已知限制 |
 | [`STAGE4_ACCEPTANCE_REPORT.md`](STAGE4_ACCEPTANCE_REPORT.md) | 工作流执行闭环：编译、执行、审批门、控制台；端到端待验证项与补齐命令 |
 | [`STAGE5_ACCEPTANCE_REPORT.md`](STAGE5_ACCEPTANCE_REPORT.md) | 重复资源识别：评测数据集、检测规则、离线指标与已知局限 |
-| [`STAGE6_ACCEPTANCE_REPORT.md`](STAGE6_ACCEPTANCE_REPORT.md) | 资源质量体检：12 条规则、290 个资源的结果、定位与已知限制 |
+| [`STAGE6_ACCEPTANCE_REPORT.md`](STAGE6_ACCEPTANCE_REPORT.md) | 资源质量体检与 Agent 接入（MCP Server）：规则与结果、工具与安全边界、验证与已知限制 |
 | [`ADAPTERS.md`](ADAPTERS.md) | 三个运行环境的格式、目录、有损映射与导出规则 |
 | [`STAGE2_ACCEPTANCE_REPORT.md`](STAGE2_ACCEPTANCE_REPORT.md) | 检索阶段验收：逐项结论、实测指标、已知限制 |
 | [`STAGE1_ACCEPTANCE_REPORT.md`](STAGE1_ACCEPTANCE_REPORT.md) | 治理闭环阶段验收：资源、版本、生命周期、异步任务 |
