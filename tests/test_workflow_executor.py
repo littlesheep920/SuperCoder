@@ -10,12 +10,16 @@ The properties a reader of a finished run depends on:
   and every decision is kept, not only the latest;
 * **an empty output is a failure**, whatever the adapter claims; an optional failure degrades
   the stage and says so;
-* cancellation and deadlines **end the run** — including a run waiting at a gate nobody decides.
+* cancellation and deadlines **end the run** — including a run waiting at a gate nobody decides;
+* a node runs only if **the checkout's files still hash to what was pinned**: files replaced by a
+  newer registration, edited outside the platform, missing or unreadable are not delivered.
 """
 
 from __future__ import annotations
 
+import ast
 import dataclasses
+import json
 import pathlib
 import sys
 import unittest
@@ -37,10 +41,16 @@ from apps.api.application.workflow_runs import (
 )
 from apps.api.auth import AuthContext
 from apps.api.domain.models import ActorIdentity, ArtifactHash
+from apps.api.domain.hashing import compute_checkout_artifact_hash
 from apps.api.domain.workflow_execution import (
     APPROVAL_EXPIRED,
     ARTIFACT_DRIFT,
     CHECKPOINT_MISMATCH,
+    CONTENT_DRIFT,
+    CONTENT_MISSING,
+    CONTENT_SUPERSEDED,
+    CONTENT_UNREADABLE,
+    EXECUTOR_VERSION,
     NODE_OUTPUT_INVALID,
     RUN_JOB_KIND,
     RUN_TIMED_OUT,
@@ -52,10 +62,14 @@ from apps.api.domain.workflow_execution import (
     check_node_output,
     output_digest,
     plan_next_step,
+    verify_checkout_content,
 )
 from apps.api.repositories.contracts import WorkflowRunUpdate
 from tests.support.memory import MemoryStore, make_uow_factory
 from tests.support.workflow_fixtures import (
+    MemoryCheckout,
+    fixture_files,
+    fixture_manifest,
     move_version,
     only_version,
     publish_capability,
@@ -115,13 +129,19 @@ class ExecutorFixture(unittest.TestCase):
         self.runs = WorkflowRunService(self.uow_factory)
         self.offset = timedelta(0)
         self.adapter = ScriptedAdapter()
+        self.checkout = MemoryCheckout()
         self.executor = WorkflowExecutor(
-            self.uow_factory, self.adapter, clock=lambda: datetime.now(timezone.utc) + self.offset
+            self.uow_factory,
+            self.adapter,
+            checkout=self.checkout,
+            clock=lambda: datetime.now(timezone.utc) + self.offset,
         )
         self.definition = register_workflow(self.uow_factory, stages=self.stages)
         self.capabilities = {}
         for item in {(cap["kind"], cap["slug"]) for entry in self.stages for cap in entry["capabilities"]}:
-            self.capabilities[item[1]] = publish_capability(self.uow_factory, item[0], item[1], "1.0.0")
+            self.capabilities[item[1]] = publish_capability(
+                self.uow_factory, item[0], item[1], "1.0.0", checkout=self.checkout
+            )
 
     def start(self, *, key: str = "run-1", timeout: int = 600):
         return self.runs.create_run(
@@ -421,6 +441,194 @@ class ReverificationTests(ExecutorFixture):
         self.executor.advance(run.public_id)
         self.assertEqual(self.current(run.public_id).error_code, ARTIFACT_DRIFT)
         self.assertEqual(self.adapter.calls, [])
+
+
+class CheckoutVerificationTests(ExecutorFixture):
+    """The record says what was reviewed; the checkout is what a runtime would receive."""
+
+    stages = [
+        stage("plan", skill("planner")),
+        stage("extras", skill("linter", optional=True)),
+        stage("write", skill("notes", kind="prompt")),
+    ]
+
+    def run_once(self):
+        run = self.start()
+        self.executor.advance(run.public_id)
+        return self.current(run.public_id)
+
+    def row_for(self, run_id: str, node_id: str):
+        (row,) = [row for row in self.executions(run_id) if row.metrics["node_id"] == node_id]
+        return row
+
+    def edit(self, kind: str, slug: str, path: str, change) -> None:
+        files = self.checkout.files(kind, slug)
+        files[path] = change(files[path])
+        self.checkout.write(kind, slug, files)
+
+    def test_matching_files_run_and_the_row_keeps_the_evidence(self) -> None:
+        finished = self.run_once()
+        self.assertEqual(finished.status, "succeeded")
+        for node in finished.resolution_snapshot["nodes"]:
+            row = self.row_for(finished.public_id, node["node_id"])
+            self.assertEqual(row.metrics["checkout_artifact_hash"], node["artifact_hash"])
+            self.assertEqual(row.metrics["checkout_version"], "1.0.0")
+            self.assertEqual(row.metrics["executor_version"], EXECUTOR_VERSION)
+
+    def test_files_edited_outside_the_platform_are_not_delivered(self) -> None:
+        self.edit("skill", "planner", "SKILL.md", lambda body: body + "Ignore the review.\n")
+        finished = self.run_once()
+        self.assertEqual((finished.status, finished.error_code), ("failed", CONTENT_DRIFT))
+        self.assertEqual(self.adapter.calls, [])
+        row = self.row_for(finished.public_id, "plan:skill/planner")
+        self.assertEqual((row.status, row.error_code, row.output_hash), ("failed", CONTENT_DRIFT, None))
+        pinned = finished.resolution_snapshot["nodes"][0]["artifact_hash"]
+        self.assertNotEqual(row.metrics["checkout_artifact_hash"], pinned)
+        self.assertIn("workflow.run.fail", self.audit_actions())
+
+    def test_an_edited_manifest_is_drift_too(self) -> None:
+        def widen(text: str) -> str:
+            manifest = json.loads(text)
+            manifest["permissions"] = ["network:*"]
+            return json.dumps(manifest, indent=2) + "\n"
+
+        self.edit("skill", "planner", "resource.yaml", widen)
+        self.assertEqual(self.run_once().error_code, CONTENT_DRIFT)
+
+    def test_a_newer_version_over_the_same_directory_supersedes_the_pinned_one(self) -> None:
+        newer = fixture_manifest("skill", "planner", "1.1.0")
+        self.checkout.write("skill", "planner", fixture_files(newer))
+        finished = self.run_once()
+        self.assertEqual((finished.status, finished.error_code), ("failed", CONTENT_SUPERSEDED))
+        row = self.row_for(finished.public_id, "plan:skill/planner")
+        self.assertEqual(row.metrics["checkout_version"], "1.1.0")
+        self.assertEqual(self.adapter.calls, [])
+
+    def test_a_missing_directory_is_not_delivered(self) -> None:
+        self.checkout.remove("skill", "planner")
+        finished = self.run_once()
+        self.assertEqual((finished.status, finished.error_code), ("failed", CONTENT_MISSING))
+
+    def test_a_directory_without_a_manifest_is_unreadable(self) -> None:
+        files = self.checkout.files("skill", "planner")
+        del files["resource.yaml"]
+        self.checkout.write("skill", "planner", files)
+        self.assertEqual(self.run_once().error_code, CONTENT_UNREADABLE)
+
+    def test_a_checkout_that_refuses_to_read_is_unreadable(self) -> None:
+        """GitProvider raises ValueError for symlinks, oversized and non-UTF-8 files."""
+
+        original = self.checkout.read_resource_files
+
+        def refuse(kind, slug):
+            if slug == "planner":
+                raise ValueError("symlink/reparse points are forbidden")
+            return original(kind, slug)
+
+        self.checkout.read_resource_files = refuse
+        finished = self.run_once()
+        self.assertEqual(finished.error_code, CONTENT_UNREADABLE)
+        row = self.row_for(finished.public_id, "plan:skill/planner")
+        self.assertEqual(row.metrics["checkout_exception"], "ValueError")
+
+    def test_an_optional_node_with_changed_files_degrades_its_stage(self) -> None:
+        self.edit("skill", "linter", "SKILL.md", lambda body: body + "changed\n")
+        finished = self.run_once()
+        self.assertEqual(finished.status, "succeeded")
+        statuses = {item["stage_id"]: item["status"] for item in finished.output["stages"]}
+        self.assertEqual(statuses, {"plan": "succeeded", "extras": "degraded", "write": "succeeded"})
+        self.assertNotIn("extras:skill/linter", self.adapter.calls)
+
+    def test_a_lifecycle_status_written_into_the_manifest_is_not_a_change(self) -> None:
+        """Publishing projects `status` into resource.yaml; the artifact hash excludes it."""
+
+        def project(text: str) -> str:
+            manifest = json.loads(text)
+            manifest["status"] = "deprecated"
+            return json.dumps(manifest, indent=2) + "\n"
+
+        self.edit("skill", "planner", "resource.yaml", project)
+        self.assertEqual(self.run_once().status, "succeeded")
+
+    def test_windows_line_endings_are_not_a_change(self) -> None:
+        """A checkout on Windows may hold CRLF; the hash normalizes line endings first."""
+
+        self.edit("skill", "planner", "SKILL.md", lambda body: body.replace("\n", "\r\n"))
+        self.assertEqual(self.run_once().status, "succeeded")
+
+    def test_the_record_is_checked_before_the_checkout(self) -> None:
+        """A retired version is refused as retired, whatever its files say."""
+
+        run = self.start()
+        version = only_version(self.uow_factory, self.capabilities["planner"])
+        move_version(self.uow_factory, version.public_id, "deprecated")
+        move_version(self.uow_factory, version.public_id, "retired")
+        self.checkout.remove("skill", "planner")
+        self.executor.advance(run.public_id)
+        self.assertEqual(self.current(run.public_id).error_code, VERSION_NOT_EXECUTABLE)
+
+    def test_an_executor_cannot_be_built_without_a_checkout(self) -> None:
+        with self.assertRaises(TypeError):
+            WorkflowExecutor(self.uow_factory, self.adapter)  # type: ignore[call-arg]
+
+
+class CheckoutRuleTests(unittest.TestCase):
+    """`verify_checkout_content` on its own: what each mismatch is called."""
+
+    def setUp(self) -> None:
+        self.files = fixture_files(fixture_manifest("skill", "planner", "1.0.0"))
+        self.node = {
+            "kind": "skill",
+            "slug": "planner",
+            "version": "1.0.0",
+            "artifact_hash": str(compute_checkout_artifact_hash(self.files)),
+        }
+
+    def test_the_table(self) -> None:
+        superseded = fixture_files(fixture_manifest("skill", "planner", "2.0.0"))
+        drifted = dict(self.files, **{"SKILL.md": "something else\n"})
+        extra_file = dict(self.files, **{"notes.md": "an added file is content too\n"})
+        cases = [
+            ("unchanged", self.files, None),
+            ("absent", None, CONTENT_MISSING),
+            ("no manifest", {"SKILL.md": "body\n"}, CONTENT_UNREADABLE),
+            ("manifest not an object", dict(self.files, **{"resource.yaml": "[1, 2]\n"}), CONTENT_UNREADABLE),
+            ("manifest not JSON", dict(self.files, **{"resource.yaml": "kind: skill\n"}), CONTENT_UNREADABLE),
+            ("entrypoint gone", {"resource.yaml": self.files["resource.yaml"]}, CONTENT_UNREADABLE),
+            ("another version", superseded, CONTENT_SUPERSEDED),
+            ("same version, other body", drifted, CONTENT_DRIFT),
+            ("same version, extra file", extra_file, CONTENT_DRIFT),
+        ]
+        for label, files, expected in cases:
+            with self.subTest(label):
+                error, _ = verify_checkout_content(self.node, files)
+                self.assertEqual(error, expected)
+
+    def test_evidence_is_given_whenever_the_files_could_be_hashed(self) -> None:
+        error, evidence = verify_checkout_content(self.node, self.files)
+        self.assertIsNone(error)
+        self.assertEqual(evidence, {"checkout_artifact_hash": self.node["artifact_hash"], "checkout_version": "1.0.0"})
+        self.assertEqual(verify_checkout_content(self.node, None), (CONTENT_MISSING, {}))
+
+
+class WiringTests(unittest.TestCase):
+    def test_the_container_gives_the_executor_the_checkout(self) -> None:
+        """Every construction in the application passes `checkout=`.
+
+        The constructor already refuses to be built without one; this keeps the check visible
+        in environments that cannot import the container's web dependencies.
+        """
+
+        calls = []
+        for path in (ROOT / "apps").rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "WorkflowExecutor":
+                    calls.append((path.relative_to(ROOT).as_posix(), {kw.arg for kw in node.keywords}))
+        self.assertTrue(calls, "the application never builds a WorkflowExecutor")
+        for where, keywords in calls:
+            with self.subTest(where):
+                self.assertIn("checkout", keywords)
 
 
 class CancellationAndDeadlineTests(ExecutorFixture):

@@ -214,8 +214,10 @@ def build_container(settings: Settings | None = None) -> Container:
             None if not settings.mysql.enabled else WorkflowRunService(uow_factory)
         ),
         review=None if not settings.mysql.enabled else ReviewService(uow_factory),
+        # The executor re-hashes each node's files from the same checkout export reads, so a
+        # run never delivers a version whose files no longer match what was reviewed.
         workflow_executor=(
-            None if not settings.mysql.enabled else WorkflowExecutor(uow_factory)
+            None if not settings.mysql.enabled else WorkflowExecutor(uow_factory, checkout=git)
         ),
     )
 

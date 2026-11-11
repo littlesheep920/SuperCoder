@@ -6,6 +6,11 @@ means the service rejected something the API would also reject.
 The helpers are deliberate about required fields. A builder that fills in plausible defaults
 is how a fixture starts passing for reasons the production path would never allow, so every
 identifier and hash here is generated from the slug and version it belongs to.
+
+A version's ``artifact_hash`` is computed from real files (`fixture_files`) by the same rule
+registration uses, and those files can be written to a `MemoryCheckout`. The executor re-hashes
+each node from the checkout before it runs, so a fixture hash that no file could produce would
+make every run fail for a reason production never has.
 """
 
 from __future__ import annotations
@@ -15,6 +20,7 @@ import itertools
 import json
 from datetime import datetime, timezone
 
+from apps.api.domain.hashing import compute_checkout_artifact_hash
 from apps.api.domain.models import LifecycleState, ResourceKind, VersionIdentifier
 from apps.api.repositories.contracts import (
     NewResource,
@@ -39,6 +45,56 @@ def _public_id() -> str:
     return f"01FIX{next(_COUNTER):021d}"
 
 
+class MemoryCheckout:
+    """The Git checkout, in memory: resource directories keyed by (kind, slug).
+
+    Answers ``read_resource_files`` the way `GitProvider` does — every file of the directory,
+    ``resource.yaml`` included, and ``FileNotFoundError`` for a directory that is not there.
+    """
+
+    def __init__(self) -> None:
+        self.directories: dict[tuple[str, str], dict[str, str]] = {}
+
+    def write(self, kind: str, slug: str, files: dict[str, str]) -> None:
+        self.directories[(ResourceKind(kind).value, slug)] = dict(files)
+
+    def remove(self, kind: str, slug: str) -> None:
+        del self.directories[(ResourceKind(kind).value, slug)]
+
+    def files(self, kind: str, slug: str) -> dict[str, str]:
+        return dict(self.directories[(ResourceKind(kind).value, slug)])
+
+    def read_resource_files(self, kind, slug: str) -> dict[str, str]:
+        key = (ResourceKind(kind).value, slug)
+        if key not in self.directories:
+            raise FileNotFoundError(f"resource directory does not exist: {key[0]}/{slug}")
+        return dict(self.directories[key])
+
+
+ENTRYPOINT = "SKILL.md"
+
+
+def fixture_manifest(kind: str, slug: str, version: str, extra: dict | None = None) -> dict:
+    return {
+        "apiVersion": "supercoder/v1",
+        "kind": kind,
+        "name": slug,
+        "slug": slug,
+        "version": version,
+        "entrypoint": ENTRYPOINT,
+        **(extra or {}),
+    }
+
+
+def fixture_files(manifest: dict) -> dict[str, str]:
+    """The files a registered fixture version consists of: its manifest and its body."""
+
+    return {
+        "resource.yaml": json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        ENTRYPOINT: f"# {manifest['name']}\n\nFixture body for {manifest['slug']} {manifest['version']}.\n",
+    }
+
+
 def register_capability(
     uow_factory,
     kind: str,
@@ -49,8 +105,13 @@ def register_capability(
     artifact_hash: str | None = None,
     owner_team: str = "platform",
     manifest_extra: dict | None = None,
+    checkout: MemoryCheckout | None = None,
 ) -> ResourceRecord:
-    """Register a resource with one version, optionally published."""
+    """Register a resource with one version, optionally published.
+
+    The version's files are written to ``checkout`` when one is given, so the checkout holds
+    exactly what was registered — as it does in production right after a registration.
+    """
 
     resource_id = _public_id()
     with uow_factory() as uow:
@@ -67,7 +128,11 @@ def register_capability(
 
     now = _now()
     version_id = _public_id()
-    artifact = artifact_hash or f"sha256:{slug}-{version}".replace(".", "")
+    manifest = fixture_manifest(kind, slug, version, manifest_extra)
+    files = fixture_files(manifest)
+    artifact = artifact_hash or str(compute_checkout_artifact_hash(files))
+    if checkout is not None:
+        checkout.write(kind, slug, files)
     with uow_factory() as uow:
         # The version is created as a draft: `add` does not take a status, because a version
         # always starts unreviewed. Moving it to `published` goes through the same conditional
@@ -81,16 +146,11 @@ def register_capability(
                 name=slug,
                 description=f"{slug} fixture",
                 owner_team=owner_team,
-                entrypoint="SKILL.md",
+                entrypoint=ENTRYPOINT,
                 aliases=(),
                 inputs=(),
                 outputs=(),
-                manifest={
-                    "apiVersion": "supercoder/v1",
-                    "kind": kind,
-                    "name": slug,
-                    **(manifest_extra or {}),
-                },
+                manifest=manifest,
                 type_spec={},
                 artifact_hash=artifact,
                 manifest_snapshot_hash="sha256:manifest",

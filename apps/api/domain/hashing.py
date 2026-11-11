@@ -36,7 +36,9 @@ __all__ = [
     "calculate_resource_hashes",
     "canonical_json_bytes",
     "canonical_manifest_bytes",
+    "checkout_manifest",
     "compute_artifact_hash",
+    "compute_checkout_artifact_hash",
     "compute_content_hash",
     "compute_manifest_snapshot_hash",
     "normalize_json_value",
@@ -312,3 +314,35 @@ def calculate_resource_hashes(
         manifest_snapshot_hash=compute_manifest_snapshot_hash(manifest),
         content_hashes=content_hashes,
     )
+
+
+def checkout_manifest(files: Mapping[str, TextContent]) -> dict[str, JsonValue]:
+    """The manifest of one resource directory, parsed from its ``resource.yaml``.
+
+    ``files`` maps resource-relative paths to content, as
+    ``GitProvider.read_resource_files`` returns them. A directory without a
+    manifest, or with one that is not a JSON-compatible object, is refused.
+    """
+
+    raw = files.get(_MANIFEST_RECORD_PATH)
+    if raw is None:
+        raise ValueError("resource.yaml is missing from the resource directory")
+    parsed = parse_json_compatible_document(raw)
+    if not isinstance(parsed, dict):
+        raise ValueError("resource.yaml must contain a JSON-compatible object")
+    return parsed
+
+
+def compute_checkout_artifact_hash(files: Mapping[str, TextContent]) -> ArtifactHash:
+    """The artifact hash of one resource directory exactly as it sits in the checkout.
+
+    ``resource.yaml`` is the manifest and every other file is a managed artifact: the
+    same split ``ManifestLoader.load`` makes at registration. A directory that has not
+    changed since a version was registered therefore reproduces that version's recorded
+    ``artifact_hash``, and any edit to the manifest's content (other than its lifecycle
+    ``status``) or to any file makes it differ.
+    """
+
+    manifest = checkout_manifest(files)
+    artifacts = {path: content for path, content in files.items() if path != _MANIFEST_RECORD_PATH}
+    return compute_artifact_hash(manifest, artifacts)

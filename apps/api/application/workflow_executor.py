@@ -20,6 +20,12 @@ is: the platform does not claim to have run anything it did not run.
 
 Adapters are pluggable through :class:`NodeAdapter`. An adapter that really executes something
 must still return an output object; whatever text it produces, an empty output fails the node.
+
+Before any adapter sees a node, the executor checks the node twice: the governance record must
+still be executable with the pinned hash, and the checkout's files must still hash to it. The
+second check is what makes a delivery honest — the record says what was reviewed, the checkout is
+what a runtime would receive — and it is done here rather than inside one adapter so that no
+adapter, present or future, can skip it.
 """
 
 from __future__ import annotations
@@ -29,11 +35,12 @@ from datetime import datetime
 from typing import Any, Callable, Mapping, Protocol
 
 from ..domain.errors import NotFoundError, PreconditionFailedError
-from ..domain.models import ActorIdentity, ActorType, new_ulid
+from ..domain.models import ActorIdentity, ActorType, ResourceKind, new_ulid
 from ..domain.workflow_execution import (
     ADAPTER_ERROR,
     CANCELLATION_REQUESTED,
     CHECKPOINT_MISMATCH,
+    CONTENT_UNREADABLE,
     EXECUTOR_VERSION,
     Checkpoint,
     CheckpointMismatch,
@@ -49,6 +56,7 @@ from ..domain.workflow_execution import (
     run_output,
     short_text,
     stage_status,
+    verify_checkout_content,
     verify_node_version,
 )
 from ..domain.workflow_runs import RunStatus, is_overdue, transition
@@ -86,6 +94,17 @@ class NodeAdapter(Protocol):
     adapter_version: str
 
     def execute(self, request: NodeExecutionRequest) -> NodeExecutionResult: ...
+
+
+class ResourceCheckout(Protocol):
+    """Where resource files are read from: `GitProvider` in production.
+
+    ``read_resource_files`` returns the resource directory's files keyed by resource-relative
+    path, ``resource.yaml`` included, and raises ``FileNotFoundError`` when there is no such
+    directory.
+    """
+
+    def read_resource_files(self, kind: ResourceKind, slug: str) -> dict[str, str]: ...
 
 
 class GovernedDeliveryAdapter:
@@ -144,11 +163,15 @@ class WorkflowExecutor:
         uow_factory,
         adapter: NodeAdapter | None = None,
         *,
+        checkout: ResourceCheckout,
         clock: Callable[[], datetime] = now_utc,
         max_steps: int = 500,
     ) -> None:
+        # The checkout is required, with no default: an executor that could be built without
+        # one would deliver on the record's word alone, which is exactly the gap it closes.
         self._uow_factory = uow_factory
         self._adapter: NodeAdapter = adapter or GovernedDeliveryAdapter()
+        self._checkout = checkout
         self._clock = clock
         self._max_steps = max_steps
 
@@ -285,6 +308,8 @@ class WorkflowExecutor:
                 "executor_version": EXECUTOR_VERSION,
             }
             if error is None:
+                error = self._verify_checkout(node, metrics)
+            if error is None:
                 adapter_version = self._adapter.adapter_version
                 try:
                     result = self._adapter.execute(
@@ -418,6 +443,27 @@ class WorkflowExecutor:
             uow.commit()
 
     # ------------------------------------------------------------------ helpers
+
+    def _verify_checkout(self, node: Mapping[str, Any], metrics: dict[str, Any]) -> str | None:
+        """Recompute the node's hash from the checkout. Returns an error code, or None.
+
+        Reading happens here and judging in `verify_checkout_content`, so the rule stays pure.
+        The evidence goes into the usage row either way: a reviewer looking at a refused node
+        sees what the checkout held, not only that it disagreed.
+        """
+
+        try:
+            files = self._checkout.read_resource_files(ResourceKind(node["kind"]), str(node["slug"]))
+        except FileNotFoundError:
+            files = None
+        except (OSError, ValueError, RuntimeError) as exception:
+            # A symlink, a file over the size limit, invalid UTF-8, an unknown kind: the
+            # content cannot be shown to match, so it is not delivered.
+            metrics["checkout_exception"] = type(exception).__name__
+            return CONTENT_UNREADABLE
+        error, evidence = verify_checkout_content(node, files)
+        metrics.update(evidence)
+        return error
 
     def _load(self, run_id: str) -> WorkflowRunRecord:
         with self._uow_factory() as uow:

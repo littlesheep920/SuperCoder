@@ -11,6 +11,10 @@ ARCHITECTURE_FREEZE.md §6.3 fixes what the walk must do:
   version ran, not *permission* to run it: a version retired after the run was queued may not
   be used for a new execution (RESOURCE_GOVERNANCE.md §7.2), and a content hash that no longer
   matches means the content is not the content that was reviewed;
+* **the content is checked where it would be delivered from.** The governance record holds a
+  hash, not the text; the text lives in the Git checkout. So the hash is recomputed from the
+  checkout's files, and a node whose files no longer reproduce the pinned hash is not executed
+  — whether a newer version has replaced them or someone edited them outside the platform;
 * at a gate the run waits in `awaiting_approval`; a decision is bound to that gate of that run;
 * the **checkpoint is bound to the snapshot hash**: resuming continues the original run on its
   original snapshot, and a checkpoint for another snapshot is refused, not reinterpreted;
@@ -29,13 +33,18 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from typing import Any, Mapping
 
-from .hashing import canonical_json_bytes, sha256_digest
+from .hashing import (
+    canonical_json_bytes,
+    checkout_manifest,
+    compute_checkout_artifact_hash,
+    sha256_digest,
+)
 from .workflow_resolution import EXECUTABLE_STATES
 from .workflow_runs import TERMINAL, RunStatus
 
 WORKFLOW_QUEUE = "workflow"
 RUN_JOB_KIND = "workflow_run"
-EXECUTOR_VERSION = "workflow-executor/1"
+EXECUTOR_VERSION = "workflow-executor/2"
 CHECKPOINT_SCHEMA = "workflow-checkpoint/1"
 OUTPUT_SCHEMA = "workflow-run-output/1"
 APPROVAL_GATE = "human-approval"
@@ -47,6 +56,14 @@ CANCELLATION_REQUESTED = "cancellation_requested"
 VERSION_MISSING = "version_missing"
 VERSION_NOT_EXECUTABLE = "version_not_executable"
 ARTIFACT_DRIFT = "artifact_drift"
+#: The checkout has no directory for the pinned resource.
+CONTENT_MISSING = "content_missing"
+#: The checkout's directory cannot be read or hashed (no manifest, invalid UTF-8, a symlink...).
+CONTENT_UNREADABLE = "content_unreadable"
+#: The checkout holds another version of the resource: a newer registration replaced the files.
+CONTENT_SUPERSEDED = "content_superseded"
+#: The checkout claims the pinned version, but its files hash to something else.
+CONTENT_DRIFT = "content_drift"
 NODE_OUTPUT_INVALID = "node_output_invalid"
 ADAPTER_ERROR = "adapter_error"
 CHECKPOINT_MISMATCH = "checkpoint_mismatch"
@@ -310,6 +327,39 @@ def verify_node_version(
     if current_artifact_hash != node.get("artifact_hash"):
         return ARTIFACT_DRIFT
     return None
+
+
+def verify_checkout_content(
+    node: Mapping[str, Any], files: Mapping[str, str] | None
+) -> tuple[str | None, dict[str, str]]:
+    """Re-check a pinned version against the files a runtime would actually receive.
+
+    ``files`` is the node's resource directory as read from the checkout, or None when the
+    checkout has no such directory. Returns an error code (None when the files reproduce the
+    pinned ``artifact_hash``) and the evidence, which the usage row keeps so a reviewer can see
+    what the checkout held instead.
+
+    Two mismatches are told apart because they mean different things. ``content_superseded``:
+    the checkout's manifest names another version, which is what happens when a newer version
+    is registered over the same directory — the checkout keeps one version per resource, so the
+    pinned one can no longer be delivered from it. ``content_drift``: the manifest still names
+    the pinned version, but the files changed without a new registration. Both fail closed.
+    """
+
+    if files is None:
+        return CONTENT_MISSING, {}
+    try:
+        manifest = checkout_manifest(files)
+        recomputed = str(compute_checkout_artifact_hash(files))
+    except (TypeError, ValueError):
+        return CONTENT_UNREADABLE, {}
+    checkout_version = str(manifest.get("version"))
+    evidence = {"checkout_artifact_hash": recomputed, "checkout_version": checkout_version}
+    if recomputed == node.get("artifact_hash"):
+        return None, evidence
+    if checkout_version != str(node.get("version")):
+        return CONTENT_SUPERSEDED, evidence
+    return CONTENT_DRIFT, evidence
 
 
 def check_node_output(output: Any) -> str | None:
