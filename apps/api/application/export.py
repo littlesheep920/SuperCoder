@@ -12,8 +12,11 @@ Two rules shape this service, both decided before any code was written:
    make the export look complete when it is not.
 
 The service reads the body from the checkout for the same reason the editor does: the
-record holds hashes, not text. That is a known limitation of the storage model, and the
-export reports it rather than pretending the text is the version's snapshot.
+record holds hashes, not text. The checkout keeps one set of files per resource, so it may
+hold another version's files, or files edited outside the platform. The export therefore
+recomputes the artifact hash from the checkout and refuses (409 CONTENT_HASH_MISMATCH) unless
+it equals the version's recorded hash: an archive labelled with a version must contain that
+version's reviewed content, or nothing.
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ from ..domain.adapters import (
     find_target,
 )
 from ..domain.errors import ConflictError, ErrorCode, NotFoundError
+from ..domain.hashing import checkout_manifest, compute_checkout_artifact_hash
 from ..domain.models import LifecycleState, ResourceKind
 from ..repositories.contracts import UnitOfWorkFactory
 
@@ -125,13 +129,15 @@ class ExportService:
         entrypoint = str(manifest.get("entrypoint") or "")
 
         try:
-            body = self._git.read_resource_files(ResourceKind(kind), slug).get(entrypoint, "")
+            files = self._git.read_resource_files(ResourceKind(kind), slug)
         except FileNotFoundError as error:
             # The record exists but the checkout does not have the files. Saying so is
             # better than exporting a skill with an empty body that looks intentional.
             raise NotFoundError(
                 f"resource directory for {kind}/{slug} is missing from the checkout"
             ) from error
+        self._require_reviewed_content(version, kind, slug, files)
+        body = files.get(entrypoint, "")
 
         return _VersionSnapshot(
             resource_id=resource.public_id,
@@ -145,6 +151,34 @@ class ExportService:
             body=body,
             manifest=manifest,
             tags=tuple(str(tag) for tag in (version.aliases or ())),
+        )
+
+
+    @staticmethod
+    def _require_reviewed_content(version, kind: str, slug: str, files: dict[str, str]) -> None:
+        """Refuse unless the checkout's files reproduce the version's artifact hash.
+
+        The same rule the workflow executor applies before delivering a node
+        (`verify_checkout_content`); the message says which of the two usual causes it is.
+        """
+
+        try:
+            recomputed = str(compute_checkout_artifact_hash(files))
+            held = str(checkout_manifest(files).get("version"))
+        except (TypeError, ValueError) as error:
+            raise ConflictError(
+                code=ErrorCode.CONTENT_HASH_MISMATCH,
+                message=f"the checkout's files for {kind}/{slug} cannot be hashed: {error}",
+            ) from error
+        if recomputed == str(version.artifact_hash):
+            return
+        if held != str(version.identifier):
+            reason = f"the checkout holds version {held} of {kind}/{slug}, not {version.identifier}"
+        else:
+            reason = f"the checkout's files for {kind}/{slug} {held} were changed after registration"
+        raise ConflictError(
+            code=ErrorCode.CONTENT_HASH_MISMATCH,
+            message=f"refusing to export: {reason} (checkout {recomputed}, version {version.artifact_hash})",
         )
 
 
