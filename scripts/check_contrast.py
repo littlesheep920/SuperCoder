@@ -58,6 +58,13 @@ PAIRS = [
     ("danger", "danger-soft", 4.5, "error text and danger button"),
     ("info", "info-soft", 4.5, "validating badge and links"),
     ("text-2", "surface-3", 4.5, "draft badge on its own tint"),
+    ("text-2", "surface-3", 4.5, "queued run badge"),
+    ("info", "info-soft", 4.5, "running run badge"),
+    ("warn", "warn-soft", 4.5, "awaiting-approval run badge"),
+    ("ok", "ok-soft", 4.5, "succeeded run badge"),
+    ("danger", "danger-soft", 4.5, "failed run badge"),
+    ("text-3", "surface-3", 3.0, "cancelled run badge (ambient)"),
+    ("warn", "warn-soft", 4.5, "timed-out run badge"),
     ("#04110f", "accent", 4.5, "primary button label"),
     ("focus", "surface-1", 3.0, "focus ring against a card"),
 ]

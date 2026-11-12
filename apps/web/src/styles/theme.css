@@ -250,6 +250,17 @@ label { display: block; margin: var(--space-2) 0 var(--space-1); color: var(--te
 .badge.deprecated { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
 .badge.retired { background: var(--surface-3); color: var(--text-3); border-color: var(--border-strong); }
 
+/* Workflow run states. These are a different vocabulary from lifecycle states: a run is
+   queued, running, waiting at a gate, or finished one of four ways. Without these the badge
+   rendered as unstyled text, which is how a reader loses the only cue that a run failed. */
+.badge.queued { background: var(--surface-3); color: var(--text-2); border-color: var(--border-strong); }
+.badge.running { background: var(--info-soft); color: var(--info); border-color: var(--info); }
+.badge.awaiting_approval { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+.badge.succeeded { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.badge.failed { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.badge.cancelled { background: var(--surface-3); color: var(--text-3); border-color: var(--border-strong); }
+.badge.timed_out { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+
 /* ---------------------------------------------------------------- text tones */
 
 .error { color: var(--danger); }
